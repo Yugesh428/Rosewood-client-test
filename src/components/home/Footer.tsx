@@ -14,10 +14,10 @@ export default function Footer() {
           {/* Brand */}
           <div className="md:col-span-2">
             <p className="text-xs tracking-[0.35em] uppercase text-[#FFD700] drop-shadow-[0_0_8px_rgba(255,215,0,0.6)] font-sans mb-1">
-              Luxe
+              Rosewood
             </p>
             <h3 className="font-heading text-white text-xl mb-4 drop-shadow-[0_0_4px_rgba(255,255,255,0.2)]">
-              Apothecary
+              Pharmacy
             </h3>
             <p className="text-white/55 text-xs font-sans leading-relaxed max-w-xs">
               A curated collection of premium healthcare, wellness, and skincare products delivered with discretion and care to your door.
@@ -66,7 +66,7 @@ export default function Footer() {
         {/* Bottom bar */}
         <div className="mt-12 pt-6 border-t border-white/10 flex flex-col md:flex-row items-center justify-between gap-4">
           <p className="text-white/35 text-[10px] font-sans tracking-wide">
-            © {new Date().getFullYear()} Rosewood Apothecary. All rights reserved.
+            © {new Date().getFullYear()} Rosewood Pharmacy. All rights reserved.
           </p>
           <p className="text-[#FFD700]/60 text-[10px] font-sans tracking-wide drop-shadow-[0_0_4px_rgba(255,215,0,0.3)]">
             Crafted with care ✦ Delivered with precision

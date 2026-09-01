@@ -172,8 +172,8 @@ export default function Navbar() {
           {/* Brand */}
           <Link href="/" className="flex-shrink-0">
             <span className="font-heading text-[#FFD700] drop-shadow-[0_0_8px_rgba(255,215,0,0.5)] text-sm tracking-[0.2em] uppercase leading-tight">
-              Luxe<br />
-              <span className="text-[10px] tracking-[0.35em]">Apothecary</span>
+              Rosewood<br />
+              <span className="text-[10px] tracking-[0.35em]">Pharmacy</span>
             </span>
           </Link>
 
