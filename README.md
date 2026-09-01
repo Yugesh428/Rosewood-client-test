@@ -1,37 +1,153 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Rosewood Pharmacy
+
+Luxury pharmacy e-commerce platform built with Next.js 16, Sequelize, PostgreSQL (Supabase), and NextAuth.
+
+---
+
+## Prerequisites
+
+Make sure you have the following installed before starting:
+
+- [Node.js](https://nodejs.org/) v18 or higher
+- npm v9 or higher
+- Access to a PostgreSQL database (Supabase recommended)
+
+---
 
 ## Getting Started
 
-First, run the development server:
+Follow these steps **in order**.
+
+### 1. Clone the repository
+
+```bash
+git clone <repository-url>
+cd rosewood
+```
+
+### 2. Install dependencies
+
+```bash
+npm install
+```
+
+### 3. Configure environment variables
+
+Copy the example env file and fill in your values:
+
+```bash
+cp .env.example .env
+```
+
+Open `.env` and update the following required fields:
+
+| Variable | Description |
+|---|---|
+| `DATABASE_URL` | PostgreSQL connection string |
+| `NEXTAUTH_SECRET` | Random secret (min 32 chars) — generate with `openssl rand -base64 32` |
+| `AUTH_SECRET` | Same value as `NEXTAUTH_SECRET` |
+| `NEXTAUTH_URL` | `http://localhost:3000` for local dev |
+| `STORAGE_PROVIDER` | Keep as `local` for development |
+
+> AWS S3 variables are only required when `STORAGE_PROVIDER=s3` (production).
+
+### 4. Sync the database
+
+Creates all tables that don't exist yet. Safe to run multiple times — it will not drop existing data.
+
+```bash
+npm run db:sync
+```
+
+### 5. Seed the database
+
+Creates the default admin user. Safe to re-run — it will update the admin password if the account already exists.
+
+```bash
+npm run db:seed
+```
+
+Default admin credentials after seeding:
+
+```
+Email:    admin@rosewood.com
+Password: Admin@123
+```
+
+> Change the admin password after first login in production.
+
+### 6. Start the development server
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000) in your browser.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+---
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Available Scripts
 
-## Learn More
+| Script | Description |
+|---|---|
+| `npm run dev` | Start development server |
+| `npm run build` | Build for production |
+| `npm run start` | Start production server |
+| `npm run lint` | Run ESLint |
+| `npm run db:sync` | Sync all Sequelize models to the database |
+| `npm run db:seed` | Seed default admin user |
+| `npm run db:migrate` | Run database migrations |
 
-To learn more about Next.js, take a look at the following resources:
+---
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Project Structure
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+```
+src/
+├── app/                    # Next.js App Router pages & API routes
+│   ├── (admin)/            # Admin dashboard (protected)
+│   ├── (customer)/         # Customer auth pages (login, register)
+│   ├── about/              # About Us page
+│   ├── contact/            # Contact page
+│   ├── pharmacy/           # Pharmacy / products page
+│   └── api/                # API route handlers
+├── components/             # Shared UI components
+│   ├── home/               # Homepage sections (Hero, Footer, etc.)
+│   ├── admin/              # Admin layout & sidebar
+│   └── ui/                 # Base UI primitives
+├── features/               # Feature modules (model + controller + routes)
+│   ├── products/
+│   ├── orders/
+│   ├── reviews/
+│   ├── wishlist/
+│   ├── Ui/                 # CMS-managed UI sections
+│   │   ├── HeroSection/
+│   │   ├── ourProductCollection/
+│   │   ├── testimonials/
+│   │   ├── AboutUsPage/
+│   │   └── contact/
+│   └── ...
+└── lib/                    # Shared utilities
+    ├── database/           # Sequelize config & sync
+    ├── auth/               # NextAuth config
+    ├── storage.ts          # File storage (local / S3)
+    ├── logger.ts           # App logger
+    └── seed/               # Database seeding
+```
 
-## Deploy on Vercel
+---
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Default Accounts
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
-# Rosewood
+| Role | Email | Password |
+|---|---|---|
+| Admin | admin@rosewood.com | Admin@123 |
+
+---
+
+## Notes for QA
+
+- File uploads in development are stored in `/public/uploads/` — this folder is created automatically on first upload.
+- The map on the contact page uses OpenStreetMap (no API key required).
+- All admin routes are under `/admin/*` and require admin login at `/admin/login`.
+- Customer routes are under `/account` and require customer login at `/login`.
