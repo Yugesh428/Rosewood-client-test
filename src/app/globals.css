@@ -1,26 +1,100 @@
 @import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
+@custom-variant dark (&:is(.dark *));
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  /* ── Fonts ── */
+  --font-sans: var(--font-sans);
+  --font-mono: var(--font-mono);
+  --font-heading: var(--font-heading);
+
+  /* ── Apothecary palette mapped to shadcn tokens ── */
+  --color-background:         var(--background);
+  --color-foreground:         var(--foreground);
+  --color-card:               var(--card);
+  --color-card-foreground:    var(--card-foreground);
+  --color-popover:            var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary:            var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary:          var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted:              var(--muted);
+  --color-muted-foreground:   var(--muted-foreground);
+  --color-accent:             var(--accent);
+  --color-accent-foreground:  var(--accent-foreground);
+  --color-destructive:        var(--destructive);
+  --color-border:             var(--border);
+  --color-input:              var(--input);
+  --color-ring:               var(--ring);
+  --color-gold:               var(--gold);
+
+  /* ── Radius ── */
+  --radius-sm:  calc(var(--radius) * 0.6);
+  --radius-md:  calc(var(--radius) * 0.8);
+  --radius-lg:  var(--radius);
+  --radius-xl:  calc(var(--radius) * 1.4);
+  --radius-2xl: calc(var(--radius) * 1.8);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+/* ── Light theme (Apothecary) ── */
+:root {
+  --background:           #F9F9F9;   /* Off-white surface */
+  --foreground:           #1A1A1A;   /* Deep charcoal text */
+  --card:                 #FFFFFF;
+  --card-foreground:      #1A1A1A;
+  --popover:              #FFFFFF;
+  --popover-foreground:   #1A1A1A;
+  --primary:              #000000;   /* Black — primary buttons / navbar */
+  --primary-foreground:   #FFFFFF;
+  --secondary:            #F4F4F4;
+  --secondary-foreground: #1A1A1A;
+  --muted:                #F0F0F0;
+  --muted-foreground:     #6B6B6B;
+  --accent:               #D4AF37;   /* Luxury gold accent */
+  --accent-foreground:    #000000;
+  --destructive:          oklch(0.577 0.245 27.325);
+  --border:               #E5E5E5;
+  --input:                #E5E5E5;
+  --ring:                 #D4AF37;   /* Gold focus ring */
+  --gold:                 #D4AF37;
+  --radius:               0.5rem;
+}
+
+/* ── Dark theme (kept minimal, inverts the light palette) ── */
+.dark {
+  --background:           #111111;
+  --foreground:           #F9F9F9;
+  --card:                 #1A1A1A;
+  --card-foreground:      #F9F9F9;
+  --popover:              #1A1A1A;
+  --popover-foreground:   #F9F9F9;
+  --primary:              #F9F9F9;
+  --primary-foreground:   #111111;
+  --secondary:            #2A2A2A;
+  --secondary-foreground: #F9F9F9;
+  --muted:                #2A2A2A;
+  --muted-foreground:     #999999;
+  --accent:               #D4AF37;
+  --accent-foreground:    #000000;
+  --destructive:          oklch(0.704 0.191 22.216);
+  --border:               rgba(255,255,255,0.1);
+  --input:                rgba(255,255,255,0.12);
+  --ring:                 #D4AF37;
+  --gold:                 #D4AF37;
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
   }
-}
-
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  body {
+    @apply bg-background text-foreground;
+    font-family: var(--font-sans), system-ui, sans-serif;
+  }
+  h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-heading), Georgia, serif;
+  }
 }
