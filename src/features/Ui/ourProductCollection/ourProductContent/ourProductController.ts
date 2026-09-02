@@ -7,20 +7,38 @@ import { AppError, errorResponse } from "@/lib/apiError";
 
 const CTX = "OurProductController";
 
-const MAX_FILE_SIZE  = 5 * 1024 * 1024; // 5 MB
-const ALLOWED_TYPES  = ["image/jpeg", "image/png", "image/webp", "image/avif"];
+const MAX_FILE_SIZE  = 5 * 1024 * 1024; // 5 MB for images
+const MAX_VIDEO_SIZE = 50 * 1024 * 1024; // 50 MB for videos
+const ALLOWED_IMAGE_TYPES  = ["image/jpeg", "image/png", "image/webp", "image/avif"];
+const ALLOWED_VIDEO_TYPES  = ["video/mp4", "video/webm", "video/ogg", "video/quicktime"];
 
-// ─── Helper: validate + save a file, return URL ───────────────────────────────
-async function saveFile(file: File, folder: string): Promise<string> {
-  if (!ALLOWED_TYPES.includes(file.type)) {
+// ─── Helper: validate + save an image file, return URL ────────────────────────
+async function saveImageFile(file: File, folder: string): Promise<string> {
+  if (!ALLOWED_IMAGE_TYPES.includes(file.type)) {
     throw new AppError(
-      `Invalid file type "${file.type}". Allowed: ${ALLOWED_TYPES.join(", ")}.`,
+      `Invalid image type "${file.type}". Allowed: ${ALLOWED_IMAGE_TYPES.join(", ")}.`,
       400,
       "INVALID_FILE_TYPE",
     );
   }
   if (file.size > MAX_FILE_SIZE) {
-    throw new AppError("File size must not exceed 5 MB.", 400, "FILE_TOO_LARGE");
+    throw new AppError("Image file size must not exceed 5 MB.", 400, "FILE_TOO_LARGE");
+  }
+  const result = await storage.save(file, folder);
+  return result.url;
+}
+
+// ─── Helper: validate + save a video file, return URL ─────────────────────────
+async function saveVideoFile(file: File, folder: string): Promise<string> {
+  if (!ALLOWED_VIDEO_TYPES.includes(file.type)) {
+    throw new AppError(
+      `Invalid video type "${file.type}". Allowed: ${ALLOWED_VIDEO_TYPES.join(", ")}.`,
+      400,
+      "INVALID_VIDEO_TYPE",
+    );
+  }
+  if (file.size > MAX_VIDEO_SIZE) {
+    throw new AppError("Video file size must not exceed 50 MB.", 400, "VIDEO_TOO_LARGE");
   }
   const result = await storage.save(file, folder);
   return result.url;
@@ -103,6 +121,7 @@ export async function createProduct(req: NextRequest): Promise<NextResponse> {
     const contentType = req.headers.get("content-type") ?? "";
     let fields: Record<string, string> = {};
     let backgroundImage: string | null = null;
+    let videoFile: string | null = null;
     let photo1Url: string | null = null;
     let photo2Url: string | null = null;
 
@@ -114,16 +133,19 @@ export async function createProduct(req: NextRequest): Promise<NextResponse> {
       }
 
       const bgFile     = formData.get("backgroundImage") as File | null;
+      const vidFile    = formData.get("video")           as File | null;
       const photo1File = formData.get("photo1")          as File | null;
       const photo2File = formData.get("photo2")          as File | null;
 
-      if (bgFile?.size)     backgroundImage = await saveFile(bgFile, "ui/products/bg");
+      if (bgFile?.size)     backgroundImage = await saveImageFile(bgFile, "ui/products/bg");
       else if (fields.backgroundImageUrl) backgroundImage = fields.backgroundImageUrl;
 
-      if (photo1File?.size) photo1Url = await saveFile(photo1File, "ui/products/photo1");
+      if (vidFile?.size)    videoFile = await saveVideoFile(vidFile, "ui/products/videos");
+
+      if (photo1File?.size) photo1Url = await saveImageFile(photo1File, "ui/products/photo1");
       else if (fields.photo1Url) photo1Url = fields.photo1Url;
 
-      if (photo2File?.size) photo2Url = await saveFile(photo2File, "ui/products/photo2");
+      if (photo2File?.size) photo2Url = await saveImageFile(photo2File, "ui/products/photo2");
       else if (fields.photo2Url) photo2Url = fields.photo2Url;
 
     } else {
@@ -153,6 +175,7 @@ export async function createProduct(req: NextRequest): Promise<NextResponse> {
       categoryId,
       backgroundImage,
       videoUrl:       videoUrl?.trim()        || null,
+      videoFile,
       photo1Url,
       photo1Title:    photo1Title?.trim()     || null,
       photo1Subtitle: photo1Subtitle?.trim()  || null,
@@ -191,6 +214,7 @@ export async function updateProduct(
     const contentType = req.headers.get("content-type") ?? "";
     let fields: Record<string, string> = {};
     let backgroundImage: string | null | undefined;
+    let videoFile: string | null | undefined;
     let photo1Url: string | null | undefined;
     let photo2Url: string | null | undefined;
 
@@ -202,20 +226,29 @@ export async function updateProduct(
       }
 
       const bgFile     = formData.get("backgroundImage") as File | null;
+      const vidFile    = formData.get("video")           as File | null;
       const photo1File = formData.get("photo1")          as File | null;
       const photo2File = formData.get("photo2")          as File | null;
 
       if (bgFile?.size) {
         await deleteIfLocal(product.backgroundImage);
-        backgroundImage = await saveFile(bgFile, "ui/products/bg");
+        backgroundImage = await saveImageFile(bgFile, "ui/products/bg");
         logger.debug(CTX, "updateProduct — bg replaced", { backgroundImage });
       } else if (fields.backgroundImageUrl !== undefined) {
         backgroundImage = fields.backgroundImageUrl || null;
       }
 
+      if (vidFile?.size) {
+        await deleteIfLocal(product.videoFile);
+        videoFile = await saveVideoFile(vidFile, "ui/products/videos");
+        logger.debug(CTX, "updateProduct — video replaced", { videoFile });
+      } else if (fields.videoFile !== undefined) {
+        videoFile = fields.videoFile || null;
+      }
+
       if (photo1File?.size) {
         await deleteIfLocal(product.photo1Url);
-        photo1Url = await saveFile(photo1File, "ui/products/photo1");
+        photo1Url = await saveImageFile(photo1File, "ui/products/photo1");
         logger.debug(CTX, "updateProduct — photo1 replaced", { photo1Url });
       } else if (fields.photo1Url !== undefined) {
         photo1Url = fields.photo1Url || null;
@@ -223,7 +256,7 @@ export async function updateProduct(
 
       if (photo2File?.size) {
         await deleteIfLocal(product.photo2Url);
-        photo2Url = await saveFile(photo2File, "ui/products/photo2");
+        photo2Url = await saveImageFile(photo2File, "ui/products/photo2");
         logger.debug(CTX, "updateProduct — photo2 replaced", { photo2Url });
       } else if (fields.photo2Url !== undefined) {
         photo2Url = fields.photo2Url || null;
@@ -232,6 +265,7 @@ export async function updateProduct(
     } else {
       fields = await req.json() as Record<string, string>;
       if (fields.backgroundImage !== undefined) backgroundImage = fields.backgroundImage || null;
+      if (fields.videoFile       !== undefined) videoFile       = fields.videoFile       || null;
       if (fields.photo1Url       !== undefined) photo1Url       = fields.photo1Url       || null;
       if (fields.photo2Url       !== undefined) photo2Url       = fields.photo2Url       || null;
     }
@@ -245,6 +279,7 @@ export async function updateProduct(
 
     await product.update({
       ...(backgroundImage    !== undefined && { backgroundImage }),
+      ...(videoFile          !== undefined && { videoFile }),
       ...(photo1Url          !== undefined && { photo1Url }),
       ...(photo2Url          !== undefined && { photo2Url }),
       ...(fields.title       !== undefined && { title:          fields.title.trim() }),
@@ -316,11 +351,11 @@ export async function deleteProduct(
       throw new AppError("Product not found.", 404, "NOT_FOUND");
     }
 
-    // Clean up all associated images
-    const images = [product.backgroundImage, product.photo1Url, product.photo2Url];
-    for (const url of images) {
+    // Clean up all associated images and videos
+    const files = [product.backgroundImage, product.videoFile, product.photo1Url, product.photo2Url];
+    for (const url of files) {
       await deleteIfLocal(url);
-      if (url) logger.debug(CTX, "deleteProduct — image deleted", { url });
+      if (url) logger.debug(CTX, "deleteProduct — file deleted", { url });
     }
 
     await product.destroy();

@@ -20,6 +20,7 @@ import {
   ChevronRight,
   Home,
   Globe,
+  Palette,
 } from "lucide-react";
 
 interface NavItem {
@@ -39,8 +40,9 @@ const navItems: NavItem[] = [
   { icon: Briefcase,       label: "STAFF",        href: "/admin/staff"        },
   { icon: Star,            label: "REVIEWS",      href: "/admin/reviews"      },
   { icon: MessageSquare,   label: "FEEDBACK",     href: "/admin/feedback"     },
-  { icon: Globe,           label: "SITE CONTENT", href: "/admin/site-content" },
-  { icon: Settings,        label: "SETTINGS",     href: "/admin/settings"     },
+  { icon: Globe,           label: "SITE CONTENT",   href: "/admin/site-content"   },
+  { icon: Palette,         label: "THEME",           href: "/admin/theme-settings" },
+  { icon: Settings,        label: "SETTINGS",        href: "/admin/settings"       },
 ];
 
 const STORAGE_KEY = "rosewood_sidebar_collapsed";

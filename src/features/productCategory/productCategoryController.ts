@@ -12,6 +12,7 @@ const CTX = "ProductCategoryController";
 interface CategoryRow {
   categoryName: string;
   categoryDescription?: string;
+  parentName?: string;   // resolved to parentId after first pass
   isActive?: boolean;
 }
 
@@ -199,7 +200,8 @@ export async function updateCategory(
 
 // ─── POST /api/product-categories/bulk ───────────────────────────────────────
 // Bulk create from JSON array OR Excel file upload.
-// Skips duplicates (by categoryName) and reports results.
+// Supports parent-child via a "parentName" column — parents are created first,
+// then children are linked by name. Skips duplicates and reports results.
 
 export async function bulkCreateCategories(req: NextRequest): Promise<NextResponse> {
   logger.info(CTX, "bulkCreateCategories — start");
@@ -235,8 +237,9 @@ export async function bulkCreateCategories(req: NextRequest): Promise<NextRespon
       logger.debug(CTX, `bulkCreateCategories — parsed ${rawRows.length} rows from Excel`);
 
       rows = rawRows.map((r) => ({
-        categoryName: String(r["categoryName"] ?? r["Category Name"] ?? r["name"] ?? "").trim(),
-        categoryDescription: String(r["categoryDescription"] ?? r["Description"] ?? r["description"] ?? "").trim(),
+        categoryName:        String(r["categoryName"] ?? r["Category Name"] ?? r["name"] ?? r["Name"] ?? r["CATEGORY NAME"] ?? r["category_name"] ?? "").trim(),
+        categoryDescription: String(r["categoryDescription"] ?? r["Category Description"] ?? r["Description"] ?? r["description"] ?? r["category_description"] ?? "").trim() || undefined,
+        parentName:          String(r["parentName"] ?? r["Parent Name"] ?? r["parent"] ?? r["Parent"] ?? r["parent_name"] ?? "").trim() || undefined,
         isActive: r["isActive"] !== undefined
           ? String(r["isActive"]).toLowerCase() !== "false"
           : true,
@@ -246,7 +249,6 @@ export async function bulkCreateCategories(req: NextRequest): Promise<NextRespon
     else {
       logger.debug(CTX, "bulkCreateCategories — parsing JSON body");
       const body = await req.json();
-
       if (!Array.isArray(body)) {
         throw new AppError("Request body must be a JSON array of category objects.", 400, "INVALID_BODY");
       }
@@ -261,48 +263,64 @@ export async function bulkCreateCategories(req: NextRequest): Promise<NextRespon
       throw new AppError("No valid rows found. Each row must have a categoryName.", 400, "NO_VALID_ROWS");
     }
 
-    logger.info(CTX, `bulkCreateCategories — ${validRows.length} valid rows, ${invalidCount} skipped (no name)`);
-
-    // ── Fetch existing names for duplicate check ───────────────────────────────
-    const incomingNames = validRows.map((r) => r.categoryName.trim().toLowerCase());
-    const existingCategories = await Category.findAll({
-      where: {
-        categoryName: {
-          [Op.in]: incomingNames.map((n) =>
-            n.charAt(0).toUpperCase() + n.slice(1),
-          ),
-        },
-      },
-    });
-    const existingNames = new Set(
-      existingCategories.map((c) => c.categoryName.toLowerCase()),
+    // ── Fetch all existing categories for duplicate + parent lookup ────────────
+    const allExisting = await Category.findAll({ attributes: ["id", "categoryName"] });
+    const existingMap = new Map<string, string>( // name.lower → id
+      allExisting.map((c) => [c.categoryName.toLowerCase(), c.id]),
     );
 
-    logger.debug(CTX, `bulkCreateCategories — ${existingNames.size} duplicates found in DB`);
+    // ── Separate parents (no parentName) from children ────────────────────────
+    const parentRows  = validRows.filter((r) => !r.parentName?.trim());
+    const childRows   = validRows.filter((r) =>  r.parentName?.trim());
 
-    const toCreate: CategoryRow[] = [];
     const skipped: string[] = [];
+    let createdCount = 0;
 
-    for (const row of validRows) {
-      if (existingNames.has(row.categoryName.trim().toLowerCase())) {
+    // ── PASS 1: create parent rows ────────────────────────────────────────────
+    for (const row of parentRows) {
+      const key = row.categoryName.trim().toLowerCase();
+      if (existingMap.has(key)) {
         skipped.push(row.categoryName);
-      } else {
-        toCreate.push(row);
+        continue;
       }
+      const created = await Category.create({
+        categoryName:        row.categoryName.trim(),
+        categoryDescription: row.categoryDescription?.trim() ?? "",
+        parentId:            null,
+        isActive:            row.isActive !== undefined ? Boolean(row.isActive) : true,
+      });
+      existingMap.set(key, created.id); // make available for child lookup
+      createdCount++;
     }
 
-    // ── Bulk insert ────────────────────────────────────────────────────────────
-    const created = await Category.bulkCreate(
-      toCreate.map((r) => ({
-        categoryName: r.categoryName.trim(),
-        categoryDescription: r.categoryDescription?.trim() ?? "",
-        isActive: r.isActive !== undefined ? Boolean(r.isActive) : true,
-      })),
-      { validate: true },
-    );
+    // ── PASS 2: create child rows (resolve parentName → parentId) ─────────────
+    for (const row of childRows) {
+      const key = row.categoryName.trim().toLowerCase();
+      if (existingMap.has(key)) {
+        skipped.push(row.categoryName);
+        continue;
+      }
+
+      const parentKey = row.parentName!.trim().toLowerCase();
+      const parentId  = existingMap.get(parentKey) ?? null;
+
+      if (!parentId) {
+        // Parent doesn't exist — create child as top-level and note it
+        logger.warn(CTX, `bulkCreateCategories — parent "${row.parentName}" not found, creating "${row.categoryName}" as top-level`);
+      }
+
+      const created = await Category.create({
+        categoryName:        row.categoryName.trim(),
+        categoryDescription: row.categoryDescription?.trim() ?? "",
+        parentId:            parentId,
+        isActive:            row.isActive !== undefined ? Boolean(row.isActive) : true,
+      });
+      existingMap.set(key, created.id);
+      createdCount++;
+    }
 
     logger.info(CTX, "bulkCreateCategories — complete", {
-      created: created.length,
+      created: createdCount,
       skipped: skipped.length,
       invalidRows: invalidCount,
     });
@@ -311,13 +329,12 @@ export async function bulkCreateCategories(req: NextRequest): Promise<NextRespon
       {
         success: true,
         summary: {
-          total: rows.length,
-          created: created.length,
-          skipped: skipped.length,
+          total:       rows.length,
+          created:     createdCount,
+          skipped:     skipped.length,
           invalidRows: invalidCount,
         },
         skippedNames: skipped,
-        data: created,
       },
       { status: 201 },
     );

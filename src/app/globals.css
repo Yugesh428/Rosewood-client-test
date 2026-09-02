@@ -39,6 +39,63 @@
   --radius-2xl: calc(var(--radius) * 1.8);
 }
 
+/* ── Site-wide theme CSS variables (set by ThemeContext.tsx) ── */
+:root {
+  --color-primary:       #D4AF37;
+  --color-primary-light: #ffe87c;
+  --color-primary-dark:  #b8952e;
+  --color-primary-text:  #000000;
+  --color-bg-page:       #F9F9F9;
+  --color-bg-card:       #ffffff;
+  --color-bg-nav:        #000000;
+  --color-text-heading:  #1A1A1A;
+  --color-text-body:     #374151;
+  --color-text-muted:    #6B6B6B;
+  --color-border:        #E8E4DC;
+}
+
+/* ─── Medical theme overrides (applied by ThemeContext via data-theme attr) ── */
+[data-theme="medical"] {
+  --color-primary:       #00B4D8;
+  --color-primary-light: #90E0EF;
+  --color-primary-dark:  #0096C7;
+  --color-primary-text:  #ffffff;
+  --color-bg-page:       #EAF6FB;
+  --color-bg-card:       #ffffff;
+  --color-bg-nav:        #023E8A;
+  --color-text-heading:  #023E8A;
+  --color-text-body:     #1a4a6b;
+  --color-text-muted:    #4a7a96;
+  --color-border:        #CAE9F5;
+  /* Override shadcn tokens too so native components react */
+  --accent:              #00B4D8;
+  --accent-foreground:   #ffffff;
+  --ring:                #00B4D8;
+  --background:          #EAF6FB;
+  --foreground:          #023E8A;
+  --primary:             #023E8A;
+  --primary-foreground:  #ffffff;
+}
+
+[data-theme="gold"] {
+  --color-primary:       #D4AF37;
+  --color-primary-light: #ffe87c;
+  --color-primary-dark:  #b8952e;
+  --color-primary-text:  #000000;
+  --color-bg-page:       #F9F9F9;
+  --color-bg-card:       #ffffff;
+  --color-bg-nav:        #000000;
+  --color-text-heading:  #1A1A1A;
+  --color-text-body:     #374151;
+  --color-text-muted:    #6B6B6B;
+  --color-border:        #E8E4DC;
+}
+
+/* Convenience shorthand — use t() in inline styles */
+.t-primary    { color:            var(--color-primary) }
+.t-bg-primary { background-color: var(--color-primary) }
+.t-border     { border-color:     var(--color-border)  }
+
 /* ── Light theme (Apothecary) ── */
 :root {
   --background:           #F9F9F9;   /* Off-white surface */

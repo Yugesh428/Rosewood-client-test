@@ -63,9 +63,10 @@ function LoginForm() {
     setLoading(true);
     try {
       const result = await signIn("credentials", {
-        email:    email.trim().toLowerCase(),
+        email:        email.trim().toLowerCase(),
         password,
-        redirect: false,
+        expectedRole: "CUSTOMER",
+        redirect:     false,
       });
       if (result?.error) {
         setError("Invalid email or password.");

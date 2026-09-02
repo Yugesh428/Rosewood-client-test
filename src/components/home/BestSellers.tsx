@@ -1,162 +1,310 @@
 "use client";
 
-import Image from "next/image";
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useCart } from "@/context/CartContext";
+import ProductImage from "@/components/ui/ProductImage";
 
-const products = [
-  {
-    id: 1,
-    name: "Advanced Vitamin C",
-    category: "Vitamins",
-    price: "$42.00",
-    image: "https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?w=400&q=80",
-  },
-  {
-    id: 2,
-    name: "Daily Moisturiser Complex",
-    category: "Skincare",
-    price: "$35.00",
-    image: "https://images.unsplash.com/photo-1556228578-8c89e6adf883?w=400&q=80",
-  },
-  {
-    id: 3,
-    name: "Probiotic Enhancer",
-    category: "Wellness",
-    price: "$28.00",
-    image: "https://images.unsplash.com/photo-1607619056574-7b8d3ee536b2?w=400&q=80",
-  },
-  {
-    id: 4,
-    name: "Soothing Skin Relief",
-    category: "Skincare",
-    price: "$29.00",
-    image: "https://images.unsplash.com/photo-1571781926291-c477ebfd024b?w=400&q=80",
-  },
-];
+// ─── Types ────────────────────────────────────────────────────────────────────
 
-function CartPlusIcon() {
+interface Product {
+  id: string;
+  productName: string;
+  productImage: string | null;
+  sellingPrice: number;
+  originalPrice: number;
+  discount: number;
+  unitType: string;
+  packSize: string;
+  isActive: boolean;
+  category?: { id: string; categoryName: string };
+}
+
+interface ReviewStats {
+  avg: number;
+  count: number;
+}
+
+// ─── Icons ────────────────────────────────────────────────────────────────────
+
+function CartIcon() {
   return (
-    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
       <circle cx="9" cy="21" r="1" /><circle cx="20" cy="21" r="1" />
       <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6" />
-      <line x1="12" y1="10" x2="12" y2="16" /><line x1="9" y1="13" x2="15" y2="13" />
     </svg>
   );
 }
-
-function StarIcon({ filled }: { filled: boolean }) {
+function CheckIcon() {
   return (
-    <svg width="10" height="10" viewBox="0 0 24 24" fill={filled ? "#D4AF37" : "none"} stroke="#D4AF37" strokeWidth="2">
-      <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+      <polyline points="20 6 9 17 4 12" />
     </svg>
   );
 }
 
-function ProductCard({ product, index }: { product: typeof products[0]; index: number }) {
+// ─── Star Rating ──────────────────────────────────────────────────────────────
+
+function StarRating({ avg, count }: { avg: number; count: number }) {
+  if (count === 0) return null;
+  const full = Math.floor(avg);
+  const half = avg - full >= 0.4;
+  return (
+    <div className="flex items-center gap-1 mb-1.5">
+      <div className="flex gap-0.5">
+        {[1, 2, 3, 4, 5].map(s => (
+          <svg key={s} width="11" height="11" viewBox="0 0 24 24"
+            fill={s <= full ? "#D4AF37" : (s === full + 1 && half ? "#D4AF37" : "none")}
+            stroke="#D4AF37" strokeWidth="1.5" opacity={s <= full ? 1 : (s === full + 1 && half ? 0.6 : 0.3)}>
+            <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+          </svg>
+        ))}
+      </div>
+      <span className="text-[10px] text-[#9CA3AF] font-sans">({count})</span>
+    </div>
+  );
+}
+
+// ─── Product Card ─────────────────────────────────────────────────────────────
+
+function ProductCard({
+  product,
+  stats,
+  index,
+}: {
+  product: Product;
+  stats: ReviewStats;
+  index: number;
+}) {
+  const { addToCart } = useCart();
   const [added, setAdded] = useState(false);
 
-  function handleAdd() {
+  const price    = Number(product.sellingPrice);
+  const original = Number(product.originalPrice);
+
+  function handleAddToCart() {
+    addToCart({
+      id:       product.id,
+      name:     product.productName,
+      price,
+      image:    product.productImage ?? "",
+      category: product.category?.categoryName ?? "",
+    });
     setAdded(true);
     setTimeout(() => setAdded(false), 1500);
   }
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 20 }}
+      initial={{ opacity: 0, y: 30 }}
       whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true }}
-      transition={{ delay: index * 0.1, duration: 0.5 }}
-      className="group bg-white border border-[#E5E5E5] rounded-sm overflow-hidden hover:shadow-md transition-shadow duration-300"
+      viewport={{ once: true, margin: "-40px" }}
+      transition={{ delay: index * 0.09, duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+      whileHover={{ y: -4, transition: { duration: 0.25 } }}
+      className="group bg-white rounded-lg overflow-hidden shadow-[0_2px_12px_rgba(0,0,0,0.08)] hover:shadow-[0_8px_28px_rgba(0,0,0,0.15)] transition-shadow duration-300 cursor-default"
     >
-      {/* Image */}
-      <div className="relative aspect-square overflow-hidden bg-[#F9F9F9]">
-        <Image
-          src={product.image}
-          alt={product.name}
-          fill
-          className="object-cover group-hover:scale-105 transition-transform duration-500"
-        />
-        {/* Add to cart overlay */}
-        <motion.button
-          onClick={handleAdd}
-          whileTap={{ scale: 0.95 }}
-          className="absolute bottom-3 right-3 w-8 h-8 bg-white border border-[#E5E5E5] rounded-full flex items-center justify-center text-[#1A1A1A] hover:bg-[#000000] hover:text-white hover:border-[#000000] transition-all duration-200 shadow-sm"
-          aria-label="Add to cart"
+      {/* ── Image ── */}
+      <div className="relative w-full aspect-square overflow-hidden bg-[#F5F3EF]">
+        <motion.div
+          className="w-full h-full"
+          whileHover={{ scale: 1.06 }}
+          transition={{ duration: 0.5, ease: "easeOut" }}
         >
-          {added ? (
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#D4AF37" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
-              <polyline points="20 6 9 17 4 12" />
-            </svg>
-          ) : (
-            <CartPlusIcon />
-          )}
-        </motion.button>
+          <ProductImage
+            src={product.productImage}
+            alt={product.productName}
+            fill
+            sizes="(max-width: 640px) 50vw, 25vw"
+            className="object-cover"
+          />
+        </motion.div>
+
+        {/* Discount badge — top right only if discounted */}
+        {Number(product.discount) > 0 && (
+          <span className="absolute top-3 right-3 z-10 text-[10px] font-bold px-2.5 py-1 rounded-full text-white bg-[#C0392B]">
+            -{product.discount}%
+          </span>
+        )}
       </div>
 
-      {/* Info */}
-      <div className="p-4">
-        <p className="text-[10px] tracking-[0.2em] uppercase text-[#6B6B6B] font-sans mb-1">{product.category}</p>
-        <h3 className="font-heading text-sm text-[#1A1A1A] mb-2 leading-tight">{product.name}</h3>
-        <div className="flex items-center gap-0.5 mb-3">
-          {[1,2,3,4,5].map((s) => <StarIcon key={s} filled={s <= 4} />)}
+      {/* ── Info ── */}
+      <div className="px-4 pt-3 pb-4">
+
+        {/* Name */}
+        <h3 className="font-sans text-[14px] font-semibold text-[#1A1A1A] leading-snug mb-1.5 line-clamp-2">
+          {product.productName}
+        </h3>
+
+        {/* Stars */}
+        <StarRating avg={stats.avg} count={stats.count} />
+
+        {/* In Stock */}
+        <div className="flex items-center gap-1.5 mb-2.5">
+          <span className="w-1.5 h-1.5 rounded-full bg-green-500 flex-shrink-0" />
+          <span className="text-[11px] text-green-700 font-sans">In Stock</span>
         </div>
-        <div className="flex items-center justify-between">
-          <span className="font-sans text-sm font-semibold text-[#1A1A1A]">{product.price}</span>
+
+        {/* Price */}
+        <div className="flex items-baseline gap-1.5 mb-3.5">
+          <span className="font-sans text-[15px] font-bold text-[#1A1A1A]">
+            £{price.toFixed(2)}
+          </span>
+          {original > price && (
+            <span className="text-xs text-[#9CA3AF] line-through font-sans">
+              £{original.toFixed(2)}
+            </span>
+          )}
+          <span className="text-[11px] text-[#9CA3AF] font-sans">
+            / {product.packSize} {product.unitType}
+          </span>
+        </div>
+
+        {/* Buttons */}
+        <div className="flex items-center gap-2">
+          {/* Cart circle */}
+          <motion.button
+            onClick={handleAddToCart}
+            whileTap={{ scale: 0.88 }}
+            aria-label="Add to cart"
+            className="w-9 h-9 flex items-center justify-center rounded-full text-white flex-shrink-0 transition-colors duration-200"
+            style={{ backgroundColor: "var(--color-text-heading)" }}
+            onMouseEnter={e => (e.currentTarget.style.backgroundColor = "var(--color-primary)")}
+            onMouseLeave={e => (e.currentTarget.style.backgroundColor = "var(--color-text-heading)")}
+          >
+            {added ? <CheckIcon /> : <CartIcon />}
+          </motion.button>
+
+          {/* Buy pill */}
+          <Link
+            href={`/pharmacy?product=${product.id}`}
+            className="flex-1 flex items-center justify-center py-2 rounded-full text-[13px] font-bold text-white transition-colors duration-200"
+            style={{ backgroundColor: "var(--color-text-heading)" }}
+            onMouseEnter={e => (e.currentTarget.style.backgroundColor = "var(--color-primary)")}
+            onMouseLeave={e => (e.currentTarget.style.backgroundColor = "var(--color-text-heading)")}
+          >
+            Buy
+          </Link>
         </div>
       </div>
     </motion.div>
   );
 }
 
-export default function BestSellers() {
+// ─── Skeleton ─────────────────────────────────────────────────────────────────
+
+function SkeletonCard({ index }: { index: number }) {
   return (
-    <section className="py-20 bg-white">
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay: index * 0.07 }}
+      className="bg-white rounded-lg overflow-hidden shadow-[0_2px_12px_rgba(0,0,0,0.08)] animate-pulse"
+    >
+      <div className="w-full aspect-square bg-[#F0EDE7]" />
+      <div className="px-4 pt-3 pb-4 space-y-2.5">
+        <div className="h-4 w-3/4 bg-[#E8E4DC] rounded" />
+        <div className="h-3 w-20 bg-[#E8E4DC] rounded" />
+        <div className="h-4 w-1/2 bg-[#E8E4DC] rounded" />
+        <div className="flex gap-2 pt-1">
+          <div className="w-9 h-9 rounded-full bg-[#E8E4DC]" />
+          <div className="flex-1 h-9 rounded-full bg-[#E8E4DC]" />
+        </div>
+      </div>
+    </motion.div>
+  );
+}
+
+// ─── Main ─────────────────────────────────────────────────────────────────────
+
+export default function BestSellers() {
+  const [products,   setProducts]   = useState<Product[]>([]);
+  const [reviewsMap, setReviewsMap] = useState<Record<string, ReviewStats>>({});
+  const [loading,    setLoading]    = useState(true);
+
+  useEffect(() => {
+    async function load() {
+      try {
+        const prodRes  = await fetch("/api/products?isActive=true&limit=8");
+        const prodJson = await prodRes.json();
+        const prods: Product[] = prodJson.success ? (prodJson.data ?? []) : [];
+        setProducts(prods);
+
+        const top4 = prods.slice(0, 4);
+        if (top4.length === 0) return;
+
+        const statResults = await Promise.allSettled(
+          top4.map(p =>
+            fetch(`/api/reviews?productId=${p.id}&isApproved=true&limit=1`).then(r => r.json())
+          )
+        );
+
+        const statsMap: Record<string, ReviewStats> = {};
+        statResults.forEach((result, i) => {
+          if (result.status === "fulfilled" && result.value.success) {
+            statsMap[top4[i].id] = {
+              avg:   result.value.stats?.averageRating ?? 0,
+              count: result.value.stats?.totalReviews  ?? 0,
+            };
+          }
+        });
+        setReviewsMap(statsMap);
+      } catch (err) {
+        console.error("BestSellers load error:", err);
+      } finally {
+        setLoading(false);
+      }
+    }
+    load();
+  }, []);
+
+  return (
+    <section className="py-12" style={{ backgroundColor: "var(--color-bg-page)" }}>
       <div className="max-w-7xl mx-auto px-6">
+
         {/* Header */}
-        <div className="flex items-end justify-between mb-10">
+        <div className="flex items-end justify-between mb-8">
           <motion.div
             initial={{ opacity: 0, y: 12 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
           >
+            <p className="text-[10px] tracking-[0.3em] uppercase text-[#6B6B6B] font-sans font-semibold mb-1">
+              Top Selling
+            </p>
             <h2 className="font-heading text-3xl text-[#1A1A1A]">Our Most Selling Products</h2>
             <p className="text-sm text-[#6B6B6B] font-sans mt-1">Curated essentials for your daily wellness.</p>
           </motion.div>
-          <motion.div
-            initial={{ opacity: 0 }}
-            whileInView={{ opacity: 1 }}
-            viewport={{ once: true }}
-          >
-            <Link href="/pharmacy" className="text-xs text-[#1A1A1A] font-sans tracking-wide hover:underline underline-offset-4">
+          <motion.div initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} viewport={{ once: true }}>
+            <Link
+              href="/pharmacy"
+              className="text-xs text-[#1A1A1A] font-sans tracking-wide hover:text-[#D4AF37] transition-colors hover:underline underline-offset-4"
+            >
               View All →
             </Link>
           </motion.div>
         </div>
 
-        {/* Tabs */}
-        <div className="flex gap-2 mb-8">
-          {["Trending", "Popular"].map((tab, i) => (
-            <button
-              key={tab}
-              className={`text-xs font-sans px-4 py-1.5 rounded-sm border transition-all ${
-                i === 0
-                  ? "bg-[#D4AF37] text-black border-[#D4AF37]"
-                  : "bg-white text-[#6B6B6B] border-[#E5E5E5] hover:border-[#1A1A1A] hover:text-[#1A1A1A]"
-              }`}
-            >
-              {tab}
-            </button>
-          ))}
+        {/* Grid */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-5">
+          {loading
+            ? Array.from({ length: 4 }).map((_, i) => <SkeletonCard key={i} index={i} />)
+            : products.slice(0, 4).map((p, i) => (
+                <ProductCard
+                  key={p.id}
+                  product={p}
+                  stats={reviewsMap[p.id] ?? { avg: 0, count: 0 }}
+                  index={i}
+                />
+              ))
+          }
         </div>
 
-        {/* Grid */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          {products.map((p, i) => (
-            <ProductCard key={p.id} product={p} index={i} />
-          ))}
-        </div>
+        {!loading && products.length === 0 && (
+          <p className="text-center text-sm text-[#9CA3AF] font-sans py-10">
+            No products available yet.
+          </p>
+        )}
       </div>
     </section>
   );

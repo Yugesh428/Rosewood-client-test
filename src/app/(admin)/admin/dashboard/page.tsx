@@ -1,6 +1,5 @@
 import { auth } from "@/lib/auth/auth";
 import { redirect } from "next/navigation";
-import AdminLayout from "@/components/admin/AdminLayout";
 import StatsCard from "./_components/StatsCard";
 import RecentOrders from "./_components/RecentOrders";
 import StockAlerts from "./_components/StockAlerts";
@@ -87,10 +86,8 @@ export default async function AdminDashboardPage() {
   const stats = await getDashboardStats();
 
   return (
-    <AdminLayout>
+    <>
       <DashboardHeader userName={user.name} />
-
-      {/* Main Content */}
       <div className="p-8 bg-gray-50 min-h-screen">
         {/* Stats Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
@@ -171,6 +168,6 @@ export default async function AdminDashboardPage() {
           </div>
         </div>
       </div>
-    </AdminLayout>
+    </>
   );
 }

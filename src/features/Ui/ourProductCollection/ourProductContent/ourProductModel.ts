@@ -29,7 +29,8 @@ class Product extends Model<
   declare title: string;
   declare subtitle: CreationOptional<string | null>;
   declare backgroundImage: CreationOptional<string | null>;
-  declare videoUrl: CreationOptional<string | null>;
+  declare videoUrl: CreationOptional<string | null>;       // External video URL
+  declare videoFile: CreationOptional<string | null>;      // Uploaded video file path
 
   // Secondary photos with their own labels
   declare photo1Url: CreationOptional<string | null>;
@@ -79,6 +80,11 @@ Product.init(
       defaultValue: null,
     },
     videoUrl: {
+      type: DataTypes.STRING(1000),
+      allowNull: true,
+      defaultValue: null,
+    },
+    videoFile: {
       type: DataTypes.STRING(1000),
       allowNull: true,
       defaultValue: null,

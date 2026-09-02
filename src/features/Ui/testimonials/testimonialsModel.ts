@@ -72,8 +72,16 @@ Testimonial.init(
       allowNull: false,
       defaultValue: true,
     },
-    createdAt: "",
-    updatedAt: "",
+    createdAt: {
+      type: DataTypes.DATE,
+      allowNull: false,
+      defaultValue: DataTypes.NOW,
+    },
+    updatedAt: {
+      type: DataTypes.DATE,
+      allowNull: false,
+      defaultValue: DataTypes.NOW,
+    },
   },
   {
     sequelize,

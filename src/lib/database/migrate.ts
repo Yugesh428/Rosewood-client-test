@@ -4,18 +4,31 @@
  */
 
 import sequelize from "./sequelize";
-import "../models/userModel";
-import "../../features/productCategory/productCatetgoryModel";
-import "../../features/products/productModel";
-import "../../features/products/productIngredientModel";
-import "../../features/inventory/inventoryModel";
-import "../../features/orders/orderModel";
-import "../../features/orderItems/orderItemModel";
-import "../../features/staff/staffModel";
-import "../../features/wishlist/wishlistModel";
-import "../../features/reviews/reviewModel";
-import "../../features/feedback/feedbackModel";
-import "../../features/guestCart/guestCartModel";
+import User from "../models/userModel";
+import Category from "../../features/productCategory/productCatetgoryModel";
+import Product from "../../features/products/productModel";
+import ProductIngredient from "../../features/products/productIngredientModel";
+import Inventory from "../../features/inventory/inventoryModel";
+import Order from "../../features/orders/orderModel";
+import OrderItem from "../../features/orderItems/orderItemModel";
+import Staff from "../../features/staff/staffModel";
+import Wishlist from "../../features/wishlist/wishlistModel";
+import Review from "../../features/reviews/reviewModel";
+import Feedback from "../../features/feedback/feedbackModel";
+import GuestCart from "../../features/guestCart/guestCartModel";
+
+// ── UI models ─────────────────────────────────────────────────────────────────
+import HeroSection from "../../features/Ui/HeroSection/heroModel/heroModel";
+import OurProductCollectionCategory from "../../features/Ui/ourProductCollection/ourProductCollectionCategoryModel";
+import OurProduct from "../../features/Ui/ourProductCollection/ourProductContent/ourProductModel";
+import Testimonial from "../../features/Ui/testimonials/testimonialsModel";
+import AboutUsTitle from "../../features/Ui/AboutUsPage/AboutUs Head/aboutUsTitleModel";
+import OurStory from "../../features/Ui/AboutUsPage/ourStory/ourStroyModel";
+import Mission from "../../features/Ui/AboutUsPage/ourMisson/missionModel";
+import OurValues from "../../features/Ui/AboutUsPage/ourValues/ourValuesModel";
+import ContactInfo from "../../features/Ui/contact/contactInfo/contactInfoModel";
+import ContactForm from "../../features/Ui/contact/contactForm/contactFormModel";
+import SiteTheme from "../../features/siteTheme/siteThemeModel";
 
 async function migrate() {
   const q = sequelize.getQueryInterface();
@@ -50,30 +63,113 @@ async function migrate() {
       console.log("ℹ️  users.isActive already exists.");
     }
 
-    // ── 3. products — add new columns if missing ──────────────────────────────
+    // ── 3. products — drop and recreate with correct camelCase columns ────────
     const productColumns = await q.describeTable("products").catch(() => null);
 
     if (!productColumns) {
-      console.log("➕ Creating products table from scratch...");
-      await sequelize.sync({ force: false, alter: false });
+      console.log("➕ products table not found — creating with explicit SQL...");
+      
+      // Create products first
+      await sequelize.query(`
+        CREATE TABLE IF NOT EXISTS "products" (
+          "id"                  UUID          NOT NULL DEFAULT gen_random_uuid(),
+          "categoryId"          UUID          NOT NULL REFERENCES "categories" ("id") ON DELETE RESTRICT ON UPDATE CASCADE,
+          "productName"         VARCHAR(200)  NOT NULL,
+          "productImage"        VARCHAR(1000) DEFAULT NULL,
+          "dosageForm"          VARCHAR(100)  NOT NULL,
+          "strength"            VARCHAR(50)   NOT NULL,
+          "packSize"            VARCHAR(50)   NOT NULL,
+          "unitType"            VARCHAR(50)   NOT NULL,
+          "sellingPrice"        DECIMAL(10,2) NOT NULL,
+          "originalPrice"       DECIMAL(10,2) NOT NULL,
+          "tax"                 DECIMAL(5,2)  NOT NULL DEFAULT 0,
+          "discount"            DECIMAL(5,2)  NOT NULL DEFAULT 0,
+          "productDescriptions" JSONB         NOT NULL DEFAULT '[]',
+          "specifications"      JSONB         NOT NULL DEFAULT '[]',
+          "suitableFor"         JSONB         NOT NULL DEFAULT '[]',
+          "isActive"            BOOLEAN       NOT NULL DEFAULT TRUE,
+          "createdAt"           TIMESTAMPTZ   NOT NULL DEFAULT NOW(),
+          "updatedAt"           TIMESTAMPTZ   NOT NULL DEFAULT NOW(),
+          PRIMARY KEY ("id")
+        );
+      `);
       console.log("✅ products table created.");
+
+      // Then create product_ingredients (references products)
+      await sequelize.query(`
+        CREATE TABLE IF NOT EXISTS "product_ingredients" (
+          "id"             UUID         NOT NULL DEFAULT gen_random_uuid(),
+          "productId"      UUID         NOT NULL REFERENCES "products" ("id") ON DELETE CASCADE ON UPDATE CASCADE,
+          "ingredientName" VARCHAR(200) NOT NULL,
+          "quantity"       VARCHAR(50)  DEFAULT NULL,
+          "unit"           VARCHAR(50)  DEFAULT NULL,
+          "sortOrder"      INTEGER      NOT NULL DEFAULT 0,
+          "createdAt"      TIMESTAMPTZ  NOT NULL DEFAULT NOW(),
+          "updatedAt"      TIMESTAMPTZ  NOT NULL DEFAULT NOW(),
+          PRIMARY KEY ("id")
+        );
+      `);
+      console.log("✅ product_ingredients table created.");
+    } else if (!productColumns["categoryId"]) {
+      // Table exists but was created with snake_case — drop and recreate
+      console.log("🔄 products table has wrong column casing — dropping and recreating...");
+      await sequelize.query(`DROP TABLE IF EXISTS "product_ingredients" CASCADE;`);
+      await sequelize.query(`DROP TABLE IF EXISTS "products" CASCADE;`);
+      console.log("✅ Old products + product_ingredients tables dropped.");
+
+      // Create products first, then product_ingredients (FK dependency order)
+      await sequelize.query(`
+        CREATE TABLE IF NOT EXISTS "products" (
+          "id"                  UUID          NOT NULL DEFAULT gen_random_uuid(),
+          "categoryId"          UUID          NOT NULL REFERENCES "categories" ("id") ON DELETE RESTRICT ON UPDATE CASCADE,
+          "productName"         VARCHAR(200)  NOT NULL,
+          "productImage"        VARCHAR(1000) DEFAULT NULL,
+          "dosageForm"          VARCHAR(100)  NOT NULL,
+          "strength"            VARCHAR(50)   NOT NULL,
+          "packSize"            VARCHAR(50)   NOT NULL,
+          "unitType"            VARCHAR(50)   NOT NULL,
+          "sellingPrice"        DECIMAL(10,2) NOT NULL,
+          "originalPrice"       DECIMAL(10,2) NOT NULL,
+          "tax"                 DECIMAL(5,2)  NOT NULL DEFAULT 0,
+          "discount"            DECIMAL(5,2)  NOT NULL DEFAULT 0,
+          "productDescriptions" JSONB         NOT NULL DEFAULT '[]',
+          "specifications"      JSONB         NOT NULL DEFAULT '[]',
+          "suitableFor"         JSONB         NOT NULL DEFAULT '[]',
+          "isActive"            BOOLEAN       NOT NULL DEFAULT TRUE,
+          "createdAt"           TIMESTAMPTZ   NOT NULL DEFAULT NOW(),
+          "updatedAt"           TIMESTAMPTZ   NOT NULL DEFAULT NOW(),
+          PRIMARY KEY ("id")
+        );
+      `);
+      console.log("✅ products table created.");
+
+      await sequelize.query(`
+        CREATE TABLE IF NOT EXISTS "product_ingredients" (
+          "id"             UUID         NOT NULL DEFAULT gen_random_uuid(),
+          "productId"      UUID         NOT NULL REFERENCES "products" ("id") ON DELETE CASCADE ON UPDATE CASCADE,
+          "ingredientName" VARCHAR(200) NOT NULL,
+          "quantity"       VARCHAR(50)  DEFAULT NULL,
+          "unit"           VARCHAR(50)  DEFAULT NULL,
+          "sortOrder"      INTEGER      NOT NULL DEFAULT 0,
+          "createdAt"      TIMESTAMPTZ  NOT NULL DEFAULT NOW(),
+          "updatedAt"      TIMESTAMPTZ  NOT NULL DEFAULT NOW(),
+          PRIMARY KEY ("id")
+        );
+      `);
+      console.log("✅ product_ingredients table created.");
     } else {
-      // specifications column
+      console.log("ℹ️  products table already correct.");
+
+      // Still check for specifications and suitableFor in case they were missing
       if (!productColumns["specifications"]) {
         console.log("➕ Adding specifications to products...");
         await sequelize.query(`ALTER TABLE "products" ADD COLUMN "specifications" JSONB NOT NULL DEFAULT '[]';`);
         console.log("✅ products.specifications added.");
-      } else {
-        console.log("ℹ️  products.specifications already exists.");
       }
-
-      // suitableFor column
       if (!productColumns["suitableFor"]) {
         console.log("➕ Adding suitableFor to products...");
         await sequelize.query(`ALTER TABLE "products" ADD COLUMN "suitableFor" JSONB NOT NULL DEFAULT '[]';`);
         console.log("✅ products.suitableFor added.");
-      } else {
-        console.log("ℹ️  products.suitableFor already exists.");
       }
     }
 
@@ -123,9 +219,112 @@ async function migrate() {
       }
     }
 
-    // ── 5. Create any missing tables ──────────────────────────────────────────
-    await sequelize.sync({ force: false, alter: false });
-    console.log("✅ All tables verified/created.");
+    // ── 5. Fix hero_slides table if it exists with old schema ─────────────────
+    const heroColumns = await q.describeTable("hero_slides").catch(() => null);
+    if (heroColumns) {
+      console.log("✅ hero_slides table exists");
+      
+      // Check if title column exists
+      if (!heroColumns["title"]) {
+        console.log("➕ Adding title to hero_slides...");
+        await sequelize.query(`ALTER TABLE "hero_slides" ADD COLUMN "title" VARCHAR(255) DEFAULT NULL;`);
+        console.log("✅ hero_slides.title added.");
+      } else {
+        console.log("ℹ️  hero_slides.title already exists.");
+      }
+
+      // Check if subtitle column exists
+      if (!heroColumns["subtitle"]) {
+        console.log("➕ Adding subtitle to hero_slides...");
+        await sequelize.query(`ALTER TABLE "hero_slides" ADD COLUMN "subtitle" TEXT DEFAULT NULL;`);
+        console.log("✅ hero_slides.subtitle added.");
+      } else {
+        console.log("ℹ️  hero_slides.subtitle already exists.");
+      }
+
+      // Check if order column exists
+      if (!heroColumns["order"]) {
+        console.log("➕ Adding order to hero_slides...");
+        await sequelize.query(`ALTER TABLE "hero_slides" ADD COLUMN "order" INTEGER NOT NULL DEFAULT 0;`);
+        console.log("✅ hero_slides.order added.");
+      } else {
+        console.log("ℹ️  hero_slides.order already exists.");
+      }
+
+      // Check if isActive column exists
+      if (!heroColumns["isActive"]) {
+        console.log("➕ Adding isActive to hero_slides...");
+        await sequelize.query(`ALTER TABLE "hero_slides" ADD COLUMN "isActive" BOOLEAN NOT NULL DEFAULT TRUE;`);
+        console.log("✅ hero_slides.isActive added.");
+      } else {
+        console.log("ℹ️  hero_slides.isActive already exists.");
+      }
+    }
+
+    // ── 6. Add videoFile column to ui_collection_products if missing ──────────
+    const productsColumns = await q.describeTable("ui_collection_products").catch(() => null);
+    if (productsColumns && !productsColumns["videoFile"]) {
+      console.log("➕ Adding videoFile to ui_collection_products...");
+      await sequelize.query(`ALTER TABLE "ui_collection_products" ADD COLUMN "videoFile" VARCHAR(1000) DEFAULT NULL;`);
+      console.log("✅ ui_collection_products.videoFile added.");
+    } else if (productsColumns) {
+      console.log("ℹ️  ui_collection_products.videoFile already exists.");
+    }
+
+    // ── 7. Create UI tables if missing ─────────────────────────────────────────
+    console.log("➕ Creating UI content tables...");
+    
+    // Sync models in explicit order to respect foreign key dependencies
+    // Independent tables first
+    await User.sync({ force: false, alter: false });
+    await Staff.sync({ force: false, alter: false });
+    await Category.sync({ force: false, alter: false });
+    
+    // Tables that depend on categories
+    await Product.sync({ force: false, alter: false });
+    
+    // Tables that depend on products (IMPORTANT: products must exist first)
+    await ProductIngredient.sync({ force: false, alter: false });
+    await Inventory.sync({ force: false, alter: false });
+    await Review.sync({ force: false, alter: false });
+    
+    // Tables that depend on users/products
+    await Wishlist.sync({ force: false, alter: false });
+    await Order.sync({ force: false, alter: false });
+    
+    // Tables that depend on orders
+    await OrderItem.sync({ force: false, alter: false });
+    
+    // Other tables
+    await Feedback.sync({ force: false, alter: false });
+    await GuestCart.sync({ force: false, alter: false });
+    
+    // UI-related tables (no dependencies)
+    await HeroSection.sync({ force: false, alter: false });
+    await OurProductCollectionCategory.sync({ force: false, alter: false });
+    await OurProduct.sync({ force: false, alter: false });
+    await Testimonial.sync({ force: false, alter: false });
+    await AboutUsTitle.sync({ force: false, alter: false });
+    await OurStory.sync({ force: false, alter: false });
+    await Mission.sync({ force: false, alter: false });
+    await OurValues.sync({ force: false, alter: false });
+    await ContactInfo.sync({ force: false, alter: false });
+    await ContactForm.sync({ force: false, alter: false });
+
+    // ── site_theme — singleton config table ───────────────────────────────────
+    await SiteTheme.sync({ force: false, alter: false });
+    // Seed the singleton row if it doesn't exist
+    const themeExists = await q.describeTable("site_theme").catch(() => null);
+    if (themeExists) {
+      await sequelize.query(`
+        INSERT INTO "site_theme" ("id", "activeTheme", "updatedAt")
+        VALUES (1, 'gold', NOW())
+        ON CONFLICT ("id") DO NOTHING;
+      `);
+      console.log("✅ site_theme singleton row ensured.");
+    }
+    
+    console.log("✅ All UI tables verified/created in correct order.");
 
     console.log("\n🎉 Migration complete.");
   } catch (error) {

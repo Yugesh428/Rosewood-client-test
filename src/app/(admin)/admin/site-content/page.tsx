@@ -1,6 +1,5 @@
 import { auth } from "@/lib/auth/auth";
 import { redirect } from "next/navigation";
-import AdminLayout from "@/components/admin/AdminLayout";
 import SiteContentClient from "./_components/SiteContentClient";
 
 export default async function SiteContentPage() {
@@ -10,7 +9,7 @@ export default async function SiteContentPage() {
   }
 
   return (
-    <AdminLayout>
+    <>
       {/* Header */}
       <div className="border-b border-gray-200 bg-white sticky top-0 z-10">
         <div className="px-8 py-6 flex items-center justify-between">
@@ -30,6 +29,6 @@ export default async function SiteContentPage() {
       </div>
 
       <SiteContentClient />
-    </AdminLayout>
+    </>
   );
 }

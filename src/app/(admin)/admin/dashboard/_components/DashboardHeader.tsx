@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { Package, Globe } from "lucide-react";
+import { Package } from "lucide-react";
 
 interface DashboardHeaderProps {
   userName: string | null | undefined;
@@ -21,16 +21,7 @@ export default function DashboardHeader({ userName }: DashboardHeaderProps) {
             </p>
           </div>
           <div className="flex items-center gap-3">
-            {/* Site Content Manager */}
-            <button
-              className="flex items-center gap-2 px-4 py-2 border border-gray-300 hover:border-gray-400 bg-white hover:bg-gray-50 text-gray-700 text-sm font-medium rounded-sm transition-colors"
-              onClick={() => router.push("/admin/site-content")}
-            >
-              <Globe className="w-4 h-4 text-gray-500" />
-              Manage Site Content
-            </button>
-
-            {/* Add Product */}
+            {/* Add Product — the only dashboard action shortcut */}
             <button
               className="flex items-center gap-2 px-4 py-2 text-black text-sm font-semibold rounded-sm transition-all hover:opacity-90"
               style={{

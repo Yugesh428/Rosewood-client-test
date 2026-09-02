@@ -5,8 +5,8 @@ import Credentials from "next-auth/providers/credentials";
 export const { handlers, auth, signIn, signOut } = NextAuth({
   session: { strategy: "jwt", maxAge: 24 * 60 * 60 },
   pages: {
-    signIn: "/admin/login",
-    error: "/admin/login",
+    signIn: "/login",   // default sign-in page (customer)
+    error:  "/login",   // auth errors go here too
   },
   providers: [
     Credentials({

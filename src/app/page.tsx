@@ -1,18 +1,18 @@
 import Navbar from "@/components/Navbar";
-import HeroSection from "@/components/home/HeroSection";
+import HeroSectionDynamic from "@/components/home/HeroSectionDynamic";
 import BestSellers from "@/components/home/BestSellers";
-import ProductCollection from "@/components/home/ProductCollection";
-import Testimonials from "@/components/home/Testimonials";
+import ProductCollectionDynamic from "@/components/home/ProductCollectionDynamic";
+import TestimonialsDynamic from "@/components/home/TestimonialsDynamic";
 import Footer from "@/components/home/Footer";
 
 export default function HomePage() {
   return (
-    <div className="bg-[#F9F9F9]">
+    <div style={{ backgroundColor: "var(--color-bg-page)" }} className="min-h-screen">
       <Navbar />
-      <HeroSection />
+      <HeroSectionDynamic />
       <BestSellers />
-      <ProductCollection />
-      <Testimonials />
+      <ProductCollectionDynamic />
+      <TestimonialsDynamic />
       <Footer />
     </div>
   );

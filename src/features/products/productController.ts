@@ -503,16 +503,52 @@ export async function bulkCreateProducts(req: NextRequest): Promise<NextResponse
       const imageRaw   = String(r.imageUrl ?? r["Image URL"] ?? r.productImage ?? "").trim();
       const imageValue = imageRaw ? (isValidUrl(imageRaw) ? imageRaw : imageRaw) : null;
 
-      const descriptions = parseDescriptions(
-        r.productDescriptions ?? r["Product Descriptions"] ?? r.productDescription ?? r["Description"] ?? "",
-      );
-      const specifications = parseSpecifications(
-        r.specifications ?? r["Specifications"] ?? [],
-      );
+      // ── Flat column fallbacks (ChatGPT Excel format) ──────────────────────
+      // productDescriptions: prefer JSON column, fall back to flat howToUse / sideEffects / storage
+      let descriptionsRaw = r.productDescriptions ?? r["Product Descriptions"] ?? r.productDescription ?? r["Description"];
+      if (!descriptionsRaw) {
+        const sections: { title: string; content: string }[] = [];
+        const howToUse   = String(r.howToUse   ?? r["howToUse"]   ?? r["How To Use"]   ?? r["how_to_use"]   ?? "").trim();
+        const sideEffects = String(r.sideEffects ?? r["sideEffects"] ?? r["Side Effects"] ?? r["side_effects"] ?? "").trim();
+        const storage    = String(r.storage    ?? r["storage"]    ?? r["Storage"]    ?? "").trim();
+        if (howToUse)    sections.push({ title: "How to Use",   content: howToUse });
+        if (sideEffects) sections.push({ title: "Side Effects", content: sideEffects });
+        if (storage)     sections.push({ title: "Storage",      content: storage });
+        descriptionsRaw = sections.length > 0 ? sections : "";
+      }
+      const descriptions = parseDescriptions(descriptionsRaw);
+
+      // specifications: prefer JSON column, fall back to flat manufacturer / countryOfOrigin / shelfLife
+      let specificationsRaw = r.specifications ?? r["Specifications"];
+      if (!specificationsRaw) {
+        const specs: { key: string; value: string }[] = [];
+        const manufacturer    = String(r.manufacturer    ?? r["manufacturer"]    ?? r["Manufacturer"]    ?? r["manufacturerName"] ?? "").trim();
+        const countryOfOrigin = String(r.countryOfOrigin ?? r["countryOfOrigin"] ?? r["Country of Origin"] ?? r["country_of_origin"] ?? "").trim();
+        const shelfLife       = String(r.shelfLife       ?? r["shelfLife"]       ?? r["Shelf Life"]       ?? r["shelf_life"]       ?? "").trim();
+        if (manufacturer)    specs.push({ key: "Manufacturer",      value: manufacturer });
+        if (countryOfOrigin) specs.push({ key: "Country of Origin", value: countryOfOrigin });
+        if (shelfLife)       specs.push({ key: "Shelf Life",        value: shelfLife });
+        specificationsRaw = specs.length > 0 ? specs : [];
+      }
+      const specifications = parseSpecifications(specificationsRaw);
+
       const suitableFor = parseSuitableFor(
         r.suitableFor ?? r["Suitable For"] ?? r["suitableFor"] ?? [],
       );
-      const ings = parseIngredients(r.ingredients ?? r["Ingredients"] ?? []);
+
+      // ingredients: prefer JSON column, fall back to flat ingredientName / quantity / ingredientUnit / unit
+      let ingredientsRaw = r.ingredients ?? r["Ingredients"];
+      if (!ingredientsRaw) {
+        const ingName = String(r.ingredientName ?? r["ingredientName"] ?? r["Ingredient Name"] ?? r["ingredient_name"] ?? "").trim();
+        const ingQty  = String(r.quantity       ?? r["quantity"]       ?? r["Quantity"]       ?? "").trim();
+        const ingUnit = String(r.ingredientUnit ?? r["ingredientUnit"] ?? r["unit"]           ?? r["Unit"] ?? r["Ingredient Unit"] ?? "").trim();
+        if (ingName) {
+          ingredientsRaw = [{ ingredientName: ingName, quantity: ingQty || undefined, unit: ingUnit || undefined }];
+        } else {
+          ingredientsRaw = [];
+        }
+      }
+      const ings = parseIngredients(ingredientsRaw);
       ingredientMap.set(toCreate.length, ings);
 
       toCreate.push({

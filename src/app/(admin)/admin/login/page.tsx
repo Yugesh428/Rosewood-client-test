@@ -11,7 +11,8 @@ import { Spinner } from "@/components/ui/spinner";
 function EyeIcon({ open }: { open: boolean }) {
   return open ? (
     <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z" /><circle cx="12" cy="12" r="3" />
+      <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z" />
+      <circle cx="12" cy="12" r="3" />
     </svg>
   ) : (
     <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -44,7 +45,6 @@ export default function AdminLoginPage() {
       if (result?.error) {
         setError("Invalid email or password.");
       } else {
-        // Full navigation — forces server session to be re-read
         window.location.href = "/admin/dashboard";
       }
     } catch {
@@ -55,7 +55,8 @@ export default function AdminLoginPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-[#111111] px-4">
+    // fixed overlay covers the sidebar completely on the login page
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#111111] px-4">
       <div className="fixed top-0 left-0 right-0 h-[3px] bg-[#D4AF37]" />
 
       <motion.div
@@ -70,7 +71,9 @@ export default function AdminLoginPage() {
           transition={{ delay: 0.1, duration: 0.4 }}
           className="text-center mb-8"
         >
-          <p className="text-xs tracking-[0.35em] uppercase text-[#D4AF37] font-sans mb-1">Rosewood</p>
+          <p className="text-xs tracking-[0.35em] uppercase text-[#D4AF37] font-sans mb-1">
+            Rosewood
+          </p>
           <h1 className="font-heading text-3xl text-white">Admin Portal</h1>
           <p className="text-sm text-[#999999] mt-1 font-sans">Restricted access</p>
         </motion.div>
@@ -84,7 +87,8 @@ export default function AdminLoginPage() {
           <AnimatePresence mode="wait">
             {error && (
               <motion.div
-                key="error" role="alert"
+                key="error"
+                role="alert"
                 initial={{ opacity: 0, height: 0, marginBottom: 0 }}
                 animate={{ opacity: 1, height: "auto", marginBottom: 20 }}
                 exit={{ opacity: 0, height: 0, marginBottom: 0 }}
@@ -98,42 +102,72 @@ export default function AdminLoginPage() {
 
           <form onSubmit={handleSubmit} noValidate className="space-y-5">
             <div className="space-y-1.5">
-              <Label htmlFor="email" className="text-[#999999] text-sm font-sans">Email</Label>
+              <Label htmlFor="email" className="text-[#999999] text-sm font-sans">
+                Email
+              </Label>
               <Input
-                id="email" type="email" autoComplete="email" required
-                value={email} onChange={(e) => setEmail(e.target.value)}
-                placeholder="admin@rosewood.com" disabled={loading}
+                id="email"
+                type="email"
+                autoComplete="email"
+                required
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="admin@rosewood.com"
+                disabled={loading}
                 className="bg-[#111111] border-white/10 text-white placeholder:text-white/20 focus-visible:ring-[#D4AF37] focus-visible:border-[#D4AF37]"
               />
             </div>
 
             <div className="space-y-1.5">
-              <Label htmlFor="password" className="text-[#999999] text-sm font-sans">Password</Label>
+              <Label htmlFor="password" className="text-[#999999] text-sm font-sans">
+                Password
+              </Label>
               <div className="relative">
                 <Input
-                  id="password" type={showPassword ? "text" : "password"}
-                  autoComplete="current-password" required
-                  value={password} onChange={(e) => setPassword(e.target.value)}
-                  placeholder="••••••••" disabled={loading}
+                  id="password"
+                  type={showPassword ? "text" : "password"}
+                  autoComplete="current-password"
+                  required
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="••••••••"
+                  disabled={loading}
                   className="pr-10 bg-[#111111] border-white/10 text-white placeholder:text-white/20 focus-visible:ring-[#D4AF37] focus-visible:border-[#D4AF37]"
                 />
-                <button type="button" onClick={() => setShowPassword((v) => !v)}
+                <button
+                  type="button"
+                  onClick={() => setShowPassword((v) => !v)}
                   aria-label={showPassword ? "Hide password" : "Show password"}
-                  className="absolute inset-y-0 right-0 flex items-center px-3 text-white/30 hover:text-[#D4AF37] transition-colors">
+                  className="absolute inset-y-0 right-0 flex items-center px-3 text-white/30 hover:text-[#D4AF37] transition-colors"
+                >
                   <EyeIcon open={showPassword} />
                 </button>
               </div>
             </div>
 
-            <Button type="submit" disabled={loading}
-              className="w-full bg-[#D4AF37] hover:bg-[#c49e2f] text-black font-sans font-semibold tracking-wide h-11 rounded-md transition-all duration-200">
+            <Button
+              type="submit"
+              disabled={loading}
+              className="w-full bg-[#D4AF37] hover:bg-[#c49e2f] text-black font-sans font-semibold tracking-wide h-11 rounded-md transition-all duration-200"
+            >
               <AnimatePresence mode="wait" initial={false}>
                 {loading ? (
-                  <motion.span key="loading" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="flex items-center gap-2">
+                  <motion.span
+                    key="loading"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    className="flex items-center gap-2"
+                  >
                     <Spinner size={15} /> Signing in…
                   </motion.span>
                 ) : (
-                  <motion.span key="idle" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+                  <motion.span
+                    key="idle"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                  >
                     Sign in
                   </motion.span>
                 )}
