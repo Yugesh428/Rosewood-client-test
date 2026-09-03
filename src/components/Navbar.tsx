@@ -132,8 +132,7 @@ function SearchBar({ mobile = false }: { mobile?: boolean }) {
   const handleResultClick = (id: string) => {
     setOpen(false);
     setQuery("");
-    // Will navigate to product detail page when it exists; for now go to pharmacy highlighted
-    router.push(`/pharmacy?product=${id}`);
+    router.push(`/pharmacy/${id}`);
   };
 
   const handleViewAll = () => {

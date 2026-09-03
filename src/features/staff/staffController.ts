@@ -272,6 +272,38 @@ export async function toggleStaffActive(
   }
 }
 
+// ─── DELETE /api/staff/:id ────────────────────────────────────────────────────
+
+export async function deleteStaff(
+  _req: NextRequest,
+  id: string,
+): Promise<NextResponse> {
+  logger.info(CTX, "deleteStaff — start", { id });
+
+  try {
+    if (!id) throw new AppError("Staff ID is required.", 400, "MISSING_ID");
+
+    const staff = await Staff.findByPk(id);
+    if (!staff) {
+      logger.warn(CTX, "deleteStaff — not found", { id });
+      throw new AppError("Staff member not found.", 404, "NOT_FOUND");
+    }
+
+    const { fullName, employeeCode } = staff;
+    await staff.destroy();
+
+    logger.info(CTX, "deleteStaff — deleted", { id, fullName, employeeCode });
+    return NextResponse.json({
+      success: true,
+      message: `"${fullName}" (${employeeCode}) has been deleted.`,
+      data: { id },
+    }, { status: 200 });
+  } catch (error) {
+    logger.error(CTX, "deleteStaff — failed", { id, error });
+    return errorResponse(error);
+  }
+}
+
 // ─── POST /api/staff/bulk ─────────────────────────────────────────────────────
 // Bulk create from JSON array OR Excel (.xlsx / .xls).
 //
@@ -307,10 +339,11 @@ export async function bulkCreateStaff(req: NextRequest): Promise<NextResponse> {
       }
 
       const XLSX     = require("xlsx");
-      const wb       = XLSX.read(Buffer.from(await file.arrayBuffer()), { type: "buffer" });
-      rawRows        = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]]);
+      const wb       = XLSX.read(Buffer.from(await file.arrayBuffer()), { type: "buffer", cellDates: true });
+      rawRows        = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], { dateNF: "yyyy-mm-dd", raw: false });
 
       logger.debug(CTX, `bulkCreateStaff — parsed ${rawRows.length} rows from Excel`);
+    logger.debug(CTX, "bulkCreateStaff — first 2 raw rows sample", rawRows.slice(0, 2));
     }
     // ── JSON body ─────────────────────────────────────────────────────────────
     else {
@@ -337,14 +370,39 @@ export async function bulkCreateStaff(req: NextRequest): Promise<NextResponse> {
       notes: string | null;
     }
 
+    // Excel stores dates as serial numbers (days since 1899-12-30).
+    // We need to convert them to YYYY-MM-DD strings.
+    function excelDateToISO(val: unknown): string {
+      if (!val) return "";
+      // Already a string like "2021-04-12"
+      if (typeof val === "string") {
+        const trimmed = val.trim();
+        // If it looks like a date string already, return as-is
+        if (/^\d{4}-\d{2}-\d{2}/.test(trimmed)) return trimmed.slice(0, 10);
+        // Try to parse it
+        const parsed = new Date(trimmed);
+        if (!isNaN(parsed.getTime())) return parsed.toISOString().slice(0, 10);
+        return trimmed;
+      }
+      // Excel serial number (number)
+      if (typeof val === "number") {
+        // Excel epoch: days since 1899-12-30 (with the Lotus 1-2-3 leap year bug)
+        const excelEpoch = new Date(1899, 11, 30);
+        const date = new Date(excelEpoch.getTime() + val * 86400000);
+        return date.toISOString().slice(0, 10);
+      }
+      // Date object (xlsx can return these)
+      if (val instanceof Date) return val.toISOString().slice(0, 10);
+      return String(val).trim();
+    }
+
     const normRows: NormRow[] = rawRows.map((r) => ({
       fullName:      String(r.fullName      ?? r["Full Name"]       ?? r["Name"]          ?? "").trim(),
       employeeCode:  String(r.employeeCode  ?? r["Employee Code"]   ?? r["Code"]          ?? "").trim().toUpperCase(),
       role:          String(r.role          ?? r["Role"]            ?? "other").trim().toLowerCase(),
-      phone:         String(r.phone         ?? r["Phone"]           ?? "").trim(),
-      email:         String(r.email         ?? r["Email"]           ?? "").trim() || null,
+      phone:         String(r.phone         ?? r["Phone"]           ?? "").trim(),      email:         String(r.email         ?? r["Email"]           ?? "").trim() || null,
       address:       String(r.address       ?? r["Address"]         ?? "").trim() || null,
-      dateOfJoining: String(r.dateOfJoining ?? r["Date of Joining"] ?? r["Joining Date"] ?? "").trim(),
+      dateOfJoining: excelDateToISO(r.dateOfJoining ?? r["Date of Joining"] ?? r["Joining Date"] ?? ""),
       salary:        toNum(r.salary         ?? r["Salary"]          ?? 0),
       isActive:      String(r.isActive      ?? r["Active"]          ?? "true").toLowerCase() !== "false",
       notes:         String(r.notes         ?? r["Notes"]           ?? "").trim() || null,
@@ -396,22 +454,51 @@ export async function bulkCreateStaff(req: NextRequest): Promise<NextResponse> {
 
     logger.debug(CTX, `bulkCreateStaff — ${skipped.length} duplicate codes skipped`);
 
-    // ── Bulk insert ────────────────────────────────────────────────────────────
-    const created = await Staff.bulkCreate(
-      finalCreate.map((r) => ({
-        fullName:      r.fullName,
-        employeeCode:  r.employeeCode,
-        role:          r.role as StaffRole,
-        phone:         r.phone,
-        email:         r.email,
-        address:       r.address,
-        dateOfJoining: new Date(r.dateOfJoining),
-        salary:        r.salary,
-        isActive:      r.isActive,
-        notes:         r.notes,
-      })),
-      { validate: true },
-    );
+    // ── Bulk insert — validate row-by-row so one bad row doesn't kill the batch ──
+    const insertRows: typeof finalCreate = [];
+
+    for (let i = 0; i < finalCreate.length; i++) {
+      const r = finalCreate[i];
+      const rowNum = normRows.indexOf(r) + 2;
+      try {
+        const instance = Staff.build({
+          fullName:      r.fullName,
+          employeeCode:  r.employeeCode,
+          role:          r.role as StaffRole,
+          phone:         r.phone,
+          email:         r.email,
+          address:       r.address,
+          dateOfJoining: new Date(r.dateOfJoining),
+          salary:        r.salary,
+          isActive:      r.isActive,
+          notes:         r.notes,
+        });
+        await instance.validate();
+        insertRows.push(r);
+      } catch (valErr: unknown) {
+        const msg = valErr instanceof Error ? valErr.message : "Validation failed";
+        errors.push({ row: rowNum, reason: msg });
+        logger.warn(CTX, `bulkCreateStaff — row ${rowNum} validation failed`, { r, msg });
+      }
+    }
+
+    const created = insertRows.length > 0
+      ? await Staff.bulkCreate(
+          insertRows.map((r) => ({
+            fullName:      r.fullName,
+            employeeCode:  r.employeeCode,
+            role:          r.role as StaffRole,
+            phone:         r.phone,
+            email:         r.email,
+            address:       r.address,
+            dateOfJoining: new Date(r.dateOfJoining),
+            salary:        r.salary,
+            isActive:      r.isActive,
+            notes:         r.notes,
+          })),
+          { validate: false }, // already validated above
+        )
+      : [];
 
     logger.info(CTX, "bulkCreateStaff — done", {
       total: rawRows.length, created: created.length,
@@ -432,6 +519,18 @@ export async function bulkCreateStaff(req: NextRequest): Promise<NextResponse> {
     }, { status: 201 });
   } catch (error) {
     logger.error(CTX, "bulkCreateStaff — failed", error);
+    // Return detailed validation errors if available
+    if (error instanceof Error && error.name === "SequelizeValidationError") {
+      return NextResponse.json({
+        success: false,
+        error: "Validation error",
+        details: (error as unknown as { errors: Array<{ path: string; message: string; value: unknown }> }).errors?.map(e => ({
+          field:   e.path,
+          message: e.message,
+          value:   e.value,
+        })) ?? [],
+      }, { status: 400 });
+    }
     return errorResponse(error);
   }
 }

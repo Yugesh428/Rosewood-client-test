@@ -51,6 +51,8 @@ export interface ProductAttributes {
   productDescriptions: ProductDescription[];  // Array: [{ title, content }, ...]
   specifications: ProductSpecification[];     // Array: [{ key, value }, ...]
   suitableFor: string[];                      // Array: ["vegetarian", "vegan", "children", ...]
+  howToUse: string[];                         // Array of how-to-use steps
+  safetyInformation: string[];                // Array of safety information points
   isActive: boolean;
   createdAt?: Date;
   updatedAt?: Date;
@@ -58,7 +60,7 @@ export interface ProductAttributes {
 
 export interface ProductCreationAttributes extends Optional<
   ProductAttributes,
-  "id" | "productImage" | "productDescriptions" | "specifications" | "suitableFor" | "isActive" | "createdAt" | "updatedAt"
+  "id" | "productImage" | "productDescriptions" | "specifications" | "suitableFor" | "howToUse" | "safetyInformation" | "isActive" | "createdAt" | "updatedAt"
 > {}
 
 class Product
@@ -80,6 +82,8 @@ class Product
   declare productDescriptions: ProductDescription[];
   declare specifications: ProductSpecification[];
   declare suitableFor: string[];
+  declare howToUse: string[];
+  declare safetyInformation: string[];
   declare isActive: boolean;
   declare readonly createdAt?: Date;
   declare readonly updatedAt?: Date;
@@ -160,6 +164,18 @@ Product.init(
       allowNull: false,
       defaultValue: [],
       comment: "Array of strings: vegetarian, vegan, gluten_free, lactose_free, diabetic_friendly, children, adults, elderly, etc.",
+    },
+    howToUse: {
+      type: DataTypes.JSONB,
+      allowNull: false,
+      defaultValue: [],
+      comment: "Array of how-to-use instruction strings",
+    },
+    safetyInformation: {
+      type: DataTypes.JSONB,
+      allowNull: false,
+      defaultValue: [],
+      comment: "Array of safety information strings",
     },
     isActive: {
       type: DataTypes.BOOLEAN,

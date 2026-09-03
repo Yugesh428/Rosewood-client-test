@@ -47,6 +47,7 @@ export {
   getStaffById,
   createStaff,
   updateStaff,
+  deleteStaff,
   toggleStaffActive,
   bulkCreateStaff,
 } from "./staffController";
@@ -57,5 +58,6 @@ export const STAFF_ROUTES = {
   bulk:         "POST   /api/staff/bulk",
   getById:      "GET    /api/staff/:id",
   update:       "PUT    /api/staff/:id",
+  delete:       "DELETE /api/staff/:id",
   toggleActive: "PATCH  /api/staff/:id/toggle-active",
 } as const;

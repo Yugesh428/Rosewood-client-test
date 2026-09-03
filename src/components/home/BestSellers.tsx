@@ -105,7 +105,7 @@ function ProductCard({
       className="group bg-white rounded-lg overflow-hidden shadow-[0_2px_12px_rgba(0,0,0,0.08)] hover:shadow-[0_8px_28px_rgba(0,0,0,0.15)] transition-shadow duration-300 cursor-default"
     >
       {/* ── Image ── */}
-      <div className="relative w-full aspect-square overflow-hidden bg-[#F5F3EF]">
+      <Link href={`/pharmacy/${product.id}`} className="block relative w-full aspect-square overflow-hidden bg-[#F5F3EF]">
         <motion.div
           className="w-full h-full"
           whileHover={{ scale: 1.06 }}
@@ -126,15 +126,16 @@ function ProductCard({
             -{product.discount}%
           </span>
         )}
-      </div>
+      </Link>
 
       {/* ── Info ── */}
       <div className="px-4 pt-3 pb-4">
 
         {/* Name */}
-        <h3 className="font-sans text-[14px] font-semibold text-[#1A1A1A] leading-snug mb-1.5 line-clamp-2">
+        <Link href={`/pharmacy/${product.id}`}
+          className="font-sans text-[14px] font-semibold text-[#1A1A1A] leading-snug mb-1.5 line-clamp-2 hover:underline block">
           {product.productName}
-        </h3>
+        </Link>
 
         {/* Stars */}
         <StarRating avg={stats.avg} count={stats.count} />
@@ -167,21 +168,17 @@ function ProductCard({
             onClick={handleAddToCart}
             whileTap={{ scale: 0.88 }}
             aria-label="Add to cart"
-            className="w-9 h-9 flex items-center justify-center rounded-full text-white flex-shrink-0 transition-colors duration-200"
-            style={{ backgroundColor: "var(--color-text-heading)" }}
-            onMouseEnter={e => (e.currentTarget.style.backgroundColor = "var(--color-primary)")}
-            onMouseLeave={e => (e.currentTarget.style.backgroundColor = "var(--color-text-heading)")}
+            className="w-9 h-9 flex items-center justify-center rounded-full flex-shrink-0 transition-opacity duration-200 hover:opacity-80 border"
+            style={{ backgroundColor: "#ffffff", color: "#000000", borderColor: "#e5e7eb" }}
           >
             {added ? <CheckIcon /> : <CartIcon />}
           </motion.button>
 
           {/* Buy pill */}
           <Link
-            href={`/pharmacy?product=${product.id}`}
-            className="flex-1 flex items-center justify-center py-2 rounded-full text-[13px] font-bold text-white transition-colors duration-200"
-            style={{ backgroundColor: "var(--color-text-heading)" }}
-            onMouseEnter={e => (e.currentTarget.style.backgroundColor = "var(--color-primary)")}
-            onMouseLeave={e => (e.currentTarget.style.backgroundColor = "var(--color-text-heading)")}
+            href={`/pharmacy/${product.id}`}
+            className="flex-1 flex items-center justify-center py-2 rounded-full text-[13px] font-bold transition-opacity duration-200 hover:opacity-80"
+            style={{ backgroundColor: "var(--color-primary)", color: "var(--color-primary-text)" }}
           >
             Buy
           </Link>

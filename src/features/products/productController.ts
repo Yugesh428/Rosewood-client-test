@@ -274,6 +274,8 @@ export async function createProduct(req: NextRequest): Promise<NextResponse> {
     const descriptions = parseDescriptions(fields.productDescriptions);
     const specifications = parseSpecifications(fields.specifications);
     const suitableFor  = parseSuitableFor(fields.suitableFor);
+    const howToUse     = parseSuitableFor(fields.howToUse);        // reuse string[] parser
+    const safetyInfo   = parseSuitableFor(fields.safetyInformation);
     const ingredients  = parseIngredients(fields.ingredients);
 
     const product = await Product.create({
@@ -291,6 +293,8 @@ export async function createProduct(req: NextRequest): Promise<NextResponse> {
       productDescriptions: descriptions,
       specifications,
       suitableFor,
+      howToUse,
+      safetyInformation: safetyInfo,
       isActive:            fields.isActive !== undefined ? String(fields.isActive) !== "false" : true,
     });
 
@@ -385,6 +389,8 @@ export async function updateProduct(
       ...(fields.productDescriptions != null && { productDescriptions: parseDescriptions(fields.productDescriptions) }),
       ...(fields.specifications      != null && { specifications:      parseSpecifications(fields.specifications) as ProductSpecification[] }),
       ...(fields.suitableFor         != null && { suitableFor:         parseSuitableFor(fields.suitableFor) }),
+      ...(fields.howToUse            != null && { howToUse:            parseSuitableFor(fields.howToUse) }),
+      ...(fields.safetyInformation   != null && { safetyInformation:   parseSuitableFor(fields.safetyInformation) }),
     };
 
     await product.update(updates);
@@ -566,6 +572,8 @@ export async function bulkCreateProducts(req: NextRequest): Promise<NextResponse
         productDescriptions: descriptions,
         specifications:      specifications as ProductSpecification[],
         suitableFor,
+        howToUse:          parseSuitableFor(r.howToUse ?? r["How To Use"] ?? r["howToUse"] ?? []),
+        safetyInformation: parseSuitableFor(r.safetyInformation ?? r["Safety Information"] ?? r["safetyInformation"] ?? []),
         isActive:            String(r.isActive ?? "true").toLowerCase() !== "false",
       });
     });

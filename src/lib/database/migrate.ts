@@ -311,13 +311,64 @@ async function migrate() {
     await ContactInfo.sync({ force: false, alter: false });
     await ContactForm.sync({ force: false, alter: false });
 
+    // ── custom_themes table ────────────────────────────────────────────────────
+    const { CustomTheme } = await import("../../features/siteTheme/siteThemeModel");
+    await CustomTheme.sync({ force: false, alter: false });
+    
+    // Seed default themes (Gold & Medical Blue) if they don't exist
+    const goldExists = await CustomTheme.findOne({ where: { id: "gold" } });
+    if (!goldExists) {
+      await CustomTheme.create({
+        id: "gold",
+        name: "Gold & Black",
+        isDefault: true,
+        primary: "#D4AF37",
+        primaryLight: "#ffe87c",
+        primaryDark: "#b8952e",
+        primaryText: "#000000",
+        bgPage: "#F9F9F9",
+        bgCard: "#ffffff",
+        bgNav: "#000000",
+        textHeading: "#1A1A1A",
+        textBody: "#374151",
+        textMuted: "#6B6B6B",
+        borderColor: "#E8E4DC",
+        shadow: "0 2px 12px rgba(0,0,0,0.08)",
+        shadowHover: "0 8px 28px rgba(0,0,0,0.15)",
+      });
+      console.log("✅ Gold theme seeded.");
+    }
+    
+    const medicalExists = await CustomTheme.findOne({ where: { id: "medical" } });
+    if (!medicalExists) {
+      await CustomTheme.create({
+        id: "medical",
+        name: "Medical Blue",
+        isDefault: true,
+        primary: "#00B4D8",
+        primaryLight: "#90E0EF",
+        primaryDark: "#0096C7",
+        primaryText: "#ffffff",
+        bgPage: "#EAF6FB",
+        bgCard: "#ffffff",
+        bgNav: "#023E8A",
+        textHeading: "#023E8A",
+        textBody: "#1a4a6b",
+        textMuted: "#4a7a96",
+        borderColor: "#CAE9F5",
+        shadow: "0 2px 12px rgba(0,100,160,0.10)",
+        shadowHover: "0 8px 28px rgba(0,100,160,0.20)",
+      });
+      console.log("✅ Medical Blue theme seeded.");
+    }
+
     // ── site_theme — singleton config table ───────────────────────────────────
     await SiteTheme.sync({ force: false, alter: false });
     // Seed the singleton row if it doesn't exist
     const themeExists = await q.describeTable("site_theme").catch(() => null);
     if (themeExists) {
       await sequelize.query(`
-        INSERT INTO "site_theme" ("id", "activeTheme", "updatedAt")
+        INSERT INTO "site_theme" ("id", "activeThemeId", "updatedAt")
         VALUES (1, 'gold', NOW())
         ON CONFLICT ("id") DO NOTHING;
       `);
@@ -325,6 +376,25 @@ async function migrate() {
     }
     
     console.log("✅ All UI tables verified/created in correct order.");
+
+    // ── 8. Add howToUse and safetyInformation to products if missing ──────────
+    const productColsFull = await q.describeTable("products").catch(() => null);
+    if (productColsFull) {
+      if (!productColsFull["howToUse"]) {
+        console.log("➕ Adding howToUse to products...");
+        await sequelize.query(`ALTER TABLE "products" ADD COLUMN "howToUse" JSONB NOT NULL DEFAULT '[]';`);
+        console.log("✅ products.howToUse added.");
+      } else {
+        console.log("ℹ️  products.howToUse already exists.");
+      }
+      if (!productColsFull["safetyInformation"]) {
+        console.log("➕ Adding safetyInformation to products...");
+        await sequelize.query(`ALTER TABLE "products" ADD COLUMN "safetyInformation" JSONB NOT NULL DEFAULT '[]';`);
+        console.log("✅ products.safetyInformation added.");
+      } else {
+        console.log("ℹ️  products.safetyInformation already exists.");
+      }
+    }
 
     console.log("\n🎉 Migration complete.");
   } catch (error) {

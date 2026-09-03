@@ -80,6 +80,8 @@ const BLANK_FORM = {
   productDescriptions: [{ title: "", content: "" }] as { title: string; content: string }[],
   specifications: [] as { key: string; value: string }[],
   ingredients: [] as Ingredient[],
+  howToUse: [] as string[],
+  safetyInformation: [] as string[],
   imageFile: null as File | null,
   imageUrl: "",
 };
@@ -104,7 +106,7 @@ export default function ProductSection() {
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [form, setForm]                     = useState({ ...BLANK_FORM });
   const [submitting, setSubmitting]         = useState(false);
-  const [activeTab, setActiveTab]           = useState<"basic" | "descriptions" | "specifications" | "ingredients">("basic");
+  const [activeTab, setActiveTab]           = useState<"basic" | "descriptions" | "specifications" | "ingredients" | "howToUse" | "safetyInformation">("basic");
   const [imagePreview, setImagePreview]     = useState<string | null>(null);
 
   // Bulk import
@@ -193,6 +195,8 @@ export default function ProductSection() {
           unit:           i.unit || "",
           sortOrder:      i.sortOrder,
         })),
+        howToUse:          full.howToUse          || [],
+        safetyInformation: full.safetyInformation || [],
         imageFile: null,
         imageUrl:  full.productImage || "",
       });
@@ -285,6 +289,8 @@ export default function ProductSection() {
         fd.append("specifications",      JSON.stringify(specifications));
         fd.append("suitableFor",         JSON.stringify(form.suitableFor));
         fd.append("ingredients",         JSON.stringify(ingredients));
+        fd.append("howToUse",            JSON.stringify(form.howToUse.filter(s => s.trim())));
+        fd.append("safetyInformation",   JSON.stringify(form.safetyInformation.filter(s => s.trim())));
         body = fd;
       } else {
         headers["Content-Type"] = "application/json";
@@ -297,6 +303,8 @@ export default function ProductSection() {
           isActive: form.isActive, imageUrl: form.imageUrl || null,
           productDescriptions: descriptions, specifications,
           suitableFor: form.suitableFor, ingredients,
+          howToUse:          form.howToUse.filter(s => s.trim()),
+          safetyInformation: form.safetyInformation.filter(s => s.trim()),
         });
       }
 
@@ -607,31 +615,28 @@ export default function ProductSection() {
 
             {/* Tabs */}
             <div className="flex border-b border-[#E5E5E5] px-6 overflow-x-auto gap-1">
-              {(["basic", "descriptions", "specifications", "ingredients"] as const).map((tab) => (
-                <button key={tab} type="button" onClick={() => setActiveTab(tab)}
-                  className={`px-4 py-3 text-sm font-medium capitalize whitespace-nowrap border-b-2 transition-colors ${
-                    activeTab === tab
-                      ? "border-[#D4AF37] text-[#D4AF37]"
-                      : "border-transparent text-[#6B6B6B] hover:text-[#1A1A1A]"
-                  }`}>
-                  {tab}
-                  {tab === "ingredients" && form.ingredients.length > 0 && (
-                    <span className="ml-1 px-1.5 py-0.5 bg-[#D4AF37]/20 text-[#D4AF37] text-xs rounded-full">
-                      {form.ingredients.length}
-                    </span>
-                  )}
-                  {tab === "descriptions" && form.productDescriptions.filter(d => d.content).length > 0 && (
-                    <span className="ml-1 px-1.5 py-0.5 bg-[#D4AF37]/20 text-[#D4AF37] text-xs rounded-full">
-                      {form.productDescriptions.filter(d => d.content).length}
-                    </span>
-                  )}
-                  {tab === "specifications" && form.specifications.length > 0 && (
-                    <span className="ml-1 px-1.5 py-0.5 bg-[#D4AF37]/20 text-[#D4AF37] text-xs rounded-full">
-                      {form.specifications.length}
-                    </span>
-                  )}
-                </button>
-              ))}
+              {(["basic", "descriptions", "specifications", "ingredients", "howToUse", "safetyInformation"] as const).map((tab) => {
+                const label = tab === "howToUse" ? "How to Use" : tab === "safetyInformation" ? "Safety Info" : tab;
+                const count = tab === "ingredients" ? form.ingredients.length
+                  : tab === "descriptions" ? form.productDescriptions.filter(d => d.content).length
+                  : tab === "specifications" ? form.specifications.length
+                  : tab === "howToUse" ? form.howToUse.filter(s => s.trim()).length
+                  : tab === "safetyInformation" ? form.safetyInformation.filter(s => s.trim()).length
+                  : 0;
+                return (
+                  <button key={tab} type="button" onClick={() => setActiveTab(tab)}
+                    className={`px-4 py-3 text-sm font-medium whitespace-nowrap border-b-2 transition-colors ${
+                      activeTab === tab
+                        ? "border-[#D4AF37] text-[#D4AF37]"
+                        : "border-transparent text-[#6B6B6B] hover:text-[#1A1A1A]"
+                    }`}>
+                    {label}
+                    {count > 0 && (
+                      <span className="ml-1 px-1.5 py-0.5 bg-[#D4AF37]/20 text-[#D4AF37] text-xs rounded-full">{count}</span>
+                    )}
+                  </button>
+                );
+              })}
             </div>
 
             <form onSubmit={handleSubmit}>
@@ -763,22 +768,31 @@ export default function ProductSection() {
                 {activeTab === "descriptions" && (
                   <div className="space-y-4">
                     <p className="text-xs text-[#6B6B6B]">
-                      Add named sections like "How to Use", "Side Effects", "Storage". Title is optional.
+                      The first section is the main product description. Add extra sections for Side Effects, Storage, etc.
                     </p>
                     {form.productDescriptions.map((desc, i) => (
                       <div key={i} className="border border-[#E5E5E5] rounded-md p-4 space-y-3">
                         <div className="flex justify-between items-center">
-                          <span className="text-xs font-medium text-[#6B6B6B]">Section {i + 1}</span>
-                          {form.productDescriptions.length > 1 && (
+                          <span className="text-xs font-semibold text-[#1A1A1A]">
+                            {i === 0 ? "Main Description" : `Section ${i + 1}`}
+                          </span>
+                          {i > 0 && (
                             <button type="button" onClick={() => removeDescription(i)}
                               className="text-xs text-red-500 hover:text-red-700">Remove</button>
                           )}
                         </div>
-                        <input type="text" placeholder="Section title (e.g. How to use)"
-                          value={desc.title}
-                          onChange={(e) => updateDescription(i, "title", e.target.value)}
-                          className="w-full rounded border border-[#E5E5E5] px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#D4AF37]" />
-                        <textarea rows={3} placeholder="Section content..."
+                        {/* First section: no title input — it's always the main description */}
+                        {i === 0 ? (
+                          <p className="text-[11px] text-[#9CA3AF] font-sans">
+                            This is the main product description shown on the product page.
+                          </p>
+                        ) : (
+                          <input type="text" placeholder="Section title (e.g. Side Effects, Storage)"
+                            value={desc.title}
+                            onChange={(e) => updateDescription(i, "title", e.target.value)}
+                            className="w-full rounded border border-[#E5E5E5] px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#D4AF37]" />
+                        )}
+                        <textarea rows={3} placeholder={i === 0 ? "Main product description..." : "Section content..."}
                           value={desc.content}
                           onChange={(e) => updateDescription(i, "content", e.target.value)}
                           className="w-full rounded border border-[#E5E5E5] px-3 py-2 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-[#D4AF37]" />
@@ -820,8 +834,7 @@ export default function ProductSection() {
                 )}
 
                 {/* ── INGREDIENTS ─────────────────────────────────────────── */}
-                {activeTab === "ingredients" && (
-                  <div className="space-y-3">
+                {activeTab === "ingredients" && (                  <div className="space-y-3">
                     <p className="text-xs text-[#6B6B6B]">
                       List each ingredient with an optional quantity and unit (e.g. 500 mg).
                     </p>
@@ -860,6 +873,68 @@ export default function ProductSection() {
                     <button type="button" onClick={addIngredient}
                       className="text-sm text-[#D4AF37] hover:text-[#b8952e] font-medium">
                       + Add ingredient
+                    </button>
+                  </div>
+                )}
+
+                {/* ── HOW TO USE ──────────────────────────────────────────── */}
+                {activeTab === "howToUse" && (
+                  <div className="space-y-3">
+                    <p className="text-xs text-[#6B6B6B]">
+                      Add step-by-step instructions. Each entry appears as a separate point on the product page.
+                    </p>
+                    {form.howToUse.length === 0 && (
+                      <p className="text-sm text-[#6B6B6B] py-3 text-center">No steps added yet.</p>
+                    )}
+                    {form.howToUse.map((step, i) => (
+                      <div key={i} className="flex items-start gap-2">
+                        <span className="text-xs text-[#9CA3AF] font-medium mt-2.5 w-5 flex-shrink-0">{i + 1}.</span>
+                        <textarea rows={2} placeholder="e.g. Apply a small amount to affected area twice daily."
+                          value={step}
+                          onChange={(e) => {
+                            const updated = [...form.howToUse];
+                            updated[i] = e.target.value;
+                            setField("howToUse", updated);
+                          }}
+                          className="flex-1 rounded border border-[#E5E5E5] px-3 py-2 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-[#D4AF37]" />
+                        <button type="button" onClick={() => setField("howToUse", form.howToUse.filter((_, idx) => idx !== i))}
+                          className="text-red-500 hover:text-red-700 mt-2 text-sm flex-shrink-0">✕</button>
+                      </div>
+                    ))}
+                    <button type="button" onClick={() => setField("howToUse", [...form.howToUse, ""])}
+                      className="text-sm text-[#D4AF37] hover:text-[#b8952e] font-medium">
+                      + Add step
+                    </button>
+                  </div>
+                )}
+
+                {/* ── SAFETY INFORMATION ──────────────────────────────────── */}
+                {activeTab === "safetyInformation" && (
+                  <div className="space-y-3">
+                    <p className="text-xs text-[#6B6B6B]">
+                      Add safety warnings, contraindications, and storage instructions. Each entry is a separate point.
+                    </p>
+                    {form.safetyInformation.length === 0 && (
+                      <p className="text-sm text-[#6B6B6B] py-3 text-center">No safety information added yet.</p>
+                    )}
+                    {form.safetyInformation.map((info, i) => (
+                      <div key={i} className="flex items-start gap-2">
+                        <span className="text-xs text-[#9CA3AF] font-medium mt-2.5 w-5 flex-shrink-0">•</span>
+                        <textarea rows={2} placeholder="e.g. Keep out of reach of children."
+                          value={info}
+                          onChange={(e) => {
+                            const updated = [...form.safetyInformation];
+                            updated[i] = e.target.value;
+                            setField("safetyInformation", updated);
+                          }}
+                          className="flex-1 rounded border border-[#E5E5E5] px-3 py-2 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-[#D4AF37]" />
+                        <button type="button" onClick={() => setField("safetyInformation", form.safetyInformation.filter((_, idx) => idx !== i))}
+                          className="text-red-500 hover:text-red-700 mt-2 text-sm flex-shrink-0">✕</button>
+                      </div>
+                    ))}
+                    <button type="button" onClick={() => setField("safetyInformation", [...form.safetyInformation, ""])}
+                      className="text-sm text-[#D4AF37] hover:text-[#b8952e] font-medium">
+                      + Add point
                     </button>
                   </div>
                 )}

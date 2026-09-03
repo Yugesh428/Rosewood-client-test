@@ -3,22 +3,42 @@
 import {
   createContext, useContext, useState, useEffect, useCallback, ReactNode,
 } from "react";
-import { themes, DEFAULT_THEME, type ThemeKey, type Theme } from "@/lib/theme";
+
+// ─── Types ────────────────────────────────────────────────────────────────────
+
+export interface ThemeData {
+  id:            string;
+  name:          string;
+  isDefault:     boolean;
+  primary:       string;
+  primaryLight:  string;
+  primaryDark:   string;
+  primaryText:   string;
+  bgPage:        string;
+  bgCard:        string;
+  bgNav:         string;
+  textHeading:   string;
+  textBody:      string;
+  textMuted:     string;
+  borderColor:   string;
+  shadow:        string;
+  shadowHover:   string;
+}
 
 // ─── Context ──────────────────────────────────────────────────────────────────
 
 interface ThemeContextValue {
-  theme:     Theme;
-  themeKey:  ThemeKey;
+  theme:     ThemeData | null;
   loading:   boolean;
-  setTheme:  (key: ThemeKey) => Promise<void>;
+  setTheme:  (themeId: string) => Promise<void>;
+  refreshTheme: () => Promise<void>;
 }
 
 const ThemeContext = createContext<ThemeContextValue>({
-  theme:    themes[DEFAULT_THEME],
-  themeKey: DEFAULT_THEME,
+  theme:    null,
   loading:  true,
   setTheme: async () => {},
+  refreshTheme: async () => {},
 });
 
 export function useTheme() {
@@ -27,8 +47,7 @@ export function useTheme() {
 
 // ─── Apply CSS variables helper ───────────────────────────────────────────────
 
-function applyTheme(key: ThemeKey) {
-  const t    = themes[key];
+function applyTheme(t: ThemeData) {
   const root = document.documentElement;
   root.style.setProperty("--color-primary",       t.primary);
   root.style.setProperty("--color-primary-light",  t.primaryLight);
@@ -41,41 +60,62 @@ function applyTheme(key: ThemeKey) {
   root.style.setProperty("--color-text-body",      t.textBody);
   root.style.setProperty("--color-text-muted",     t.textMuted);
   root.style.setProperty("--color-border",         t.borderColor);
-  root.setAttribute("data-theme", key);
+  root.setAttribute("data-theme", t.id);
 }
 
 // ─── Provider ─────────────────────────────────────────────────────────────────
 
 export function ThemeProvider({ children }: { children: ReactNode }) {
-  const [themeKey, setThemeKey] = useState<ThemeKey>(DEFAULT_THEME);
-  const [loading,  setLoading]  = useState(true);
+  const [theme,   setThemeData] = useState<ThemeData | null>(null);
+  const [loading, setLoading]   = useState(true);
+
+  const refreshTheme = useCallback(async () => {
+    try {
+      console.log("Fetching active theme from API...");
+      const res = await fetch("/api/site-theme");
+      const json = await res.json();
+      console.log("Theme API response:", json);
+      if (json.success && json.data?.activeTheme) {
+        console.log("Setting active theme:", json.data.activeTheme);
+        setThemeData(json.data.activeTheme);
+        applyTheme(json.data.activeTheme);
+      }
+    } catch (err) {
+      console.error("Failed to fetch theme:", err);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
 
   // Fetch active theme from DB on mount
   useEffect(() => {
-    fetch("/api/site-theme")
-      .then(r => r.json())
-      .then(json => {
-        const key: ThemeKey = json.success ? json.data?.activeTheme ?? DEFAULT_THEME : DEFAULT_THEME;
-        setThemeKey(key);
-        applyTheme(key);
-      })
-      .catch(() => applyTheme(DEFAULT_THEME))
-      .finally(() => setLoading(false));
-  }, []);
+    refreshTheme();
+  }, [refreshTheme]);
 
   // Persist + broadcast to DB
-  const setTheme = useCallback(async (key: ThemeKey) => {
-    setThemeKey(key);
-    applyTheme(key);
-    await fetch("/api/site-theme", {
-      method:  "PUT",
-      headers: { "Content-Type": "application/json" },
-      body:    JSON.stringify({ activeTheme: key }),
-    });
-  }, []);
+  const setTheme = useCallback(async (themeId: string) => {
+    try {
+      console.log("Setting theme to:", themeId);
+      const res = await fetch("/api/site-theme", {
+        method:  "PUT",
+        headers: { "Content-Type": "application/json" },
+        body:    JSON.stringify({ activeThemeId: themeId }),
+      });
+      const json = await res.json();
+      console.log("Set theme API response:", json);
+      if (json.success) {
+        await refreshTheme();
+      } else {
+        throw new Error(json.message || "Failed to set theme");
+      }
+    } catch (err) {
+      console.error("Failed to set theme:", err);
+      throw err;
+    }
+  }, [refreshTheme]);
 
   return (
-    <ThemeContext.Provider value={{ theme: themes[themeKey], themeKey, loading, setTheme }}>
+    <ThemeContext.Provider value={{ theme, loading, setTheme, refreshTheme }}>
       {children}
     </ThemeContext.Provider>
   );

@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
+import Link from "next/link";
 import {
   Heart, ChevronDown, ChevronLeft, ChevronRight,
   LayoutGrid, ShoppingCart, Zap as BuyNow, Star, Check,
@@ -94,14 +95,14 @@ function ProductCard({ product, highlight = false }: { product: DBProduct; highl
       ? { borderColor: "var(--color-primary)", boxShadow: `0 0 0 2px color-mix(in srgb, var(--color-primary) 35%, transparent)` }
       : { borderColor: "#D4CEC4" }}>
 
-      {/* Image */}
-      <div className="relative aspect-square overflow-hidden bg-gray-50">
+      {/* Image — clicking navigates to product detail */}
+      <Link href={`/pharmacy/${product.id}`} className="block relative aspect-square overflow-hidden bg-gray-50">
         {badge && (
           <span className="absolute top-2 left-2 z-10 text-white text-[10px] font-semibold px-2 py-0.5 rounded-sm uppercase tracking-wide bg-[#c0392b]">
             {badge}
           </span>
         )}
-        <button onClick={() => setWished(w => !w)}
+        <button onClick={e => { e.preventDefault(); setWished(w => !w); }}
           className="absolute top-2 right-2 z-10 w-7 h-7 flex items-center justify-center bg-white rounded-full shadow-sm hover:shadow-md transition-all">
           <Heart className="w-3.5 h-3.5" fill={wished ? "var(--color-primary)" : "none"} stroke={wished ? "var(--color-primary)" : "#bbb"} strokeWidth={2} />
         </button>
@@ -109,17 +110,19 @@ function ProductCard({ product, highlight = false }: { product: DBProduct; highl
           <ProductImage src={product.productImage} alt={product.productName} fill
             className="object-cover" sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw" />
         </div>
-      </div>
+      </Link>
 
       {/* Info */}
       <div className="p-3 flex flex-col">
         <p className="text-[10px] uppercase tracking-[0.12em] text-gray-400 font-sans mb-1">
           {product.category?.categoryName ?? ""}
         </p>
-        <h3 className="text-sm font-medium leading-snug mb-2 font-sans line-clamp-2"
-          style={{ color: "var(--color-text-heading)", minHeight: "2.5rem" }}>
+        <Link href={`/pharmacy/${product.id}`}
+          className="text-sm font-medium leading-snug mb-0.5 font-sans truncate hover:underline block overflow-hidden whitespace-nowrap"
+          style={{ color: "var(--color-text-heading)" }}
+          title={product.productName}>
           {product.productName}
-        </h3>
+        </Link>
         <div className="mb-2"><StarRating rating={0} count={0} /></div>
 
         <div className="mb-2 flex items-baseline gap-2">
