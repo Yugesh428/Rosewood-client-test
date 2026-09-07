@@ -44,7 +44,7 @@ export default function HeroSectionDynamic() {
   if (loading) {
     return (
       <section className="relative w-full h-[90vh] min-h-[580px] pt-14 flex items-center justify-center"
-        style={{ backgroundColor: "var(--color-bg-page)" }}>
+        style={{ backgroundColor: "transparent" }}>
         <div className="w-12 h-12 border-4 border-t-transparent rounded-full animate-spin"
           style={{ borderColor: "var(--color-primary)", borderTopColor: "transparent" }} />
       </section>
@@ -54,7 +54,7 @@ export default function HeroSectionDynamic() {
   if (slides.length === 0) {
     // Fallback to static content if no slides
     return (
-      <section className="relative w-full h-[90vh] min-h-[580px] overflow-hidden bg-[#F9F9F9] pt-14">
+      <section className="relative w-full h-[90vh] min-h-[580px] overflow-hidden pt-14">
         <Image
           src="https://images.unsplash.com/photo-1608248543803-ba4f8c70ae0b?w=1600&q=80"
           alt="Luxury apothecary products"
@@ -62,7 +62,7 @@ export default function HeroSectionDynamic() {
           className="object-cover object-center"
           priority
         />
-        <div className="absolute inset-0 bg-gradient-to-r from-[#F9F9F9]/95 via-[#F9F9F9]/60 to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-r from-black/60 via-black/30 to-transparent" />
         <div className="relative z-10 h-full flex items-center">
           <div className="max-w-7xl mx-auto px-6 w-full">
             <div className="max-w-lg">
@@ -91,7 +91,7 @@ export default function HeroSectionDynamic() {
   const currentSlide = slides[currentIndex];
 
   return (
-    <section className="relative w-full h-[90vh] min-h-[580px] overflow-hidden bg-[#F9F9F9] pt-14">
+    <section className="relative w-full h-[90vh] min-h-[580px] overflow-hidden pt-14">
       {/* Background image with transition */}
       <motion.div
         key={currentSlide.id}
@@ -111,33 +111,46 @@ export default function HeroSectionDynamic() {
       </motion.div>
 
       {/* Gradient overlay */}
-      <div className="absolute inset-0 bg-gradient-to-r from-[#F9F9F9]/95 via-[#F9F9F9]/60 to-transparent" />
+      <div className="absolute inset-0 bg-gradient-to-r from-black/60 via-black/20 to-transparent" />
 
       {/* Content */}
       <div className="relative z-10 h-full flex items-center">
         <div className="max-w-7xl mx-auto px-6 w-full">
           <div className="max-w-lg">
-            {currentSlide.subtitle && (
-              <motion.p
-                key={`subtitle-${currentSlide.id}`}
-                initial={{ opacity: 0, y: 12 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.2, duration: 0.5 }}
-                className="text-xs tracking-[0.3em] uppercase text-[#1A1A1A] font-sans mb-4"
-              >
-                {currentSlide.subtitle}
-              </motion.p>
-            )}
-
             {currentSlide.title && (
               <motion.h1
                 key={`title-${currentSlide.id}`}
                 initial={{ opacity: 0, y: 16 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.3, duration: 0.6 }}
-                className="font-heading text-4xl md:text-5xl text-[#1A1A1A] leading-tight mb-8"
+                className="font-heading text-4xl md:text-5xl lg:text-6xl text-white leading-tight mb-4"
+                style={{
+                  display: "-webkit-box",
+                  WebkitLineClamp: 3,
+                  WebkitBoxOrient: "vertical",
+                  overflow: "hidden",
+                }}
                 dangerouslySetInnerHTML={{ __html: currentSlide.title.replace(/\n/g, "<br />") }}
               />
+            )}
+
+            {currentSlide.subtitle && (
+              <motion.p
+                key={`subtitle-${currentSlide.id}`}
+                initial={{ opacity: 0, y: 12 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.2, duration: 0.5 }}
+                className="text-sm font-sans mb-8 leading-relaxed"
+                style={{
+                  color: "rgba(255,255,255,0.80)",
+                  display: "-webkit-box",
+                  WebkitLineClamp: 2,
+                  WebkitBoxOrient: "vertical",
+                  overflow: "hidden",
+                }}
+              >
+                {currentSlide.subtitle}
+              </motion.p>
             )}
 
             <motion.div

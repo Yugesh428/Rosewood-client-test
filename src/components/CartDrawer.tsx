@@ -1,7 +1,9 @@
 "use client";
 
 import { useCart } from "@/context/CartContext";
+import { useRouter } from "next/navigation";
 import { X, ShoppingBag, Trash2, Plus, Minus } from "lucide-react";
+import Image from "next/image";
 
 interface CartDrawerProps {
   open: boolean;
@@ -10,6 +12,12 @@ interface CartDrawerProps {
 
 export default function CartDrawer({ open, onClose }: CartDrawerProps) {
   const { items, totalItems, totalPrice, updateQty, removeFromCart, clearCart } = useCart();
+  const router = useRouter();
+
+  function handleCheckout() {
+    onClose();
+    router.push("/checkout");
+  }
 
   return (
     <>
@@ -23,7 +31,7 @@ export default function CartDrawer({ open, onClose }: CartDrawerProps) {
 
       {/* Drawer */}
       <div
-        className={`fixed top-0 right-0 h-full w-96 z-50 flex flex-col bg-white shadow-2xl transition-transform duration-300 ease-in-out ${
+        className={`fixed top-0 right-0 h-full w-full max-w-sm z-50 flex flex-col bg-white shadow-2xl transition-transform duration-300 ease-in-out ${
           open ? "translate-x-0" : "translate-x-full"
         }`}
       >
@@ -34,7 +42,7 @@ export default function CartDrawer({ open, onClose }: CartDrawerProps) {
             <h2 className="font-heading text-lg text-gray-900">
               Cart
               {totalItems > 0 && (
-                <span className="ml-2 text-sm font-sans text-gray-500">({totalItems} items)</span>
+                <span className="ml-2 text-sm font-sans text-gray-500">({totalItems} item{totalItems !== 1 ? "s" : ""})</span>
               )}
             </h2>
           </div>
@@ -59,12 +67,21 @@ export default function CartDrawer({ open, onClose }: CartDrawerProps) {
               {items.map(item => (
                 <div key={item.id} className="flex gap-3 p-3 bg-gray-50 rounded-sm border border-gray-100">
                   {/* Image */}
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
-                    src={item.image}
-                    alt={item.name}
-                    className="w-16 h-16 object-cover rounded-sm flex-shrink-0"
-                  />
+                  <div className="w-16 h-16 bg-white rounded-sm flex-shrink-0 overflow-hidden border border-gray-100">
+                    {item.image ? (
+                      <Image
+                        src={item.image}
+                        alt={item.name}
+                        width={64}
+                        height={64}
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center text-gray-300 text-xs">
+                        No img
+                      </div>
+                    )}
+                  </div>
 
                   {/* Info */}
                   <div className="flex-1 min-w-0">
@@ -73,7 +90,7 @@ export default function CartDrawer({ open, onClose }: CartDrawerProps) {
                       {item.name}
                     </p>
                     <p className="text-sm font-heading text-gray-900 mt-1">
-                      ${(item.price * item.quantity).toFixed(2)}
+                      £{(item.price * item.quantity).toFixed(2)}
                     </p>
 
                     {/* Qty controls */}
@@ -81,6 +98,7 @@ export default function CartDrawer({ open, onClose }: CartDrawerProps) {
                       <button
                         onClick={() => updateQty(item.id, item.quantity - 1)}
                         className="w-6 h-6 rounded-full border border-gray-200 flex items-center justify-center hover:border-[#D4AF37] hover:text-[#D4AF37] transition-colors"
+                        aria-label="Decrease quantity"
                       >
                         <Minus className="w-3 h-3" />
                       </button>
@@ -88,12 +106,14 @@ export default function CartDrawer({ open, onClose }: CartDrawerProps) {
                       <button
                         onClick={() => updateQty(item.id, item.quantity + 1)}
                         className="w-6 h-6 rounded-full border border-gray-200 flex items-center justify-center hover:border-[#D4AF37] hover:text-[#D4AF37] transition-colors"
+                        aria-label="Increase quantity"
                       >
                         <Plus className="w-3 h-3" />
                       </button>
                       <button
                         onClick={() => removeFromCart(item.id)}
                         className="ml-auto w-6 h-6 rounded-full flex items-center justify-center hover:bg-red-50 hover:text-red-400 transition-colors"
+                        aria-label="Remove item"
                       >
                         <Trash2 className="w-3 h-3 text-gray-400" />
                       </button>
@@ -110,17 +130,18 @@ export default function CartDrawer({ open, onClose }: CartDrawerProps) {
           <div className="border-t border-gray-100 px-6 py-5 space-y-4">
             <div className="flex items-center justify-between">
               <span className="text-sm text-gray-500 font-sans">Subtotal</span>
-              <span className="font-heading text-lg text-gray-900">${totalPrice.toFixed(2)}</span>
+              <span className="font-heading text-lg text-gray-900">£{totalPrice.toFixed(2)}</span>
             </div>
 
             <button
-              className="w-full py-3 rounded-sm text-black text-sm font-semibold tracking-wide transition-all hover:opacity-90"
+              onClick={handleCheckout}
+              className="w-full py-3 rounded-sm text-black text-sm font-semibold tracking-wide transition-all hover:opacity-90 active:scale-[0.98]"
               style={{
                 background: "linear-gradient(135deg, #D4AF37 0%, #ffe87c 50%, #b8952e 100%)",
                 boxShadow: "0 4px 14px rgba(212,175,55,0.4)",
               }}
             >
-              Checkout — ${totalPrice.toFixed(2)}
+              Checkout — £{totalPrice.toFixed(2)}
             </button>
 
             <button

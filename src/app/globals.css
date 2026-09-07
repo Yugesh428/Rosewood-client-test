@@ -39,13 +39,14 @@
   --radius-2xl: calc(var(--radius) * 1.8);
 }
 
-/* ── Site-wide theme CSS variables (set by ThemeContext.tsx) ── */
+/* ── Site-wide theme CSS variables ── */
 :root {
   --color-primary:       #D4AF37;
   --color-primary-light: #ffe87c;
   --color-primary-dark:  #b8952e;
   --color-primary-text:  #000000;
-  --color-bg-page:       #F9F9F9;
+  --color-bg-page:       #dff0fb;
+  --color-bg-gradient:   linear-gradient(160deg, #dff0fb 0%, #eaf6ff 35%, #f4f9fc 65%, #edf5fb 100%);
   --color-bg-card:       #ffffff;
   --color-bg-nav:        #000000;
   --color-text-heading:  #1A1A1A;
@@ -54,24 +55,23 @@
   --color-border:        #E8E4DC;
 }
 
-/* ─── Medical theme overrides (applied by ThemeContext via data-theme attr) ── */
 [data-theme="medical"] {
   --color-primary:       #00B4D8;
   --color-primary-light: #90E0EF;
   --color-primary-dark:  #0096C7;
   --color-primary-text:  #ffffff;
-  --color-bg-page:       #EAF6FB;
+  --color-bg-page:       #dff0fb;
+  --color-bg-gradient:   linear-gradient(135deg, #dff0fb 0%, #eaf6ff 40%, #dff0fb 100%);
   --color-bg-card:       #ffffff;
   --color-bg-nav:        #023E8A;
   --color-text-heading:  #023E8A;
   --color-text-body:     #1a4a6b;
   --color-text-muted:    #4a7a96;
   --color-border:        #CAE9F5;
-  /* Override shadcn tokens too so native components react */
   --accent:              #00B4D8;
   --accent-foreground:   #ffffff;
   --ring:                #00B4D8;
-  --background:          #EAF6FB;
+  --background:          #dff0fb;
   --foreground:          #023E8A;
   --primary:             #023E8A;
   --primary-foreground:  #ffffff;
@@ -82,7 +82,8 @@
   --color-primary-light: #ffe87c;
   --color-primary-dark:  #b8952e;
   --color-primary-text:  #000000;
-  --color-bg-page:       #F9F9F9;
+  --color-bg-page:       #dff0fb;
+  --color-bg-gradient:   linear-gradient(135deg, #dff0fb 0%, #eaf6ff 50%, #dff0fb 100%);
   --color-bg-card:       #ffffff;
   --color-bg-nav:        #000000;
   --color-text-heading:  #1A1A1A;
@@ -91,36 +92,35 @@
   --color-border:        #E8E4DC;
 }
 
-/* Convenience shorthand — use t() in inline styles */
 .t-primary    { color:            var(--color-primary) }
 .t-bg-primary { background-color: var(--color-primary) }
 .t-border     { border-color:     var(--color-border)  }
 
-/* ── Light theme (Apothecary) ── */
+/* ── Light theme ── */
 :root {
-  --background:           #F9F9F9;   /* Off-white surface */
-  --foreground:           #1A1A1A;   /* Deep charcoal text */
+  --background:           #dff0fb;
+  --foreground:           #1A1A1A;
   --card:                 #FFFFFF;
   --card-foreground:      #1A1A1A;
   --popover:              #FFFFFF;
   --popover-foreground:   #1A1A1A;
-  --primary:              #000000;   /* Black — primary buttons / navbar */
+  --primary:              #000000;
   --primary-foreground:   #FFFFFF;
   --secondary:            #F4F4F4;
   --secondary-foreground: #1A1A1A;
   --muted:                #F0F0F0;
   --muted-foreground:     #6B6B6B;
-  --accent:               #D4AF37;   /* Luxury gold accent */
+  --accent:               #D4AF37;
   --accent-foreground:    #000000;
   --destructive:          oklch(0.577 0.245 27.325);
   --border:               #E5E5E5;
   --input:                #E5E5E5;
-  --ring:                 #D4AF37;   /* Gold focus ring */
+  --ring:                 #D4AF37;
   --gold:                 #D4AF37;
   --radius:               0.5rem;
 }
 
-/* ── Dark theme (kept minimal, inverts the light palette) ── */
+/* ── Dark theme ── */
 .dark {
   --background:           #111111;
   --foreground:           #F9F9F9;
@@ -147,11 +147,25 @@
   * {
     @apply border-border outline-ring/50;
   }
+  html, html[data-theme] {
+    background-color: #dff0fb !important;
+    background-image: none !important;
+    min-height: 100%;
+  }
   body {
-    @apply bg-background text-foreground;
+    @apply text-foreground;
     font-family: var(--font-sans), system-ui, sans-serif;
+    background: transparent !important;
+    background-color: transparent !important;
+    min-height: 100vh;
   }
   h1, h2, h3, h4, h5, h6 {
     font-family: var(--font-heading), Georgia, serif;
   }
+}
+
+/* ── Category sidebar animation ── */
+@keyframes fadeSlideIn {
+  from { opacity: 0; transform: translateX(-10px); }
+  to   { opacity: 1; transform: translateX(0); }
 }

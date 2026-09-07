@@ -7,7 +7,7 @@ const support = ["FAQ", "Shipping", "Returns", "Contact Us"];
 
 export default function Footer() {
   return (
-    <footer style={{ backgroundColor: "var(--color-bg-nav)" }} className="border-t border-white/10">
+    <footer className="w-full border-t border-white/10" style={{ backgroundColor: "#000000" }}>
       {/* Accent line */}
       <div className="h-[2px]"
         style={{ background: "linear-gradient(90deg, transparent, var(--color-primary), transparent)", opacity: 0.8 }} />
@@ -20,8 +20,16 @@ export default function Footer() {
               style={{ color: "var(--color-primary)" }}>
               Rosewood
             </p>
-            <h3 className="font-heading text-white text-xl mb-4">Pharmacy</h3>
-            <p className="text-white/55 text-xs font-sans leading-relaxed max-w-xs">
+            <h3
+              className="font-heading text-xl mb-4"
+              style={{ color: "#ffffff", textShadow: "0 0 18px rgba(255,255,255,0.55), 0 0 40px rgba(255,255,255,0.25)" }}
+            >
+              Pharmacy
+            </h3>
+            <p
+              className="text-xs font-sans leading-relaxed max-w-xs"
+              style={{ color: "rgba(255,255,255,0.7)", textShadow: "0 0 12px rgba(255,255,255,0.2)" }}
+            >
               A curated collection of premium healthcare, wellness, and skincare
               products delivered with discretion and care to your door.
             </p>
@@ -29,11 +37,20 @@ export default function Footer() {
 
           {/* Legal */}
           <div>
-            <h4 className="text-white text-xs tracking-[0.2em] uppercase font-sans mb-5">Legal</h4>
+            <h4
+              className="text-xs tracking-[0.2em] uppercase font-sans mb-5"
+              style={{ color: "#ffffff", textShadow: "0 0 14px rgba(255,255,255,0.5)" }}
+            >
+              Legal
+            </h4>
             <ul className="space-y-3">
               {legal.map(item => (
                 <li key={item}>
-                  <Link href="#" className="footer-link text-white/55 text-xs font-sans transition-colors duration-200">
+                  <Link
+                    href="#"
+                    className="footer-link text-xs font-sans transition-colors duration-200"
+                    style={{ color: "rgba(255,255,255,0.65)", textShadow: "0 0 8px rgba(255,255,255,0.15)" }}
+                  >
                     {item}
                   </Link>
                 </li>
@@ -43,11 +60,20 @@ export default function Footer() {
 
           {/* Support */}
           <div>
-            <h4 className="text-white text-xs tracking-[0.2em] uppercase font-sans mb-5">Support</h4>
+            <h4
+              className="text-xs tracking-[0.2em] uppercase font-sans mb-5"
+              style={{ color: "#ffffff", textShadow: "0 0 14px rgba(255,255,255,0.5)" }}
+            >
+              Support
+            </h4>
             <ul className="space-y-3">
               {support.map(item => (
                 <li key={item}>
-                  <Link href="#" className="footer-link text-white/55 text-xs font-sans transition-colors duration-200">
+                  <Link
+                    href="#"
+                    className="footer-link text-xs font-sans transition-colors duration-200"
+                    style={{ color: "rgba(255,255,255,0.65)", textShadow: "0 0 8px rgba(255,255,255,0.15)" }}
+                  >
                     {item}
                   </Link>
                 </li>
@@ -58,18 +84,27 @@ export default function Footer() {
 
         {/* Bottom bar */}
         <div className="mt-12 pt-6 border-t border-white/10 flex flex-col md:flex-row items-center justify-between gap-4">
-          <p className="text-white/35 text-[10px] font-sans tracking-wide">
+          <p
+            className="text-[10px] font-sans tracking-wide"
+            style={{ color: "rgba(255,255,255,0.45)", textShadow: "0 0 8px rgba(255,255,255,0.15)" }}
+          >
             © {new Date().getFullYear()} Rosewood Pharmacy. All rights reserved.
           </p>
-          <p className="text-[10px] font-sans tracking-wide text-white/40">
+          <p
+            className="text-[10px] font-sans tracking-wide"
+            style={{ color: "rgba(255,255,255,0.45)", textShadow: "0 0 8px rgba(255,255,255,0.15)" }}
+          >
             Crafted with care ✦ Delivered with precision
           </p>
         </div>
       </div>
 
-      {/* Scoped hover style using CSS var */}
+      {/* Scoped hover style */}
       <style>{`
-        .footer-link:hover { color: var(--color-primary); }
+        .footer-link:hover {
+          color: var(--color-primary) !important;
+          text-shadow: 0 0 10px rgba(212,175,55,0.5) !important;
+        }
       `}</style>
     </footer>
   );

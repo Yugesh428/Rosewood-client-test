@@ -102,6 +102,7 @@ export default function OurProductContent() {
   const [bgPreview,  setBgPreview]  = useState<string | null>(null);
   const [videoFile,  setVideoFile]  = useState<File | null>(null);
   const [videoPreview, setVideoPreview] = useState<string | null>(null);
+  const [clearVideoFile, setClearVideoFile] = useState(false);
   const [p1File,     setP1File]     = useState<File | null>(null);
   const [p1Preview,  setP1Preview]  = useState<string | null>(null);
   const [p2File,     setP2File]     = useState<File | null>(null);
@@ -158,7 +159,7 @@ export default function OurProductContent() {
     setEditingProduct(null);
     setForm({ ...emptyForm(), categoryId: categories[0]?.id ?? "" });
     setBgFile(null);  setBgPreview(null);
-    setVideoFile(null); setVideoPreview(null);
+    setVideoFile(null); setVideoPreview(null); setClearVideoFile(false);
     setP1File(null);  setP1Preview(null);
     setP2File(null);  setP2Preview(null);
     setError(null);
@@ -179,7 +180,7 @@ export default function OurProductContent() {
       isActive:       p.isActive,
     });
     setBgFile(null);  setBgPreview(p.backgroundImage);
-    setVideoFile(null); setVideoPreview(p.videoFile);
+    setVideoFile(null); setVideoPreview(p.videoFile); setClearVideoFile(false);
     setP1File(null);  setP1Preview(p.photo1Url);
     setP2File(null);  setP2Preview(p.photo2Url);
     setError(null);
@@ -190,7 +191,7 @@ export default function OurProductContent() {
     setModalOpen(false);
     setEditingProduct(null);
     setBgFile(null);  setBgPreview(null);
-    setVideoFile(null); setVideoPreview(null);
+    setVideoFile(null); setVideoPreview(null); setClearVideoFile(false);
     setP1File(null);  setP1Preview(null);
     setP2File(null);  setP2Preview(null);
     setError(null);
@@ -236,6 +237,7 @@ export default function OurProductContent() {
 
       if (bgFile)    fd.append("backgroundImage", bgFile);
       if (videoFile) fd.append("video", videoFile);
+      else if (clearVideoFile) fd.append("videoFile", ""); // signal to clear
       if (p1File)    fd.append("photo1", p1File);
       if (p2File)    fd.append("photo2", p2File);
 
@@ -753,7 +755,7 @@ export default function OurProductContent() {
                       {(videoPreview || videoFile) && (
                         <button
                           type="button"
-                          onClick={() => { setVideoFile(null); setVideoPreview(null); }}
+                          onClick={() => { setVideoFile(null); setVideoPreview(null); setClearVideoFile(true); }}
                           className="text-[10px] text-red-400 hover:text-red-600 font-sans"
                         >
                           Remove
@@ -764,7 +766,7 @@ export default function OurProductContent() {
                       id="videoFile"
                       type="file"
                       accept="video/mp4,video/webm,video/ogg,video/quicktime"
-                      onChange={pickFile(setVideoFile, setVideoPreview)}
+                      onChange={(e) => { setClearVideoFile(false); pickFile(setVideoFile, setVideoPreview)(e); }}
                       className="w-full text-sm text-gray-600 file:mr-3 file:py-1.5 file:px-3 file:rounded-sm file:border-0 file:text-xs file:font-semibold file:text-black file:cursor-pointer hover:file:opacity-90"
                     />
                     <p className="text-xs text-gray-400 mt-1 font-sans">

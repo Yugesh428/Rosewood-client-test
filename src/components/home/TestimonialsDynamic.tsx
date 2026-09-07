@@ -3,6 +3,7 @@
 import { motion } from "framer-motion";
 import Image from "next/image";
 import { useState, useEffect } from "react";
+import { useTheme } from "@/context/ThemeContext";
 
 type Testimonial = {
   id: string;
@@ -27,6 +28,13 @@ function StarIcon() {
 export default function TestimonialsDynamic() {
   const [testimonials, setTestimonials] = useState<Testimonial[]>([]);
   const [loading, setLoading] = useState(true);
+  const { homeBg } = useTheme();
+  const bg =
+    homeBg === "white" ? "#ffffff" :
+    homeBg === "soft-blue" ? "#f0f8ff" :
+    homeBg === "near-blue" ? "#cce8f7" :
+    homeBg === "creamy-blue" ? "#e8f4f8" :
+    "#dff0fb";
 
   useEffect(() => {
     fetch("/api/ui/testimonials")
@@ -43,7 +51,7 @@ export default function TestimonialsDynamic() {
 
   if (loading) {
     return (
-      <section className="pt-10 pb-20 bg-white flex justify-center">
+      <section className="pt-10 pb-20 flex justify-center" style={{ backgroundColor: bg }}>
         <div className="w-12 h-12 border-4 border-t-transparent rounded-full animate-spin"
           style={{ borderColor: "var(--color-primary)", borderTopColor: "transparent" }} />
       </section>
@@ -55,7 +63,7 @@ export default function TestimonialsDynamic() {
   }
 
   return (
-    <section className="pt-10 pb-20 bg-white">
+    <section className="pt-6 pb-20" style={{ backgroundColor: bg }}>
       <div className="max-w-7xl mx-auto px-6">
         {/* Header */}
         <motion.div
@@ -85,10 +93,8 @@ export default function TestimonialsDynamic() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ delay: i * 0.12, duration: 0.5 }}
-              className="bg-[#F9F9F9] border border-[#E5E5E5] rounded-sm p-7 flex flex-col gap-4 transition-all duration-300"
-              style={{ "--hover-border": "var(--color-primary)" } as React.CSSProperties}
-              onMouseEnter={e => (e.currentTarget.style.borderColor = "var(--color-primary)")}
-              onMouseLeave={e => (e.currentTarget.style.borderColor = "#E5E5E5")}
+              className="border rounded-sm p-7 flex flex-col gap-4 transition-all duration-300"
+              style={{ backgroundColor: "transparent", borderColor: "var(--color-primary)" }}
             >
               {/* Stars */}
               <div className="flex gap-0.5">

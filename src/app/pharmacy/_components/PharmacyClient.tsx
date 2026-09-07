@@ -2,11 +2,13 @@
 
 import { useState, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
+import { useSession } from "next-auth/react";
 import Link from "next/link";
 import {
   Heart, ChevronDown, ChevronLeft, ChevronRight,
   LayoutGrid, ShoppingCart, Zap as BuyNow, Star, Check,
 } from "lucide-react";
+import { toast } from "sonner";
 import { useCart } from "@/context/CartContext";
 import CartDrawer from "@/components/CartDrawer";
 import ProductImage from "@/components/ui/ProductImage";
@@ -67,13 +69,88 @@ function StarRating({ rating, count }: { rating: number; count: number }) {
 // ─── Product Card ─────────────────────────────────────────────────────────────
 
 function ProductCard({ product, highlight = false }: { product: DBProduct; highlight?: boolean }) {
+  const { data: session } = useSession();
   const { addToCart, items, updateQty } = useCart();
-  const [wished,        setWished]        = useState(false);
+  const [isInWishlist, setIsInWishlist] = useState(false);
+  const [wishlistLoading, setWishlistLoading] = useState(false);
   const [addedFeedback, setAddedFeedback] = useState(false);
+  const [reviewStats, setReviewStats] = useState({ rating: 0, count: 0 });
+
+  const user = session?.user as { id?: string; role?: string } | undefined;
+  const isCustomer = !!user?.id && user?.role === "CUSTOMER";
 
   const cartItem = items.find(i => i.id === product.id);
   const inCart   = !!cartItem;
   const price    = Number(product.sellingPrice);
+
+  // Check if product is in wishlist
+  useEffect(() => {
+    if (!user?.id || !isCustomer) return;
+    fetch(`/api/wishlist?customerId=${user.id}&productId=${product.id}`)
+      .then(r => r.json())
+      .then(json => {
+        if (json.success) {
+          setIsInWishlist((json.data ?? []).length > 0);
+        }
+      })
+      .catch(() => {});
+  }, [user?.id, isCustomer, product.id]);
+
+  // Fetch review stats for this product
+  useEffect(() => {
+    fetch(`/api/reviews?productId=${product.id}&isApproved=true&limit=1`)
+      .then(r => r.json())
+      .then(json => {
+        if (json.success && json.stats) {
+          setReviewStats({
+            rating: json.stats.averageRating ?? 0,
+            count: json.stats.totalReviews ?? 0,
+          });
+        }
+      })
+      .catch(() => {});
+  }, [product.id]);
+
+  // Toggle wishlist
+  async function toggleWishlist(e: React.MouseEvent) {
+    e.preventDefault();
+    e.stopPropagation();
+    if (!isCustomer) {
+      toast.error("Please sign in as a customer to use wishlist");
+      return;
+    }
+    setWishlistLoading(true);
+    try {
+      if (isInWishlist) {
+        // Remove from wishlist
+        const res = await fetch(`/api/wishlist?customerId=${user!.id}&productId=${product.id}`);
+        const json = await res.json();
+        if (json.success && json.data.length > 0) {
+          const wishlistItem = json.data[0];
+          const delRes = await fetch(`/api/wishlist/${wishlistItem.id}`, { method: "DELETE" });
+          const delJson = await delRes.json();
+          if (!delRes.ok || !delJson.success) throw new Error(delJson.message || "Failed to remove");
+          setIsInWishlist(false);
+          toast.success("Removed from wishlist");
+        }
+      } else {
+        // Add to wishlist
+        const res = await fetch("/api/wishlist", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ customerId: user!.id, productId: product.id }),
+        });
+        const json = await res.json();
+        if (!res.ok || !json.success) throw new Error(json.message || "Failed to add");
+        setIsInWishlist(true);
+        toast.success("Added to wishlist");
+      }
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Wishlist update failed");
+    } finally {
+      setWishlistLoading(false);
+    }
+  }
 
   const handleAddToCart = () => {
     addToCart({ id: product.id, name: product.productName, price, image: product.productImage ?? "", category: product.category?.categoryName ?? "" });
@@ -88,52 +165,87 @@ function ProductCard({ product, highlight = false }: { product: DBProduct; highl
   const badge = product.discount > 0 ? `-${product.discount}%` : null;
 
   return (
-    <div className={`bg-[#F5F3EF] border rounded-sm overflow-hidden group transition-all duration-200 ${
-      highlight ? "" : "shadow-[0_3px_12px_rgba(0,0,0,0.11)] hover:shadow-[0_6px_20px_rgba(0,0,0,0.16)]"
+    <div className={`bg-[#F5F3EF] border rounded-2xl overflow-hidden group transition-all duration-200 ${
+      highlight ? "" : "shadow-[0_8px_32px_rgba(0,0,0,0.35)] hover:shadow-[0_20px_50px_rgba(0,0,0,0.5)]"
     }`}
     style={highlight
       ? { borderColor: "var(--color-primary)", boxShadow: `0 0 0 2px color-mix(in srgb, var(--color-primary) 35%, transparent)` }
       : { borderColor: "#D4CEC4" }}>
 
       {/* Image — clicking navigates to product detail */}
-      <Link href={`/pharmacy/${product.id}`} className="block relative aspect-square overflow-hidden bg-gray-50">
+      <Link href={`/pharmacy/${product.id}`} className="block relative aspect-square overflow-hidden bg-gray-50 rounded-2xl group">
         {badge && (
           <span className="absolute top-2 left-2 z-10 text-white text-[10px] font-semibold px-2 py-0.5 rounded-sm uppercase tracking-wide bg-[#c0392b]">
             {badge}
           </span>
         )}
-        <button onClick={e => { e.preventDefault(); setWished(w => !w); }}
-          className="absolute top-2 right-2 z-10 w-7 h-7 flex items-center justify-center bg-white rounded-full shadow-sm hover:shadow-md transition-all">
-          <Heart className="w-3.5 h-3.5" fill={wished ? "var(--color-primary)" : "none"} stroke={wished ? "var(--color-primary)" : "#bbb"} strokeWidth={2} />
+        
+        {/* Wishlist button - top right */}
+        <button onClick={toggleWishlist} disabled={wishlistLoading}
+          className="absolute top-2 right-2 z-10 w-8 h-8 flex items-center justify-center bg-white rounded-full shadow-sm hover:shadow-md transition-all disabled:opacity-50">
+          <Heart className="w-4 h-4" fill={isInWishlist ? "var(--color-primary)" : "none"} stroke={isInWishlist ? "var(--color-primary)" : "#bbb"} strokeWidth={2} />
         </button>
-        <div className="w-full h-full group-hover:scale-105 transition-transform duration-500">
+
+        {/* Action buttons - bottom right corner, side by side */}
+        <div className="absolute bottom-2 right-2 z-10 flex items-center gap-2">
+          {/* Add to Cart button */}
+          <button
+            onClick={(e) => { e.preventDefault(); handleAddToCart(); }}
+            className="w-10 h-10 flex items-center justify-center rounded-full shadow-lg transition-all duration-200 hover:scale-110"
+            style={{ backgroundColor: "var(--color-primary)" }}
+            title="Add to Cart"
+          >
+            <ShoppingCart className="w-5 h-5 text-white" strokeWidth={2.5} />
+          </button>
+
+          {/* Buy Now button */}
+          <button
+            onClick={(e) => { e.preventDefault(); handleBuyNow(); }}
+            className="px-4 h-10 flex items-center justify-center rounded-full shadow-lg transition-all duration-200 hover:scale-105"
+            style={{ backgroundColor: "var(--color-text-heading)" }}
+            title="Buy Now"
+          >
+            <span className="text-white text-xs font-bold uppercase">Buy</span>
+          </button>
+        </div>
+
+        <div className="w-full h-full group-hover:scale-115 transition-transform duration-500">
           <ProductImage src={product.productImage} alt={product.productName} fill
             className="object-cover" sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw" />
         </div>
       </Link>
 
       {/* Info */}
-      <div className="p-3 flex flex-col">
-        <p className="text-[10px] uppercase tracking-[0.12em] text-gray-400 font-sans mb-1">
-          {product.category?.categoryName ?? ""}
-        </p>
-        <Link href={`/pharmacy/${product.id}`}
-          className="text-sm font-medium leading-snug mb-0.5 font-sans truncate hover:underline block overflow-hidden whitespace-nowrap"
-          style={{ color: "var(--color-text-heading)" }}
-          title={product.productName}>
-          {product.productName}
-        </Link>
-        <div className="mb-2"><StarRating rating={0} count={0} /></div>
+      <div className="p-4 flex flex-col">
+        {/* Product name left, Category right */}
+        <div className="flex items-start justify-between gap-2 mb-1">
+          <Link href={`/pharmacy/${product.id}`}
+            className="text-sm font-semibold font-sans hover:underline truncate leading-snug flex-1 block overflow-hidden whitespace-nowrap"
+            style={{ color: "var(--color-text-heading)" }}
+            title={product.productName}>
+            {product.productName}
+          </Link>
+          {product.category?.categoryName && (
+            <span className="text-[9px] uppercase tracking-wider text-white font-sans flex-shrink-0 px-1.5 py-0.5 rounded-full mt-0.5"
+              style={{ backgroundColor: "var(--color-primary)", opacity: 0.85 }}>
+              {product.category.categoryName}
+            </span>
+          )}
+        </div>
 
+        {/* Reviews just below */}
+        <div className="mb-2"><StarRating rating={reviewStats.rating} count={reviewStats.count} /></div>
+
+        {/* Price */}
         <div className="mb-2 flex items-baseline gap-2">
-          <p className="text-base font-heading" style={{ color: "var(--color-text-heading)" }}>£{price.toFixed(2)}</p>
+          <p className="text-lg font-heading font-bold" style={{ color: "var(--color-text-heading)" }}>£{price.toFixed(2)}</p>
           {Number(product.originalPrice) > price && (
-            <p className="text-xs text-gray-400 line-through font-sans">£{Number(product.originalPrice).toFixed(2)}</p>
+            <p className="text-sm text-red-500 line-through font-sans">£{Number(product.originalPrice).toFixed(2)}</p>
           )}
         </div>
 
         {inCart && (
-          <div className="flex items-center gap-2 mb-2">
+          <div className="flex items-center gap-2">
             <button onClick={() => updateQty(product.id, (cartItem?.quantity ?? 1) - 1)}
               className="w-6 h-6 rounded-full border border-gray-200 flex items-center justify-center text-gray-600 transition-colors text-sm font-bold leading-none flex-shrink-0"
               onMouseEnter={e => { e.currentTarget.style.borderColor = "var(--color-primary)"; e.currentTarget.style.color = "var(--color-primary)"; }}
@@ -147,21 +259,6 @@ function ProductCard({ product, highlight = false }: { product: DBProduct; highl
               +</button>
           </div>
         )}
-
-        <div className="flex gap-2">
-          <button onClick={handleAddToCart}
-            className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-sm text-xs font-semibold border transition-all duration-200"
-            style={addedFeedback
-              ? { background: "#f0fdf4", borderColor: "#86efac", color: "#16a34a" }
-              : { background: "#ffffff", borderColor: "#e5e7eb", color: "#374151" }}>
-            {addedFeedback ? <><Check className="w-3.5 h-3.5" /> Added!</> : <><ShoppingCart className="w-3.5 h-3.5" /> Add to Cart</>}
-          </button>
-          <button onClick={handleBuyNow}
-            className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-sm text-xs font-semibold transition-all hover:opacity-90"
-            style={{ background: "var(--color-primary)", color: "var(--color-primary-text)" }}>
-            <BuyNow className="w-3.5 h-3.5" /> Buy Now
-          </button>
-        </div>
       </div>
     </div>
   );
@@ -210,7 +307,7 @@ export default function PharmacyClient({ categories, products }: PharmacyClientP
   const resetPage  = () => setPage(1);
 
   return (
-    <div className="pt-14 min-h-screen" style={{ backgroundColor: "var(--color-bg-page)" }}>
+    <div className="pt-14 min-h-screen">
 
       {/* Floating cart */}
       {totalItems > 0 && (
@@ -223,10 +320,29 @@ export default function PharmacyClient({ categories, products }: PharmacyClientP
 
       <CartDrawer open={cartOpen} onClose={() => setCartOpen(false)} />
 
-      <div className="max-w-7xl mx-auto px-6 py-6 flex gap-6">
+      {/* ── MOBILE: horizontal category strip ─────────────────────────────── */}
+      <div className="md:hidden px-4 pt-3 pb-2">
+        <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-hide" style={{ scrollbarWidth: "none" }}>
+          {categoryList.map(cat => {
+            const active = selectedCategory === cat.id;
+            return (
+              <button key={String(cat.id)}
+                onClick={() => { setSelectedCategory(cat.id); resetPage(); }}
+                className="flex-shrink-0 px-3 py-1.5 rounded-full text-xs font-medium border transition-all"
+                style={active
+                  ? { backgroundColor: "var(--color-primary)", color: "var(--color-primary-text)", borderColor: "var(--color-primary)" }
+                  : { backgroundColor: "#ffffff", color: "#374151", borderColor: "#D0CBBF" }}>
+                {cat.label}
+              </button>
+            );
+          })}
+        </div>
+      </div>
 
-        {/* Sidebar */}
-        <div className="flex-shrink-0 relative">
+      <div className="max-w-7xl mx-auto px-4 md:px-6 py-4 md:py-6 flex gap-6">
+
+        {/* ── DESKTOP: sidebar ──────────────────────────────────────────────── */}
+        <div className="hidden md:block flex-shrink-0 relative">
           <button type="button" onClick={() => setSidebarOpen(o => !o)}
             className="absolute -right-3.5 top-4 z-20 w-7 h-7 flex items-center justify-center rounded-full bg-white shadow-sm border border-gray-200 transition-all group"
             onMouseEnter={e => (e.currentTarget.style.borderColor = "var(--color-primary)")}
@@ -243,27 +359,59 @@ export default function PharmacyClient({ categories, products }: PharmacyClientP
               </div>
 
               <ul className="space-y-1.5 max-h-[calc(100vh-220px)] overflow-y-auto pr-1">
-                {categoryList.map(cat => {
+                {categoryList.map((cat, idx) => {
                   const active = selectedCategory === cat.id;
                   const isAll  = cat.id === null;
                   return (
-                    <li key={String(cat.id)}>
+                    <li key={String(cat.id)}
+                      style={{ animationDelay: `${idx * 40}ms` }}
+                      className="animate-[fadeSlideIn_0.3s_ease_forwards] opacity-0"
+                    >
                       <button type="button"
                         onClick={() => { setSelectedCategory(cat.id); resetPage(); }}
-                        className="w-full flex items-center gap-3 px-3 py-2.5 rounded-sm text-left transition-all duration-200 relative overflow-hidden"
-                        style={active ? {
-                          background: `color-mix(in srgb, var(--color-primary) 13%, transparent)`,
-                          border: `1px solid color-mix(in srgb, var(--color-primary) 50%, transparent)`,
-                        } : { background: "#ffffff", border: "1px solid #D8D8D8" }}>
+                        className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-left relative overflow-hidden group/cat"
+                        style={{
+                          transition: "all 0.22s cubic-bezier(0.4,0,0.2,1)",
+                          ...(active ? {
+                            background: `linear-gradient(135deg, color-mix(in srgb, var(--color-primary) 18%, #fff), color-mix(in srgb, var(--color-primary) 8%, #fff))`,
+                            border: `2px solid var(--color-primary)`,
+                            boxShadow: `0 4px 16px color-mix(in srgb, var(--color-primary) 25%, transparent)`,
+                          } : {
+                            background: "#ffffff",
+                            border: "1.5px solid #D0CBBF",
+                            boxShadow: "0 1px 3px rgba(0,0,0,0.06)",
+                          })
+                        }}
+                        onMouseEnter={e => {
+                          if (!active) {
+                            e.currentTarget.style.background = `color-mix(in srgb, var(--color-primary) 6%, #fff)`;
+                            e.currentTarget.style.borderColor = `var(--color-primary)`;
+                            e.currentTarget.style.transform = "translateX(3px)";
+                            e.currentTarget.style.boxShadow = `0 4px 12px rgba(0,0,0,0.10)`;
+                          }
+                        }}
+                        onMouseLeave={e => {
+                          if (!active) {
+                            e.currentTarget.style.background = "#ffffff";
+                            e.currentTarget.style.borderColor = "#D0CBBF";
+                            e.currentTarget.style.transform = "";
+                            e.currentTarget.style.boxShadow = "0 1px 3px rgba(0,0,0,0.06)";
+                          }
+                        }}
+                      >
                         {active && (
                           <div className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-6 rounded-r-full"
                             style={{ background: "var(--color-primary)" }} />
                         )}
                         {isAll && (
-                          <div className="flex-shrink-0 w-7 h-7 rounded-sm flex items-center justify-center"
-                            style={active ? { background: "var(--color-primary)" } : { background: "#F0F0F0" }}>
+                          <div className="flex-shrink-0 w-7 h-7 rounded-lg flex items-center justify-center transition-all duration-200"
+                            style={active ? { background: "var(--color-primary)" } : { background: "#F0EDE6" }}>
                             <LayoutGrid className="w-3.5 h-3.5" style={{ color: active ? "var(--color-primary-text)" : "#888" }} />
                           </div>
+                        )}
+                        {!isAll && (
+                          <div className="flex-shrink-0 w-2 h-2 rounded-full"
+                            style={{ background: active ? "var(--color-primary)" : "#D1CCC0" }} />
                         )}
                         <div className="flex-1 min-w-0">
                           <p className="text-xs font-medium leading-tight truncate"
@@ -271,6 +419,7 @@ export default function PharmacyClient({ categories, products }: PharmacyClientP
                             {cat.label}
                           </p>
                         </div>
+                        {active && <Check className="w-3 h-3 flex-shrink-0" style={{ color: "var(--color-primary)" }} />}
                       </button>
                     </li>
                   );
@@ -283,20 +432,20 @@ export default function PharmacyClient({ categories, products }: PharmacyClientP
         {/* Product area */}
         <div className="flex-1 min-w-0">
           {/* Toolbar */}
-          <div className="flex items-center justify-between mb-5">
+          <div className="flex items-center justify-between mb-4 gap-2 flex-wrap">
             <p className="text-sm text-gray-500 font-sans">
               <span className="font-semibold font-heading" style={{ color: "var(--color-text-heading)" }}>{filtered.length}</span> products
-              {urlSearch && <span className="ml-1.5 text-gray-500"> for <span className="font-medium" style={{ color: "var(--color-text-heading)" }}>&quot;{urlSearch}&quot;</span></span>}
+              {urlSearch && <span className="ml-1.5"> for <span className="font-medium" style={{ color: "var(--color-text-heading)" }}>&quot;{urlSearch}&quot;</span></span>}
               {selectedCategory && (
                 <button onClick={() => { setSelectedCategory(null); resetPage(); }}
                   className="ml-2 text-[11px] hover:underline" style={{ color: "var(--color-primary)" }}>
-                  × Clear filter
+                  × Clear
                 </button>
               )}
             </p>
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2">
               <button onClick={() => setCartOpen(true)}
-                className="flex items-center gap-2 px-3 py-1.5 border border-gray-200 rounded-sm text-sm text-gray-600 relative transition-colors"
+                className="hidden sm:flex items-center gap-2 px-3 py-1.5 border border-gray-200 rounded-sm text-sm text-gray-600 relative transition-colors"
                 onMouseEnter={e => { e.currentTarget.style.borderColor = "var(--color-primary)"; e.currentTarget.style.color = "var(--color-primary)"; }}
                 onMouseLeave={e => { e.currentTarget.style.borderColor = ""; e.currentTarget.style.color = ""; }}>
                 <ShoppingCart className="w-4 h-4" /> Cart
@@ -318,13 +467,13 @@ export default function PharmacyClient({ categories, products }: PharmacyClientP
             </div>
           </div>
 
-          {/* Grid */}
+          {/* Grid — 2 cols on mobile, 3 on desktop */}
           {paginated.length === 0 ? (
             <div className="text-center py-24">
               <p className="text-gray-400 font-sans text-sm">No products found.</p>
             </div>
           ) : (
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+            <div className="grid grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-5">
               {paginated.map(product => (
                 <div key={product.id} id={`product-${product.id}`}>
                   <ProductCard product={product} highlight={urlProduct === product.id} />
@@ -335,7 +484,7 @@ export default function PharmacyClient({ categories, products }: PharmacyClientP
 
           {/* Pagination */}
           {totalPages > 1 && (
-            <div className="mt-10 flex items-center justify-center gap-1">
+            <div className="mt-8 flex items-center justify-center gap-1 flex-wrap">
               <button onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page === 1}
                 className="w-8 h-8 flex items-center justify-center border border-gray-200 rounded-sm text-gray-500 disabled:opacity-40 transition-colors"
                 onMouseEnter={e => { e.currentTarget.style.borderColor = "var(--color-primary)"; e.currentTarget.style.color = "var(--color-primary)"; }}

@@ -3,10 +3,12 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { useSession } from "next-auth/react";
 import { motion, AnimatePresence } from "framer-motion";
+import { toast } from "sonner";
 import {
   ChevronRight, ChevronDown, ChevronUp, ShoppingCart,
-  Star, Check, ChevronLeft, ChevronRight as ChRight,
+  Star, Check, ChevronLeft, ChevronRight as ChRight, Heart,
 } from "lucide-react";
 import { useCart } from "@/context/CartContext";
 import ProductImage from "@/components/ui/ProductImage";
@@ -89,10 +91,36 @@ function Stars({ rating, size = 14 }: { rating: number; size?: number }) {
   );
 }
 
+// ─── Interactive star picker ──────────────────────────────────────────────────
+
+function StarPicker({ value, onChange }: { value: number; onChange: (v: number) => void }) {
+  const [hover, setHover] = useState(0);
+  return (
+    <div className="flex gap-1">
+      {[1,2,3,4,5].map(s => (
+        <button
+          key={s}
+          type="button"
+          onClick={() => onChange(s)}
+          onMouseEnter={() => setHover(s)}
+          onMouseLeave={() => setHover(0)}
+          className="transition-transform hover:scale-110"
+        >
+          <svg width="24" height="24" viewBox="0 0 24 24"
+            fill={(hover || value) >= s ? "#D4AF37" : "none"}
+            stroke="#D4AF37" strokeWidth="1.5">
+            <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+          </svg>
+        </button>
+      ))}
+    </div>
+  );
+}
+
 // ─── Accordion section ────────────────────────────────────────────────────────
 
-function Accordion({ title, children }: { title: string; children: React.ReactNode }) {
-  const [open, setOpen] = useState(false);
+function Accordion({ title, children, defaultOpen = false }: { title: string; children: React.ReactNode; defaultOpen?: boolean }) {
+  const [open, setOpen] = useState(defaultOpen);
   return (
     <div className="border-b border-[#E8E4DC]">
       <button
@@ -178,6 +206,7 @@ function RelatedCard({ product }: { product: RelatedProduct }) {
 
 export default function ProductDetailClient({ product }: { product: Product }) {
   const router = useRouter();
+  const { data: session } = useSession();
   const { addToCart, items, updateQty } = useCart();
 
   const [qty,          setQty]          = useState(1);
@@ -187,13 +216,81 @@ export default function ProductDetailClient({ product }: { product: Product }) {
   const [related,      setRelated]      = useState<RelatedProduct[]>([]);
   const [relatedIdx,   setRelatedIdx]   = useState(0);
 
+  // Wishlist state
+  const [isInWishlist, setIsInWishlist] = useState(false);
+  const [wishlistLoading, setWishlistLoading] = useState(false);
+
+  // Write review form state
+  const [reviewFormOpen,  setReviewFormOpen]  = useState(false);
+  const [reviewRating,    setReviewRating]    = useState(5);
+  const [reviewText,      setReviewText]      = useState("");
+  const [reviewSubmitting, setReviewSubmitting] = useState(false);
+
+  const user = session?.user as { id?: string; role?: string } | undefined;
+  const isCustomer = !!user?.id && user?.role === "CUSTOMER";
+
   const cartItem  = items.find(i => i.id === (product.id as unknown as number));
   const price     = Number(product.sellingPrice);
   const original  = Number(product.originalPrice);
 
-  // Fetch reviews
+  // Check if current user has already reviewed this product
+  const hasReviewed = reviews.some(r => r.customer?.id === user?.id);
+
+  // Check if product is in wishlist
   useEffect(() => {
-    fetch(`/api/reviews?productId=${product.id}&isApproved=true&limit=10`)
+    if (!user?.id || !isCustomer) return;
+    fetch(`/api/wishlist?customerId=${user.id}&productId=${product.id}`)
+      .then(r => r.json())
+      .then(json => {
+        if (json.success) {
+          setIsInWishlist((json.data ?? []).length > 0);
+        }
+      })
+      .catch(() => {});
+  }, [user?.id, isCustomer, product.id]);
+
+  // Toggle wishlist
+  async function toggleWishlist() {
+    if (!isCustomer) {
+      toast.error("Please sign in as a customer to use wishlist");
+      return;
+    }
+    setWishlistLoading(true);
+    try {
+      if (isInWishlist) {
+        // Remove from wishlist
+        const res = await fetch(`/api/wishlist?customerId=${user!.id}&productId=${product.id}`);
+        const json = await res.json();
+        if (json.success && json.data.length > 0) {
+          const wishlistItem = json.data[0];
+          const delRes = await fetch(`/api/wishlist/${wishlistItem.id}`, { method: "DELETE" });
+          const delJson = await delRes.json();
+          if (!delRes.ok || !delJson.success) throw new Error(delJson.message || "Failed to remove");
+          setIsInWishlist(false);
+          toast.success("Removed from wishlist");
+        }
+      } else {
+        // Add to wishlist
+        const res = await fetch("/api/wishlist", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ customerId: user!.id, productId: product.id }),
+        });
+        const json = await res.json();
+        if (!res.ok || !json.success) throw new Error(json.message || "Failed to add");
+        setIsInWishlist(true);
+        toast.success("Added to wishlist");
+      }
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Wishlist update failed");
+    } finally {
+      setWishlistLoading(false);
+    }
+  }
+
+  // Fetch reviews — no isApproved filter so customers see their own review immediately
+  const loadReviews = () => {
+    fetch(`/api/reviews?productId=${product.id}&limit=10`)
       .then(r => r.json())
       .then(json => {
         if (json.success) {
@@ -202,8 +299,43 @@ export default function ProductDetailClient({ product }: { product: Product }) {
         }
       })
       .catch(() => {});
+  };
+
+  // Fetch reviews — no isApproved filter so customers see their own review immediately
+  useEffect(() => {
+    loadReviews();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [product.id]);
 
+  async function submitReview(e: React.FormEvent) {
+    e.preventDefault();
+    if (!user?.id) { toast.error("Please sign in to write a review"); return; }
+    if (reviewRating < 1) { toast.error("Please select a rating"); return; }
+    setReviewSubmitting(true);
+    try {
+      const res = await fetch("/api/reviews", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          customerId: user.id,
+          productId:  product.id,
+          rating:     reviewRating,
+          reviewText: reviewText.trim() || undefined,
+        }),
+      });
+      const json = await res.json();
+      if (!res.ok || !json.success) throw new Error(json.error || json.message || "Failed to submit review");
+      toast.success("Review submitted!");
+      setReviewFormOpen(false);
+      setReviewText("");
+      setReviewRating(5);
+      loadReviews();
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Failed to submit review");
+    } finally {
+      setReviewSubmitting(false);
+    }
+  }
   // Fetch related products — same category
   useEffect(() => {
     if (!product.categoryId) return;
@@ -355,7 +487,7 @@ export default function ProductDetailClient({ product }: { product: Product }) {
               </div>
             )}
 
-            {/* Qty + Add/Buy */}
+            {/* Qty + Add/Buy + Wishlist */}
             <div className="flex items-center gap-3 mb-3">
               <div className="flex items-center border border-[#D1D5DB] rounded-sm overflow-hidden">
                 <button onClick={() => setQty(q => Math.max(1, q - 1))}
@@ -375,6 +507,17 @@ export default function ProductDetailClient({ product }: { product: Product }) {
                   ? { background: "#f0fdf4", borderColor: "#86efac", color: "#16a34a" }
                   : { background: "var(--color-bg-card)", borderColor: "#D1D5DB", color: "var(--color-text-heading)" }}>
                 {added ? <><Check className="w-4 h-4" /> Added!</> : <><ShoppingCart className="w-4 h-4" /> Add to Cart</>}
+              </button>
+
+              <button
+                onClick={toggleWishlist}
+                disabled={wishlistLoading}
+                className="p-2.5 rounded-sm border border-[#D1D5DB] hover:border-[#D4AF37] transition-all duration-200 disabled:opacity-50"
+                title={isInWishlist ? "Remove from wishlist" : "Add to wishlist"}
+              >
+                <Heart
+                  className={`w-5 h-5 transition-all ${isInWishlist ? "fill-red-500 text-red-500" : "text-[#374151]"}`}
+                />
               </button>
             </div>
 
@@ -406,7 +549,7 @@ export default function ProductDetailClient({ product }: { product: Product }) {
           <div className="md:col-span-2 space-y-0 border-t border-[#E8E4DC]">
             {/* Ingredients */}
             {product.ingredients && product.ingredients.length > 0 && (
-              <Accordion title="Ingredients">
+              <Accordion title="Ingredients" defaultOpen={true}>
                 <ul className="space-y-1.5">
                   {product.ingredients
                     .sort((a, b) => a.sortOrder - b.sortOrder)
@@ -493,6 +636,17 @@ export default function ProductDetailClient({ product }: { product: Product }) {
                 Based on {reviewStats.count} review{reviewStats.count !== 1 ? "s" : ""}
               </p>
               <button
+                onClick={() => {
+                  if (!isCustomer) {
+                    toast.error("Please sign in as a customer to write a review");
+                    return;
+                  }
+                  if (hasReviewed) {
+                    toast.info("You've already reviewed this product");
+                    return;
+                  }
+                  setReviewFormOpen(true);
+                }}
                 className="w-full px-4 py-2 text-xs font-bold border rounded-sm font-sans transition-colors"
                 style={{ borderColor: "var(--color-text-heading)", color: "var(--color-text-heading)" }}
                 onMouseEnter={e => { const el = e.currentTarget as HTMLButtonElement; el.style.backgroundColor = "var(--color-text-heading)"; el.style.color = "#fff"; }}
@@ -575,6 +729,71 @@ export default function ProductDetailClient({ product }: { product: Product }) {
           </div>
         )}
       </div>
+
+      {/* ── Review Form Modal ── */}
+      <AnimatePresence>
+        {reviewFormOpen && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
+            onClick={() => setReviewFormOpen(false)}
+          >
+            <motion.div
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.95, opacity: 0 }}
+              onClick={e => e.stopPropagation()}
+              className="bg-white rounded-lg shadow-2xl max-w-md w-full p-6"
+            >
+              <h3 className="text-xl font-heading text-[#1A1A1A] mb-4">Write a Review</h3>
+              <form onSubmit={submitReview} className="space-y-4">
+                {/* Rating */}
+                <div>
+                  <label className="block text-sm font-semibold text-[#1A1A1A] mb-2 font-sans">
+                    Rating <span className="text-red-500">*</span>
+                  </label>
+                  <StarPicker value={reviewRating} onChange={setReviewRating} />
+                </div>
+
+                {/* Review Text */}
+                <div>
+                  <label className="block text-sm font-semibold text-[#1A1A1A] mb-2 font-sans">
+                    Your Review (optional)
+                  </label>
+                  <textarea
+                    value={reviewText}
+                    onChange={e => setReviewText(e.target.value)}
+                    placeholder="Share your experience with this product..."
+                    rows={4}
+                    className="w-full border border-[#E5E5E5] rounded-sm px-3 py-2 text-sm font-sans focus:outline-none focus:border-[#D4AF37] resize-none"
+                  />
+                </div>
+
+                {/* Actions */}
+                <div className="flex gap-3 pt-2">
+                  <button
+                    type="button"
+                    onClick={() => setReviewFormOpen(false)}
+                    className="flex-1 px-4 py-2 text-sm font-medium border border-[#E5E5E5] rounded-sm text-[#1A1A1A] hover:bg-[#F9F9F9] transition-colors font-sans"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={reviewSubmitting}
+                    className="flex-1 px-4 py-2 text-sm font-bold rounded-sm text-white transition-colors font-sans disabled:opacity-50"
+                    style={{ backgroundColor: "var(--color-text-heading)" }}
+                  >
+                    {reviewSubmitting ? "Submitting..." : "Submit Review"}
+                  </button>
+                </div>
+              </form>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

@@ -15,6 +15,7 @@ export interface ThemeData {
   primaryDark:   string;
   primaryText:   string;
   bgPage:        string;
+  bgGradient:    string;
   bgCard:        string;
   bgNav:         string;
   textHeading:   string;
@@ -28,16 +29,20 @@ export interface ThemeData {
 // ─── Context ──────────────────────────────────────────────────────────────────
 
 interface ThemeContextValue {
-  theme:     ThemeData | null;
-  loading:   boolean;
-  setTheme:  (themeId: string) => Promise<void>;
+  theme:        ThemeData | null;
+  homeBg:       "blue" | "white" | "soft-blue" | "near-blue" | "creamy-blue";
+  loading:      boolean;
+  setTheme:     (themeId: string) => Promise<void>;
+  setHomeBg:    (bg: "blue" | "white" | "soft-blue" | "near-blue" | "creamy-blue") => Promise<void>;
   refreshTheme: () => Promise<void>;
 }
 
 const ThemeContext = createContext<ThemeContextValue>({
-  theme:    null,
-  loading:  true,
-  setTheme: async () => {},
+  theme:        null,
+  homeBg:       "blue",
+  loading:      true,
+  setTheme:     async () => {},
+  setHomeBg:    async () => {},
   refreshTheme: async () => {},
 });
 
@@ -54,6 +59,7 @@ function applyTheme(t: ThemeData) {
   root.style.setProperty("--color-primary-dark",   t.primaryDark);
   root.style.setProperty("--color-primary-text",   t.primaryText);
   root.style.setProperty("--color-bg-page",        t.bgPage);
+  root.style.setProperty("--color-bg-gradient",    t.bgGradient || "none");
   root.style.setProperty("--color-bg-card",        t.bgCard);
   root.style.setProperty("--color-bg-nav",         t.bgNav);
   root.style.setProperty("--color-text-heading",   t.textHeading);
@@ -61,24 +67,32 @@ function applyTheme(t: ThemeData) {
   root.style.setProperty("--color-text-muted",     t.textMuted);
   root.style.setProperty("--color-border",         t.borderColor);
   root.setAttribute("data-theme", t.id);
+
+  // Apply gradient directly to html element so it shows through everything
+  document.documentElement.style.backgroundColor = t.bgGradient ? "" : t.bgPage;
+  document.documentElement.style.backgroundImage = t.bgGradient || "";
+  if (!t.bgGradient) {
+    document.documentElement.style.backgroundColor = t.bgPage;
+  }
 }
 
 // ─── Provider ─────────────────────────────────────────────────────────────────
 
 export function ThemeProvider({ children }: { children: ReactNode }) {
   const [theme,   setThemeData] = useState<ThemeData | null>(null);
+  const [homeBg,  setHomeBgState] = useState<"blue" | "white" | "soft-blue" | "near-blue" | "creamy-blue">("blue");
   const [loading, setLoading]   = useState(true);
 
   const refreshTheme = useCallback(async () => {
     try {
-      console.log("Fetching active theme from API...");
       const res = await fetch("/api/site-theme");
       const json = await res.json();
-      console.log("Theme API response:", json);
       if (json.success && json.data?.activeTheme) {
-        console.log("Setting active theme:", json.data.activeTheme);
         setThemeData(json.data.activeTheme);
         applyTheme(json.data.activeTheme);
+      }
+      if (json.success && json.data?.homeBg) {
+        setHomeBgState(json.data.homeBg as "blue" | "white" | "soft-blue" | "near-blue" | "creamy-blue");
       }
     } catch (err) {
       console.error("Failed to fetch theme:", err);
@@ -87,35 +101,32 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
-  // Fetch active theme from DB on mount
-  useEffect(() => {
-    refreshTheme();
+  useEffect(() => { refreshTheme(); }, [refreshTheme]);
+
+  const setTheme = useCallback(async (themeId: string) => {
+    const res = await fetch("/api/site-theme", {
+      method:  "PUT",
+      headers: { "Content-Type": "application/json" },
+      body:    JSON.stringify({ activeThemeId: themeId }),
+    });
+    const json = await res.json();
+    if (json.success) { await refreshTheme(); }
+    else throw new Error(json.message || "Failed to set theme");
   }, [refreshTheme]);
 
-  // Persist + broadcast to DB
-  const setTheme = useCallback(async (themeId: string) => {
-    try {
-      console.log("Setting theme to:", themeId);
-      const res = await fetch("/api/site-theme", {
-        method:  "PUT",
-        headers: { "Content-Type": "application/json" },
-        body:    JSON.stringify({ activeThemeId: themeId }),
-      });
-      const json = await res.json();
-      console.log("Set theme API response:", json);
-      if (json.success) {
-        await refreshTheme();
-      } else {
-        throw new Error(json.message || "Failed to set theme");
-      }
-    } catch (err) {
-      console.error("Failed to set theme:", err);
-      throw err;
-    }
-  }, [refreshTheme]);
+  const setHomeBg = useCallback(async (bg: "blue" | "white" | "soft-blue" | "near-blue" | "creamy-blue") => {
+    const res = await fetch("/api/site-theme", {
+      method:  "PUT",
+      headers: { "Content-Type": "application/json" },
+      body:    JSON.stringify({ homeBg: bg }),
+    });
+    const json = await res.json();
+    if (json.success) { setHomeBgState(bg); }
+    else throw new Error(json.message || "Failed to update home background");
+  }, []);
 
   return (
-    <ThemeContext.Provider value={{ theme, loading, setTheme, refreshTheme }}>
+    <ThemeContext.Provider value={{ theme, homeBg, loading, setTheme, setHomeBg, refreshTheme }}>
       {children}
     </ThemeContext.Provider>
   );

@@ -10,6 +10,55 @@ import { AppError, errorResponse } from "@/lib/apiError";
 
 const CTX = "ReviewController";
 
+// ─── GET /api/reviews/admin — all reviews for admin panel ─────────────────────
+
+export async function getAllReviews(req: NextRequest): Promise<NextResponse> {
+  logger.info(CTX, "getAllReviews — start");
+  try {
+    const { searchParams } = new URL(req.url);
+    const page   = Math.max(1, parseInt(searchParams.get("page")  ?? "1"));
+    const limit  = Math.min(100, Math.max(1, parseInt(searchParams.get("limit") ?? "20")));
+    const offset = (page - 1) * limit;
+    const search = searchParams.get("search");
+
+    const customerWhere: Record<string, unknown> = {};
+    if (search) {
+      customerWhere[Op.or as unknown as string] = [
+        { name:  { [Op.iLike]: `%${search}%` } },
+        { email: { [Op.iLike]: `%${search}%` } },
+      ];
+    }
+
+    const { count, rows } = await Review.findAndCountAll({
+      include: [
+        {
+          model: User,    as: "customer",
+          attributes: ["id", "name", "email"],
+          where: search ? customerWhere : undefined,
+          required: !!search,
+        },
+        { model: Product, as: "product", attributes: ["id", "productName"] },
+      ],
+      order: [["createdAt", "DESC"]],
+      limit, offset, distinct: true,
+    });
+
+    return NextResponse.json({
+      success: true,
+      pagination: {
+        total: count, page, limit,
+        pages: Math.ceil(count / limit),
+        hasNext: page < Math.ceil(count / limit),
+        hasPrev: page > 1,
+      },
+      data: rows,
+    }, { status: 200 });
+  } catch (error) {
+    logger.error(CTX, "getAllReviews — failed", error);
+    return errorResponse(error);
+  }
+}
+
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
 function toNum(val: unknown): number {
@@ -45,6 +94,8 @@ export async function getReviewsByProduct(req: NextRequest): Promise<NextRespons
     if (!product) throw new AppError("Product not found.", 404, "PRODUCT_NOT_FOUND");
 
     const where: Record<string, unknown> = { productId };
+    // Only apply isApproved filter when explicitly passed
+    // (public pages don't pass it — all reviews show including the customer's own)
     if (isApprovedParam !== null) where.isApproved = isApprovedParam === "true";
 
     const { count, rows } = await Review.findAndCountAll({
@@ -55,15 +106,15 @@ export async function getReviewsByProduct(req: NextRequest): Promise<NextRespons
       offset,
     });
 
-    // Quick average rating
-    const allReviews = await Review.findAll({
+    // Stats always based on ALL approved reviews
+    const allApprovedReviews = await Review.findAll({
       where: { productId, isApproved: true },
       attributes: ["rating"],
       raw: true,
     }) as Array<{ rating: number }>;
 
-    const avgRating = allReviews.length > 0
-      ? parseFloat((allReviews.reduce((s, r) => s + r.rating, 0) / allReviews.length).toFixed(2))
+    const avgRating = allApprovedReviews.length > 0
+      ? parseFloat((allApprovedReviews.reduce((s, r) => s + r.rating, 0) / allApprovedReviews.length).toFixed(2))
       : 0;
 
     logger.info(CTX, `getReviewsByProduct — ${rows.length} of ${count}`, { productId });
@@ -189,7 +240,7 @@ export async function createReview(req: NextRequest): Promise<NextResponse> {
       rating: r,
       reviewText: reviewText?.trim() || null,
       isVerifiedPurchase,
-      isApproved: false, // admin must approve
+      isApproved: true, // auto-approved — no admin gate needed
     });
 
     const result = await Review.findByPk(review.id, {
@@ -317,6 +368,74 @@ export async function deleteReview(
     }, { status: 200 });
   } catch (error) {
     logger.error(CTX, "deleteReview — failed", { id, error });
+    return errorResponse(error);
+  }
+}
+
+// ─── GET /api/reviews/admin ───────────────────────────────────────────────────
+// Admin-only: list ALL reviews across all products, with pagination + search
+
+export async function getAllReviewsAdmin(req: NextRequest): Promise<NextResponse> {
+  logger.info(CTX, "getAllReviewsAdmin — start");
+
+  try {
+    const { searchParams } = new URL(req.url);
+    const { page, limit, offset } = parsePagination(searchParams);
+    const search = searchParams.get("search")?.trim();
+
+    // Build customer/product search includes
+    const customerWhere: Record<string, unknown> = {};
+    const productWhere:  Record<string, unknown> = {};
+
+    if (search) {
+      customerWhere[Op.or as unknown as string] = [
+        { name:  { [Op.iLike]: `%${search}%` } },
+        { email: { [Op.iLike]: `%${search}%` } },
+      ];
+      productWhere[Op.or as unknown as string] = [
+        { productName: { [Op.iLike]: `%${search}%` } },
+      ];
+    }
+
+    const include: Includeable[] = [
+      {
+        model: User,
+        as: "customer",
+        attributes: CUSTOMER_ATTRIBUTES,
+        ...(search ? { where: customerWhere, required: false } : {}),
+      },
+      {
+        model: Product,
+        as: "product",
+        attributes: PRODUCT_ATTRIBUTES,
+        ...(search ? { where: productWhere, required: false } : {}),
+      },
+    ];
+
+    const { count, rows } = await Review.findAndCountAll({
+      include,
+      order: [["createdAt", "DESC"]],
+      limit,
+      offset,
+      distinct: true,
+    });
+
+    logger.info(CTX, `getAllReviewsAdmin — ${rows.length} of ${count}`);
+
+    return NextResponse.json({
+      success: true,
+      pagination: {
+        total:   count,
+        page,
+        limit,
+        pages:   Math.ceil(count / limit),
+        hasNext: page < Math.ceil(count / limit),
+        hasPrev: page > 1,
+      },
+      data: rows,
+    }, { status: 200 });
+  } catch (error) {
+    logger.error(CTX, "getAllReviewsAdmin — failed", error);
     return errorResponse(error);
   }
 }

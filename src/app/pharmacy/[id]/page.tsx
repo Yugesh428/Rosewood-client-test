@@ -35,7 +35,7 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
   if (!product) notFound();
 
   return (
-    <div style={{ backgroundColor: "var(--color-bg-page)" }} className="min-h-screen">
+    <div style={{ backgroundColor: "#ffffff" }} className="min-h-screen">
       <Navbar />
       <ProductDetailClient product={product} />
       <Footer />

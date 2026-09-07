@@ -44,7 +44,7 @@ export default async function PharmacyPage() {
   const { categories, products } = await getPharmacyData();
 
   return (
-    <div style={{ backgroundColor: "var(--color-bg-page)" }} className="min-h-screen">
+    <div className="min-h-screen" style={{ backgroundColor: "#ffffff" }}>
       <Navbar />
       <PharmacyClient categories={categories} products={products} />
       <Footer />

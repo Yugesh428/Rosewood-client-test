@@ -4,6 +4,9 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
+import { useSession, signOut } from "next-auth/react";
+import { useCart } from "@/context/CartContext";
+import CartDrawer from "@/components/CartDrawer";
 
 // ─── Nav links ────────────────────────────────────────────────────────────────
 
@@ -142,6 +145,10 @@ function SearchBar({ mobile = false }: { mobile?: boolean }) {
 
   return (
     <div ref={wrapRef} className="relative w-full">
+      <style>{`
+        .search-glow::placeholder { color: rgba(255,255,255,0.5); }
+        .search-glow:focus { box-shadow: 0 0 18px rgba(255,255,255,0.45), 0 0 30px rgba(255,255,255,0.15) !important; border-color: rgba(255,255,255,0.95) !important; }
+      `}</style>
       <input
         type="text"
         placeholder="Search products..."
@@ -149,7 +156,12 @@ function SearchBar({ mobile = false }: { mobile?: boolean }) {
         onChange={handleChange}
         onKeyDown={handleKeyDown}
         onFocus={() => { if (results.length > 0) setOpen(true); }}
-        className={`w-full bg-white/15 border border-white/30 text-white placeholder:text-white/50 text-xs px-3 pr-8 rounded-sm focus:outline-none focus:border-[#FFD700] transition-colors font-sans ${mobile ? "py-2" : "py-1.5"}`}
+        className={`search-glow w-full bg-white/10 text-xs px-3 pr-8 rounded-sm focus:outline-none transition-all font-sans ${mobile ? "py-2" : "py-1.5"}`}
+        style={{
+          border: "1px solid rgba(255,255,255,0.7)",
+          color: "#ffffff",
+          boxShadow: "0 0 10px rgba(255,255,255,0.3), 0 0 20px rgba(255,255,255,0.12)",
+        }}
       />
       <span className="absolute right-2 top-1/2 -translate-y-1/2 text-white/60 pointer-events-none">
         {loading ? (
@@ -236,6 +248,10 @@ function SearchBar({ mobile = false }: { mobile?: boolean }) {
 function AccountDropdown() {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
+  const { data: session, status } = useSession();
+  const isLoggedIn = status === "authenticated" && session?.user;
+  const user = session?.user as { name?: string; email?: string; role?: string } | undefined;
+  const isAdmin = user?.role === "ADMIN" || user?.role === "SUPERADMIN";
 
   useEffect(() => {
     function handleClick(e: MouseEvent) {
@@ -263,33 +279,124 @@ function AccountDropdown() {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 8, scale: 0.96 }}
             transition={{ duration: 0.15, ease: "easeOut" }}
-            className="absolute right-0 top-8 w-52 bg-[#1A1A1A] border border-white/10 rounded-sm shadow-xl overflow-hidden z-50"
+            className="absolute right-0 top-8 w-56 rounded-xl overflow-hidden z-[9999]"
+            style={{ backgroundColor: "#111111", border: "1px solid rgba(255,255,255,0.15)", boxShadow: "0 8px 32px rgba(0,0,0,0.6)" }}
           >
-            <div className="px-4 pt-3 pb-1">
-              <p className="text-[9px] tracking-[0.25em] uppercase text-white/30 font-sans">Customer</p>
-            </div>
-            <Link href="/login" onClick={() => setOpen(false)}
-              className="flex items-center gap-3 px-4 py-2.5 text-xs text-white hover:text-white hover:bg-white/10 transition-colors font-sans">
-              <UserIcon /> Sign in
-            </Link>
-            <Link href="/register" onClick={() => setOpen(false)}
-              className="flex items-center gap-3 px-4 py-2.5 text-xs text-white hover:text-white hover:bg-white/10 transition-colors font-sans">
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" />
-                <line x1="19" y1="8" x2="19" y2="14" /><line x1="22" y1="11" x2="16" y2="11" />
-              </svg>
-              Create account
-            </Link>
+            {isLoggedIn ? (
+              <>
+                {/* Logged-in user header */}
+                <div className="px-4 pt-3 pb-2 border-b border-white/10">
+                  <p className="text-[9px] tracking-[0.25em] uppercase font-sans" style={{ color: "rgba(255,255,255,0.35)" }}>Signed in as</p>
+                  <p className="text-xs font-semibold truncate font-sans mt-0.5" style={{ color: "#ffffff" }}>{user?.name}</p>
+                  <p className="text-[10px] truncate font-sans" style={{ color: "rgba(255,255,255,0.45)" }}>{user?.email}</p>
+                </div>
 
-            <div className="mx-4 my-1 border-t border-white/10" />
+                {/* ── Admin dashboard shortcut ── */}
+                {isAdmin && (
+                  <>
+                    <Link
+                      href="/admin/dashboard"
+                      onClick={() => setOpen(false)}
+                      className="flex items-center gap-3 px-4 py-2.5 text-xs font-semibold transition-colors font-sans"
+                      style={{ color: "#D4AF37", background: "rgba(212,175,55,0.10)" }}
+                      onMouseEnter={e => (e.currentTarget.style.background = "rgba(212,175,55,0.20)")}
+                      onMouseLeave={e => (e.currentTarget.style.background = "rgba(212,175,55,0.10)")}
+                    >
+                      <ShieldIcon />
+                      My Dashboard
+                    </Link>
+                    <div className="mx-4 border-t border-white/10" />
+                  </>
+                )}
 
-            <div className="px-4 pt-2 pb-1">
-              <p className="text-[9px] tracking-[0.25em] uppercase text-[#D4AF37]/50 font-sans">Admin</p>
-            </div>
-            <Link href="/admin/login" onClick={() => setOpen(false)}
-              className="flex items-center gap-3 px-4 py-2.5 mb-1 text-xs text-[#FFD700] hover:text-[#FFD700] hover:bg-[#FFD700]/10 transition-colors font-sans drop-shadow-[0_0_6px_rgba(255,215,0,0.4)]">
-              <ShieldIcon /> Admin portal
-            </Link>
+                {/* Customer links — only for non-admin */}
+                {!isAdmin && (
+                  <>
+                    <Link href="/account/orders" onClick={() => setOpen(false)}
+                      className="flex items-center gap-3 px-4 py-2.5 text-xs transition-colors font-sans"
+                      style={{ color: "rgba(255,255,255,0.85)" }}
+                      onMouseEnter={e => (e.currentTarget.style.backgroundColor = "rgba(255,255,255,0.08)")}
+                      onMouseLeave={e => (e.currentTarget.style.backgroundColor = "")}>
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/>
+                      </svg>
+                      My Orders
+                    </Link>
+                    <Link href="/account/wishlist" onClick={() => setOpen(false)}
+                      className="flex items-center gap-3 px-4 py-2.5 text-xs transition-colors font-sans"
+                      style={{ color: "rgba(255,255,255,0.85)" }}
+                      onMouseEnter={e => (e.currentTarget.style.backgroundColor = "rgba(255,255,255,0.08)")}
+                      onMouseLeave={e => (e.currentTarget.style.backgroundColor = "")}>
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+                      </svg>
+                      My Wishlist
+                    </Link>
+                    <div className="mx-4 my-1 border-t border-white/10" />
+                  </>
+                )}
+
+                <button
+                  onClick={() => { setOpen(false); signOut({ callbackUrl: "/" }); }}
+                  className="flex items-center gap-3 w-full px-4 py-2.5 mb-1 text-xs transition-colors font-sans text-left"
+                  style={{ color: "#f87171" }}
+                  onMouseEnter={e => (e.currentTarget.style.backgroundColor = "rgba(239,68,68,0.12)")}
+                  onMouseLeave={e => (e.currentTarget.style.backgroundColor = "")}
+                >
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/>
+                  </svg>
+                  Sign Out
+                </button>
+              </>
+            ) : (
+              <>
+                {/* Guest */}
+                <div className="px-4 pt-3 pb-1">
+                  <p className="text-[9px] tracking-[0.25em] uppercase font-sans" style={{ color: "rgba(255,255,255,0.35)" }}>Customer</p>
+                </div>
+                <Link href="/login" onClick={() => setOpen(false)}
+                  className="flex items-center gap-3 px-4 py-2.5 text-xs transition-colors font-sans"
+                  style={{ color: "rgba(255,255,255,0.85)" }}
+                  onMouseEnter={e => (e.currentTarget.style.backgroundColor = "rgba(255,255,255,0.08)")}
+                  onMouseLeave={e => (e.currentTarget.style.backgroundColor = "")}>
+                  <UserIcon /> Sign in
+                </Link>
+                <Link href="/register" onClick={() => setOpen(false)}
+                  className="flex items-center gap-3 px-4 py-2.5 text-xs transition-colors font-sans"
+                  style={{ color: "rgba(255,255,255,0.85)" }}
+                  onMouseEnter={e => (e.currentTarget.style.backgroundColor = "rgba(255,255,255,0.08)")}
+                  onMouseLeave={e => (e.currentTarget.style.backgroundColor = "")}>
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/>
+                    <line x1="19" y1="8" x2="19" y2="14"/><line x1="22" y1="11" x2="16" y2="11"/>
+                  </svg>
+                  Create account
+                </Link>
+                <div className="mx-4 my-1 border-t border-white/10" />
+                <Link href="/track-order" onClick={() => setOpen(false)}
+                  className="flex items-center gap-3 px-4 py-2.5 text-xs transition-colors font-sans"
+                  style={{ color: "rgba(255,255,255,0.5)" }}
+                  onMouseEnter={e => (e.currentTarget.style.backgroundColor = "rgba(255,255,255,0.08)")}
+                  onMouseLeave={e => (e.currentTarget.style.backgroundColor = "")}>
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+                  </svg>
+                  Track Order (Guest)
+                </Link>
+                <div className="mx-4 my-1 border-t border-white/10" />
+                <div className="px-4 pt-2 pb-1">
+                  <p className="text-[9px] tracking-[0.25em] uppercase font-sans" style={{ color: "rgba(212,175,55,0.6)" }}>Admin</p>
+                </div>
+                <Link href="/admin/login" onClick={() => setOpen(false)}
+                  className="flex items-center gap-3 px-4 py-2.5 mb-1 text-xs font-semibold transition-colors font-sans"
+                  style={{ color: "#D4AF37" }}
+                  onMouseEnter={e => (e.currentTarget.style.backgroundColor = "rgba(212,175,55,0.10)")}
+                  onMouseLeave={e => (e.currentTarget.style.backgroundColor = "")}>
+                  <ShieldIcon /> Admin portal
+                </Link>
+              </>
+            )}
           </motion.div>
         )}
       </AnimatePresence>
@@ -302,6 +409,9 @@ function AccountDropdown() {
 export default function Navbar() {
   const [scrolled,   setScrolled]   = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
+  const { totalItems, isOpen: cartOpen, openCart, closeCart } = useCart();
+  const { data: session } = useSession();
+  const isLoggedIn = !!session?.user;
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 20);
@@ -323,10 +433,9 @@ export default function Navbar() {
         <div className="max-w-7xl mx-auto px-6 h-14 flex items-center justify-between gap-6">
           {/* Brand */}
           <Link href="/" className="flex-shrink-0">
-            <span className="font-heading text-sm tracking-[0.2em] uppercase leading-tight"
+            <span className="font-heading text-base tracking-[0.15em] uppercase leading-tight"
               style={{ color: "var(--color-primary)" }}>
-              Rosewood<br />
-              <span className="text-[10px] tracking-[0.35em]">Pharmacy</span>
+              Rosewood
             </span>
           </Link>
 
@@ -350,14 +459,26 @@ export default function Navbar() {
 
           {/* Desktop icons */}
           <div className="hidden md:flex items-center gap-4 text-white">
-            <button aria-label="Wishlist" className="hover:text-[#FFD700] transition-colors">
-              <WishlistIcon />
-            </button>
-            <button aria-label="Cart" className="hover:text-[#FFD700] transition-colors relative">
+            {/* Wishlist — only for logged in */}
+            {isLoggedIn ? (
+              <Link href="/account/wishlist" aria-label="Wishlist" className="hover:text-[#FFD700] transition-colors">
+                <WishlistIcon />
+              </Link>
+            ) : (
+              <Link href="/login" aria-label="Wishlist" className="hover:text-[#FFD700] transition-colors opacity-60" title="Sign in to use wishlist">
+                <WishlistIcon />
+              </Link>
+            )}
+
+            {/* Cart */}
+            <button aria-label="Cart" onClick={openCart} className="hover:text-[#FFD700] transition-colors relative">
               <CartIcon />
-              <span className="absolute -top-1.5 -right-1.5 w-3.5 h-3.5 bg-[#FFD700] text-black text-[8px] font-bold rounded-full flex items-center justify-center">
-                0
-              </span>
+              {totalItems > 0 && (
+                <span className="absolute -top-1.5 -right-1.5 w-4 h-4 text-black text-[8px] font-bold rounded-full flex items-center justify-center"
+                  style={{ backgroundColor: "var(--color-primary)" }}>
+                  {totalItems > 99 ? "99+" : totalItems}
+                </span>
+              )}
             </button>
             <AccountDropdown />
           </div>
@@ -396,27 +517,70 @@ export default function Navbar() {
 
             <div className="mt-10 border-t border-white/10 pt-8 space-y-4">
               <p className="text-[9px] tracking-[0.25em] uppercase text-white/30 font-sans">Account</p>
-              <Link href="/login" onClick={() => setMobileOpen(false)}
-                className="flex items-center gap-2 text-xs text-white hover:text-[#FFD700] transition-colors font-sans">
-                <UserIcon /> Customer Sign in
-              </Link>
-              <Link href="/register" onClick={() => setMobileOpen(false)}
-                className="flex items-center gap-2 text-xs text-white hover:text-[#FFD700] transition-colors font-sans">
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" />
-                  <line x1="19" y1="8" x2="19" y2="14" /><line x1="22" y1="11" x2="16" y2="11" />
-                </svg>
-                Create account
-              </Link>
-              <Link href="/admin/login" onClick={() => setMobileOpen(false)}
-                className="flex items-center gap-2 text-xs text-[#FFD700] hover:text-[#FFD700] drop-shadow-[0_0_6px_rgba(255,215,0,0.5)] transition-colors font-sans">
-                <ShieldIcon /> Admin portal
-              </Link>
+              {isLoggedIn ? (
+                <>
+                  {/* Admin dashboard shortcut in mobile */}
+                  {(session?.user as { role?: string })?.role === "ADMIN" ||
+                   (session?.user as { role?: string })?.role === "SUPERADMIN" ? (
+                    <Link href="/admin/dashboard" onClick={() => setMobileOpen(false)}
+                      className="flex items-center gap-2 text-xs font-semibold transition-colors font-sans"
+                      style={{ color: "#D4AF37" }}>
+                      <ShieldIcon /> My Dashboard
+                    </Link>
+                  ) : (
+                    <>
+                      <Link href="/account/orders" onClick={() => setMobileOpen(false)}
+                        className="flex items-center gap-2 text-xs text-white hover:text-[#FFD700] transition-colors font-sans">
+                        <UserIcon /> My Orders
+                      </Link>
+                      <Link href="/account/wishlist" onClick={() => setMobileOpen(false)}
+                        className="flex items-center gap-2 text-xs text-white hover:text-[#FFD700] transition-colors font-sans">
+                        <WishlistIcon /> My Wishlist
+                      </Link>
+                    </>
+                  )}
+                  <button onClick={() => { setMobileOpen(false); signOut({ callbackUrl: "/" }); }}
+                    className="flex items-center gap-2 text-xs text-red-400 hover:text-red-300 transition-colors font-sans">
+                    Sign Out
+                  </button>
+                </>
+              ) : (
+                <>
+                  <Link href="/login" onClick={() => setMobileOpen(false)}
+                    className="flex items-center gap-2 text-xs text-white hover:text-[#FFD700] transition-colors font-sans">
+                    <UserIcon /> Customer Sign in
+                  </Link>
+                  <Link href="/register" onClick={() => setMobileOpen(false)}
+                    className="flex items-center gap-2 text-xs text-white hover:text-[#FFD700] transition-colors font-sans">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" />
+                      <line x1="19" y1="8" x2="19" y2="14" /><line x1="22" y1="11" x2="16" y2="11" />
+                    </svg>
+                    Create account
+                  </Link>
+                  <Link href="/track-order" onClick={() => setMobileOpen(false)}
+                    className="flex items-center gap-2 text-xs text-white/50 hover:text-white/80 transition-colors font-sans">
+                    Track Order (Guest)
+                  </Link>
+                  <Link href="/admin/login" onClick={() => setMobileOpen(false)}
+                    className="flex items-center gap-2 text-xs text-[#FFD700] hover:text-[#FFD700] drop-shadow-[0_0_6px_rgba(255,215,0,0.5)] transition-colors font-sans">
+                    <ShieldIcon /> Admin portal
+                  </Link>
+                </>
+              )}
             </div>
 
             <div className="mt-8 flex gap-6 text-white">
-              <button aria-label="Wishlist" className="hover:text-[#FFD700] transition-colors"><WishlistIcon /></button>
-              <button aria-label="Cart" className="hover:text-[#FFD700] transition-colors"><CartIcon /></button>
+              <button aria-label="Cart" onClick={() => { setMobileOpen(false); openCart(); }}
+                className="hover:text-[#FFD700] transition-colors relative">
+                <CartIcon />
+                {totalItems > 0 && (
+                  <span className="absolute -top-1.5 -right-1.5 w-4 h-4 text-black text-[8px] font-bold rounded-full flex items-center justify-center"
+                    style={{ backgroundColor: "var(--color-primary)" }}>
+                    {totalItems}
+                  </span>
+                )}
+              </button>
             </div>
           </motion.div>
         )}
@@ -432,6 +596,9 @@ export default function Navbar() {
           />
         )}
       </AnimatePresence>
+
+      {/* Cart Drawer */}
+      <CartDrawer open={cartOpen} onClose={closeCart} />
     </>
   );
 }

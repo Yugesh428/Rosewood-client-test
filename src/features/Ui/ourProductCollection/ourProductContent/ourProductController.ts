@@ -243,7 +243,14 @@ export async function updateProduct(
         videoFile = await saveVideoFile(vidFile, "ui/products/videos");
         logger.debug(CTX, "updateProduct — video replaced", { videoFile });
       } else if (fields.videoFile !== undefined) {
-        videoFile = fields.videoFile || null;
+        // Empty string = explicit clear request
+        if (fields.videoFile === "") {
+          await deleteIfLocal(product.videoFile);
+          videoFile = null;
+          logger.debug(CTX, "updateProduct — videoFile cleared");
+        } else {
+          videoFile = fields.videoFile || null;
+        }
       }
 
       if (photo1File?.size) {

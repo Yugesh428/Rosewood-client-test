@@ -5,11 +5,12 @@ import sequelize from "../../lib/database/sequelize";
 export interface SiteThemeAttributes {
   id:           number;  // always 1 — singleton row
   activeThemeId: string; // UUID reference to CustomTheme.id OR "gold" / "medical" for defaults
+  homeBg:       string;  // "blue" | "white" — homepage background choice
   updatedAt?:   Date;
 }
 
 export interface SiteThemeCreationAttributes
-  extends Optional<SiteThemeAttributes, "id" | "updatedAt"> {}
+  extends Optional<SiteThemeAttributes, "id" | "homeBg" | "updatedAt"> {}
 
 class SiteTheme
   extends Model<SiteThemeAttributes, SiteThemeCreationAttributes>
@@ -17,6 +18,7 @@ class SiteTheme
 {
   declare id:            number;
   declare activeThemeId: string;
+  declare homeBg:        string;
   declare readonly updatedAt?: Date;
 }
 
@@ -31,7 +33,12 @@ SiteTheme.init(
     activeThemeId: {
       type:         DataTypes.STRING(100),
       allowNull:    false,
-      defaultValue: "gold", // default theme key
+      defaultValue: "gold",
+    },
+    homeBg: {
+      type:         DataTypes.STRING(20),
+      allowNull:    false,
+      defaultValue: "blue", // "blue" | "white"
     },
     updatedAt: {
       type:         DataTypes.DATE,
@@ -61,6 +68,7 @@ export interface CustomThemeAttributes {
   
   // Backgrounds
   bgPage:         string;
+  bgGradient:     string;
   bgCard:         string;
   bgNav:          string;
   
@@ -79,7 +87,7 @@ export interface CustomThemeAttributes {
 }
 
 export interface CustomThemeCreationAttributes
-  extends Optional<CustomThemeAttributes, "id" | "isDefault" | "createdAt" | "updatedAt"> {}
+  extends Optional<CustomThemeAttributes, "id" | "isDefault" | "bgGradient" | "createdAt" | "updatedAt"> {}
 
 export class CustomTheme
   extends Model<CustomThemeAttributes, CustomThemeCreationAttributes>
@@ -95,6 +103,7 @@ export class CustomTheme
   declare primaryText:   string;
   
   declare bgPage:        string;
+  declare bgGradient:    string;
   declare bgCard:        string;
   declare bgNav:         string;
   
@@ -147,6 +156,11 @@ CustomTheme.init(
     bgPage: {
       type:      DataTypes.STRING(50),
       allowNull: false,
+    },
+    bgGradient: {
+      type:         DataTypes.TEXT,
+      allowNull:    true,
+      defaultValue: null,
     },
     bgCard: {
       type:      DataTypes.STRING(50),

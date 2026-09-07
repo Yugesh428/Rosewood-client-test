@@ -14,6 +14,7 @@ interface CustomTheme {
   primaryDark: string;
   primaryText: string;
   bgPage: string;
+  bgGradient: string;
   bgCard: string;
   bgNav: string;
   textHeading: string;
@@ -34,6 +35,7 @@ const DEFAULT_THEMES = [
     primaryDark: "#b8952e",
     primaryText: "#000000",
     bgPage: "#F9F9F9",
+    bgGradient: "linear-gradient(135deg, #fdf9ee 0%, #f9f9f9 50%, #f5f2e8 100%)",
     bgCard: "#ffffff",
     bgNav: "#000000",
     textHeading: "#1A1A1A",
@@ -52,6 +54,7 @@ const DEFAULT_THEMES = [
     primaryDark: "#0096C7",
     primaryText: "#ffffff",
     bgPage: "#EAF6FB",
+    bgGradient: "linear-gradient(135deg, #e0f4fb 0%, #f0faff 40%, #e8f5f0 100%)",
     bgCard: "#ffffff",
     bgNav: "#023E8A",
     textHeading: "#023E8A",
@@ -64,8 +67,9 @@ const DEFAULT_THEMES = [
 ];
 
 export default function ThemeSettingsPage() {
-  const { theme, setTheme, loading: themeLoading, refreshTheme } = useTheme();
+  const { theme, homeBg, setTheme, setHomeBg, loading: themeLoading, refreshTheme } = useTheme();
   const [saving, setSaving] = useState(false);
+  const [savingBg, setSavingBg] = useState(false);
   const [customThemes, setCustomThemes] = useState<CustomTheme[]>([]);
   const [loadingThemes, setLoadingThemes] = useState(true);
   const [showCreateModal, setShowCreateModal] = useState(false);
@@ -95,17 +99,28 @@ export default function ThemeSettingsPage() {
     if (theme?.id === themeId || saving) return;
     setSaving(true);
     try {
-      console.log("Selecting theme:", themeId);
       await setTheme(themeId);
       const selectedTheme = [...DEFAULT_THEMES, ...customThemes].find(t => t.id === themeId);
-      const themeName = selectedTheme?.name || "Selected theme";
-      console.log("Theme changed successfully to:", themeName);
-      toast.success(`Theme changed to "${themeName}"`);
+      toast.success(`Theme changed to "${selectedTheme?.name || "Selected theme"}"`);
     } catch (error) {
       console.error("Failed to change theme:", error);
       toast.error("Failed to save theme.");
     } finally {
       setSaving(false);
+    }
+  }
+
+  async function handleHomeBgChange(bg: "blue" | "white" | "soft-blue" | "near-blue" | "creamy-blue") {
+    if (savingBg) return;
+    setSavingBg(true);
+    try {
+      await setHomeBg(bg);
+      const label = bg === "blue" ? "Blue" : bg === "near-blue" ? "Near Blue" : bg === "creamy-blue" ? "Creamy Blue" : bg === "soft-blue" ? "Soft Blue" : "White";
+      toast.success(`Homepage background set to ${label}`);
+    } catch {
+      toast.error("Failed to update homepage background");
+    } finally {
+      setSavingBg(false);
     }
   }
 
@@ -207,6 +222,102 @@ export default function ThemeSettingsPage() {
           Choose the colour theme displayed to all visitors on the public site.
           Changes take effect immediately — no restart needed.
         </p>
+      </div>
+
+      {/* Homepage Background Section */}
+      <div className="mb-8 p-5 bg-white rounded-lg border border-gray-200 shadow-sm">
+        <h2 className="text-sm font-bold text-gray-700 mb-1 uppercase tracking-wide">Homepage Background</h2>
+        <p className="text-xs text-gray-400 font-sans mb-4">Choose the background colour for the homepage only.</p>
+        <div className="flex items-center gap-3 flex-wrap">
+          {/* Blue */}
+          <button
+            onClick={() => handleHomeBgChange("blue")}
+            disabled={savingBg}
+            className="flex items-center gap-3 px-5 py-3 rounded-lg border-2 transition-all font-sans text-sm font-semibold disabled:opacity-50"
+            style={{
+              borderColor: homeBg === "blue" ? "#D4AF37" : "#E5E5E5",
+              boxShadow: homeBg === "blue" ? "0 0 0 3px rgba(212,175,55,0.2)" : undefined,
+              backgroundColor: "#dff0fb",
+              color: "#1A1A1A",
+            }}
+          >
+            <span className="w-6 h-6 rounded-full border-2 border-white shadow-sm" style={{ backgroundColor: "#dff0fb" }} />
+            Blue
+            {homeBg === "blue" && <Check className="w-4 h-4 text-[#D4AF37]" />}
+          </button>
+
+          {/* Near Blue */}
+          <button
+            onClick={() => handleHomeBgChange("near-blue")}
+            disabled={savingBg}
+            className="flex items-center gap-3 px-5 py-3 rounded-lg border-2 transition-all font-sans text-sm font-semibold disabled:opacity-50"
+            style={{
+              borderColor: homeBg === "near-blue" ? "#D4AF37" : "#E5E5E5",
+              boxShadow: homeBg === "near-blue" ? "0 0 0 3px rgba(212,175,55,0.2)" : undefined,
+              backgroundColor: "#cce8f7",
+              color: "#1A1A1A",
+            }}
+          >
+            <span className="w-6 h-6 rounded-full border-2 border-white shadow-sm" style={{ backgroundColor: "#cce8f7" }} />
+            Near Blue
+            {homeBg === "near-blue" && <Check className="w-4 h-4 text-[#D4AF37]" />}
+          </button>
+
+          {/* Soft Blue */}
+          <button
+            onClick={() => handleHomeBgChange("soft-blue")}
+            disabled={savingBg}
+            className="flex items-center gap-3 px-5 py-3 rounded-lg border-2 transition-all font-sans text-sm font-semibold disabled:opacity-50"
+            style={{
+              borderColor: homeBg === "soft-blue" ? "#D4AF37" : "#E5E5E5",
+              boxShadow: homeBg === "soft-blue" ? "0 0 0 3px rgba(212,175,55,0.2)" : undefined,
+              backgroundColor: "#f0f8ff",
+              color: "#1A1A1A",
+            }}
+          >
+            <span className="w-6 h-6 rounded-full border-2 border-white shadow-sm" style={{ backgroundColor: "#f0f8ff" }} />
+            Soft Blue
+            {homeBg === "soft-blue" && <Check className="w-4 h-4 text-[#D4AF37]" />}
+          </button>
+
+          {/* Creamy Blue */}
+          <button
+            onClick={() => handleHomeBgChange("creamy-blue")}
+            disabled={savingBg}
+            className="flex items-center gap-3 px-5 py-3 rounded-lg border-2 transition-all font-sans text-sm font-semibold disabled:opacity-50"
+            style={{
+              borderColor: homeBg === "creamy-blue" ? "#D4AF37" : "#E5E5E5",
+              boxShadow: homeBg === "creamy-blue" ? "0 0 0 3px rgba(212,175,55,0.2)" : undefined,
+              backgroundColor: "#e8f4f8",
+              color: "#1A1A1A",
+            }}
+          >
+            <span className="w-6 h-6 rounded-full border-2 border-white shadow-sm" style={{ backgroundColor: "#e8f4f8" }} />
+            Creamy Blue
+            {homeBg === "creamy-blue" && <Check className="w-4 h-4 text-[#D4AF37]" />}
+          </button>
+
+          {/* White */}
+          <button
+            onClick={() => handleHomeBgChange("white")}
+            disabled={savingBg}
+            className="flex items-center gap-3 px-5 py-3 rounded-lg border-2 transition-all font-sans text-sm font-semibold disabled:opacity-50"
+            style={{
+              borderColor: homeBg === "white" ? "#D4AF37" : "#E5E5E5",
+              boxShadow: homeBg === "white" ? "0 0 0 3px rgba(212,175,55,0.2)" : undefined,
+              backgroundColor: "#ffffff",
+              color: "#1A1A1A",
+            }}
+          >
+            <span className="w-6 h-6 rounded-full border-2 border-gray-200 shadow-sm" style={{ backgroundColor: "#ffffff" }} />
+            White
+            {homeBg === "white" && <Check className="w-4 h-4 text-[#D4AF37]" />}
+          </button>
+
+          {savingBg && (
+            <div className="w-5 h-5 rounded-full border-2 border-[#D4AF37] border-t-transparent animate-spin" />
+          )}
+        </div>
       </div>
 
       {/* Theme Cards */}
@@ -315,9 +426,9 @@ function ThemeCard({ theme, active, saving, onSelect, onEdit, onDelete, deleting
           {/* Light swatch */}
           <div className="w-6 h-6 rounded-full border-2 border-white/20"
             style={{ background: theme.primaryLight }} />
-          {/* Page bg swatch */}
+          {/* Page bg / gradient swatch */}
           <div className="w-6 h-6 rounded-full border-2 border-white/20"
-            style={{ background: theme.bgPage }} />
+            style={{ background: theme.bgGradient || theme.bgPage }} />
 
           {/* Active checkmark */}
           {active && (
@@ -404,6 +515,7 @@ function ThemeModal({ theme, onClose, onSave }: ThemeModalProps) {
       primaryDark: "#b8952e",
       primaryText: "#000000",
       bgPage: "#F9F9F9",
+      bgGradient: "linear-gradient(135deg, #fdf9ee 0%, #f9f9f9 50%, #f5f2e8 100%)",
       bgCard: "#ffffff",
       bgNav: "#000000",
       textHeading: "#1A1A1A",
@@ -534,6 +646,53 @@ function ThemeModal({ theme, onClose, onSave }: ThemeModalProps) {
             </div>
           </div>
 
+          {/* Background Gradient */}
+          <div>
+            <label className="block text-sm font-semibold text-gray-700 mb-1">
+              Page Background Gradient
+            </label>
+            <p className="text-xs text-gray-400 mb-2">
+              Paste a CSS gradient value. This overlays the page background color. Leave blank for solid color.
+            </p>
+            <textarea
+              value={formData.bgGradient || ""}
+              onChange={(e) => updateField("bgGradient", e.target.value)}
+              rows={3}
+              className="w-full px-3 py-2 text-xs border border-gray-300 rounded font-mono focus:ring-2 focus:ring-[#D4AF37] focus:border-transparent resize-none"
+              placeholder="linear-gradient(135deg, #e0f4fb 0%, #f0faff 40%, #e8f5f0 100%)"
+            />
+            {/* Gradient preview */}
+            {formData.bgGradient && (
+              <div className="mt-2 h-10 w-full rounded border border-gray-200"
+                style={{ background: formData.bgGradient }} />
+            )}
+            {/* Quick presets */}
+            <div className="mt-2 flex flex-wrap gap-2">
+              <p className="text-[10px] text-gray-400 w-full">Quick presets:</p>
+              {[
+                { label: "Sky Blue", value: "linear-gradient(135deg, #e0f4fb 0%, #f0faff 40%, #e8f5f0 100%)" },
+                { label: "Warm Gold", value: "linear-gradient(135deg, #fdf9ee 0%, #f9f9f9 50%, #f5f2e8 100%)" },
+                { label: "Soft Rose", value: "linear-gradient(135deg, #fdf2f8 0%, #fafafa 50%, #f5f0f5 100%)" },
+                { label: "Mint Fresh", value: "linear-gradient(135deg, #f0fdf4 0%, #fafafa 50%, #ecfdf5 100%)" },
+                { label: "Lavender", value: "linear-gradient(135deg, #f5f3ff 0%, #fafafa 50%, #ede9fe 100%)" },
+                { label: "None", value: "" },
+              ].map(preset => (
+                <button
+                  key={preset.label}
+                  type="button"
+                  onClick={() => updateField("bgGradient", preset.value)}
+                  className="px-2 py-1 text-[10px] rounded border border-gray-200 hover:border-[#D4AF37] transition-colors flex items-center gap-1.5"
+                >
+                  {preset.value && (
+                    <span className="w-3 h-3 rounded-sm inline-block flex-shrink-0"
+                      style={{ background: preset.value }} />
+                  )}
+                  {preset.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
           {/* Preview */}
           <div className="border-t border-gray-200 pt-6">
             <h3 className="text-sm font-semibold text-gray-700 mb-3">Preview</h3>
@@ -548,7 +707,7 @@ function ThemeModal({ theme, onClose, onSave }: ThemeModalProps) {
               </div>
               {/* Content preview */}
               <div className="p-4 rounded-sm border" style={{ 
-                background: formData.bgPage,
+                background: formData.bgGradient || formData.bgPage,
                 borderColor: formData.borderColor 
               }}>
                 <div className="p-4 rounded-sm mb-3" style={{ background: formData.bgCard }}>

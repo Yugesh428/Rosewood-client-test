@@ -21,6 +21,8 @@ import {
   Home,
   Globe,
   Palette,
+  FileBarChart,
+  LineChart,
 } from "lucide-react";
 
 interface NavItem {
@@ -39,8 +41,10 @@ const navItems: NavItem[] = [
   { icon: Users,           label: "CUSTOMERS",    href: "/admin/customers"    },
   { icon: Briefcase,       label: "STAFF",        href: "/admin/staff"        },
   { icon: Star,            label: "REVIEWS",      href: "/admin/reviews"      },
-  { icon: MessageSquare,   label: "FEEDBACK",     href: "/admin/feedback"     },
-  { icon: Globe,           label: "SITE CONTENT",   href: "/admin/site-content"   },
+  { icon: MessageSquare,   label: "FEEDBACK",     href: "/admin/feedback"       },
+  { icon: FileBarChart,    label: "REPORTS",      href: "/admin/reports"        },
+  { icon: LineChart,       label: "ANALYTICS",    href: "/admin/analytics"      },
+  { icon: Globe,           label: "SITE CONTENT", href: "/admin/site-content"   },
   { icon: Palette,         label: "THEME",           href: "/admin/theme-settings" },
   { icon: Settings,        label: "SETTINGS",        href: "/admin/settings"       },
 ];
@@ -51,16 +55,21 @@ export default function AdminSidebar() {
   const pathname = usePathname();
   const [hoveredHref, setHoveredHref] = useState<string | null>(null);
 
-  // Read from localStorage on first mount — prevents flicker to expanded on nav
-  const [collapsed, setCollapsed] = useState<boolean>(() => {
-    if (typeof window === "undefined") return false;
-    return localStorage.getItem(STORAGE_KEY) === "true";
-  });
+  // Always start uncollapsed on SSR to match server HTML, then apply saved preference after mount
+  const [collapsed, setCollapsed] = useState<boolean>(false);
+  const [mounted, setMounted] = useState(false);
 
-  // Keep localStorage in sync whenever state changes
   useEffect(() => {
+    const saved = localStorage.getItem(STORAGE_KEY) === "true";
+    setCollapsed(saved);
+    setMounted(true);
+  }, []);
+
+  // Keep localStorage in sync whenever state changes (only after mount)
+  useEffect(() => {
+    if (!mounted) return;
     localStorage.setItem(STORAGE_KEY, String(collapsed));
-  }, [collapsed]);
+  }, [collapsed, mounted]);
 
   const isActive = (href: string) => {
     if (href === "/admin/dashboard") return pathname === href;

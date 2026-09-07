@@ -53,13 +53,13 @@ export default function ContactPage() {
   }
 
   return (
-    <div className="bg-[#F9F9F9]">
+    <div>
       <Navbar />
 
       <main className="min-h-screen pt-14">
 
         {/* ── Two-column content ─────────────────────────────────────────── */}
-        <section className="py-16 bg-[#F9F9F9]">
+        <section className="py-16" style={{ backgroundColor: "transparent" }}>
           <div className="max-w-6xl mx-auto px-6">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 items-start">
 

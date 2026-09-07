@@ -422,9 +422,9 @@ export default function ProductSection() {
           </div>
         ) : (
           <>
-            <div className="bg-white rounded-lg shadow-sm border border-[#E5E5E5] overflow-x-auto scrollbar-thin scrollbar-thumb-[#D4AF37]/40 scrollbar-track-transparent">
+            <div className="bg-white rounded-lg shadow-sm border border-[#E5E5E5] overflow-x-auto scrollbar-thin scrollbar-thumb-[#D4AF37]/40 scrollbar-track-transparent" style={{ maxHeight: "calc(100vh - 220px)", overflowY: "auto" }}>
               <table className="text-sm" style={{ minWidth: "1200px", width: "100%" }}>
-                <thead className="bg-[#F9F9F9] border-b border-[#E5E5E5]">
+                <thead className="bg-[#F9F9F9] border-b border-[#E5E5E5] sticky top-0 z-10">
                   <tr>
                     <th className="px-3 py-3 text-left font-medium text-[#6B6B6B] whitespace-nowrap w-14">Image</th>
                     <th className="px-3 py-3 text-left font-medium text-[#1A1A1A] whitespace-nowrap">Product Name</th>

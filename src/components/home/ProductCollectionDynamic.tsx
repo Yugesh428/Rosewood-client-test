@@ -26,6 +26,95 @@ type CollectionProduct = {
   isActive: boolean;
 };
 
+// ─── Helper: extract YouTube embed URL ───────────────────────────────────────
+function getYouTubeEmbedUrl(url: string): string | null {
+  try {
+    const u = new URL(url);
+    let videoId: string | null = null;
+    if (u.hostname.includes("youtube.com")) {
+      videoId = u.searchParams.get("v");
+    } else if (u.hostname.includes("youtu.be")) {
+      videoId = u.pathname.slice(1);
+    }
+    if (videoId) return `https://www.youtube.com/embed/${videoId}?autoplay=1&mute=1&loop=1&playlist=${videoId}&controls=0&showinfo=0&rel=0`;
+  } catch {}
+  return null;
+}
+
+// ─── Helper: extract Instagram embed URL ──────────────────────────────────────
+function getInstagramEmbedUrl(url: string): string | null {
+  try {
+    const u = new URL(url);
+    if (u.hostname.includes("instagram.com")) {
+      // Strip trailing slash and append /embed
+      const path = u.pathname.replace(/\/$/, "");
+      return `https://www.instagram.com${path}/embed`;
+    }
+  } catch {}
+  return null;
+}
+
+// ─── Video renderer — handles YouTube, Instagram, or direct file ──────────────
+function VideoMedia({ videoUrl, videoFile, title }: { videoUrl: string | null; videoFile: string | null; title: string }) {
+  // Prefer local video file if available
+  if (videoFile) {
+    return (
+      <video
+        src={videoFile}
+        autoPlay
+        muted
+        loop
+        playsInline
+        className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
+      />
+    );
+  }
+
+  if (videoUrl) {
+    const ytEmbed = getYouTubeEmbedUrl(videoUrl);
+    if (ytEmbed) {
+      return (
+        <iframe
+          src={ytEmbed}
+          title={title}
+          allow="autoplay; encrypted-media"
+          allowFullScreen
+          className="absolute inset-0 w-full h-full"
+          style={{ border: "none", pointerEvents: "none" }}
+        />
+      );
+    }
+
+    const igEmbed = getInstagramEmbedUrl(videoUrl);
+    if (igEmbed) {
+      return (
+        <iframe
+          src={igEmbed}
+          title={title}
+          allowFullScreen
+          className="absolute inset-0 w-full h-full"
+          style={{ border: "none", pointerEvents: "none" }}
+          scrolling="no"
+        />
+      );
+    }
+
+    // Generic video URL (mp4, etc.)
+    return (
+      <video
+        src={videoUrl}
+        autoPlay
+        muted
+        loop
+        playsInline
+        className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
+      />
+    );
+  }
+
+  return null;
+}
+
 export default function ProductCollectionDynamic() {
   const [categories, setCategories] = useState<CollectionCategory[]>([]);
   const [products, setProducts] = useState<CollectionProduct[]>([]);
@@ -59,7 +148,7 @@ export default function ProductCollectionDynamic() {
 
   if (loading) {
     return (
-      <section className="py-10 bg-[#F9F9F9] flex justify-center">
+      <section className="py-10 flex justify-center">
         <div className="w-12 h-12 border-4 border-t-transparent rounded-full animate-spin"
           style={{ borderColor: "var(--color-primary)", borderTopColor: "transparent" }} />
       </section>
@@ -67,7 +156,7 @@ export default function ProductCollectionDynamic() {
   }
 
   return (
-    <section className="pt-10 pb-12 bg-[#F9F9F9]">
+    <section className="pt-4 pb-4">
       <div className="max-w-7xl mx-auto px-6">
         <motion.div
           initial={{ opacity: 0, y: 12 }}
@@ -89,9 +178,9 @@ export default function ProductCollectionDynamic() {
                 className="text-xs font-sans px-5 py-2 rounded-sm border transition-all duration-200"
                 style={active
                   ? { backgroundColor: "var(--color-text-heading)", color: "#fff", borderColor: "var(--color-text-heading)" }
-                  : { backgroundColor: "#fff", color: "#6B6B6B", borderColor: "#E5E5E5" }}
-                onMouseEnter={e => { if (!active) { e.currentTarget.style.borderColor = "var(--color-text-heading)"; e.currentTarget.style.color = "var(--color-text-heading)"; }}}
-                onMouseLeave={e => { if (!active) { e.currentTarget.style.borderColor = "#E5E5E5"; e.currentTarget.style.color = "#6B6B6B"; }}}>
+                  : { backgroundColor: "transparent", color: "#6B6B6B", borderColor: "var(--color-primary)" }}
+                onMouseEnter={e => { if (!active) { e.currentTarget.style.backgroundColor = "var(--color-primary)"; e.currentTarget.style.color = "#fff"; }}}
+                onMouseLeave={e => { if (!active) { e.currentTarget.style.backgroundColor = "transparent"; e.currentTarget.style.color = "#6B6B6B"; }}}>
                 {tab.name}
               </button>
             );
@@ -110,15 +199,12 @@ export default function ProductCollectionDynamic() {
                 transition={{ duration: 0.5 }}
                 className="md:col-span-2 relative group overflow-hidden rounded-sm h-80 md:h-96 cursor-pointer"
               >
-                {/* Video support: video URL or uploaded video file */}
+                {/* Video support: handles YouTube, Instagram, or uploaded file */}
                 {(displayProducts[0].videoFile || displayProducts[0].videoUrl) ? (
-                  <video
-                    src={displayProducts[0].videoFile || displayProducts[0].videoUrl!}
-                    autoPlay
-                    muted
-                    loop
-                    playsInline
-                    className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
+                  <VideoMedia
+                    videoUrl={displayProducts[0].videoUrl}
+                    videoFile={displayProducts[0].videoFile}
+                    title={displayProducts[0].title}
                   />
                 ) : displayProducts[0].backgroundImage ? (
                   <Image
@@ -132,8 +218,7 @@ export default function ProductCollectionDynamic() {
                 <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
                 <div className="absolute bottom-0 left-0 p-6">
                   {displayProducts[0].subtitle && (
-                    <p className="text-[10px] tracking-[0.25em] uppercase font-sans mb-1"
-                      style={{ color: "var(--color-primary)" }}>
+                    <p className="text-[10px] tracking-[0.25em] uppercase font-sans mb-1 text-white/80">
                       {displayProducts[0].subtitle}
                     </p>
                   )}
@@ -171,8 +256,7 @@ export default function ProductCollectionDynamic() {
                   <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/10 to-transparent" />
                   <div className="absolute bottom-0 left-0 p-4">
                     {displayProducts[0].photo1Subtitle && (
-                      <p className="text-[10px] tracking-[0.2em] uppercase font-sans mb-0.5"
-                        style={{ color: "var(--color-primary)" }}>
+                      <p className="text-[10px] tracking-[0.2em] uppercase font-sans mb-0.5 text-white/80">
                         {displayProducts[0].photo1Subtitle}
                       </p>
                     )}
@@ -202,8 +286,7 @@ export default function ProductCollectionDynamic() {
                   <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/10 to-transparent" />
                   <div className="absolute bottom-0 left-0 p-4">
                     {displayProducts[0].photo2Subtitle && (
-                      <p className="text-[10px] tracking-[0.2em] uppercase font-sans mb-0.5"
-                        style={{ color: "var(--color-primary)" }}>
+                      <p className="text-[10px] tracking-[0.2em] uppercase font-sans mb-0.5 text-white/80">
                         {displayProducts[0].photo2Subtitle}
                       </p>
                     )}
@@ -235,8 +318,9 @@ export default function ProductCollectionDynamic() {
           </Link>
           <style>{`
             .collection-view-all:hover {
-              background-color: var(--color-text-heading) !important;
-              color: #fff !important;
+              background-color: var(--color-primary) !important;
+              border-color: var(--color-primary) !important;
+              color: var(--color-primary-text) !important;
             }
           `}</style>
         </motion.div>

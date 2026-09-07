@@ -173,9 +173,34 @@ async function migrate() {
       }
     }
 
-    // ── 4. orders — add guest order columns if missing ────────────────────────
+    // ── 4. orders — ensure all columns exist (full schema check) ─────────────
     const orderColumns = await q.describeTable("orders").catch(() => null);
     if (orderColumns) {
+
+      // customerId — may be missing if table was created with old schema
+      if (!orderColumns["customerId"]) {
+        console.log("➕ Adding customerId to orders...");
+        await sequelize.query(`ALTER TABLE "orders" ADD COLUMN "customerId" UUID DEFAULT NULL;`);
+        // Add FK constraint only if users table exists
+        await sequelize.query(`
+          ALTER TABLE "orders"
+          ADD CONSTRAINT "orders_customerId_fkey"
+          FOREIGN KEY ("customerId") REFERENCES "users" ("id")
+          ON DELETE RESTRICT ON UPDATE CASCADE;
+        `).catch(() => console.log("ℹ️  customerId FK already exists or skipped."));
+        console.log("✅ orders.customerId added.");
+      } else {
+        // Make sure it's nullable for guest orders
+        const customerIdCol = orderColumns["customerId"] as { allowNull?: boolean } | undefined;
+        if (customerIdCol && customerIdCol.allowNull === false) {
+          console.log("🔧 Making orders.customerId nullable for guest orders...");
+          await sequelize.query(`ALTER TABLE "orders" ALTER COLUMN "customerId" DROP NOT NULL;`);
+          console.log("✅ orders.customerId is now nullable.");
+        } else {
+          console.log("ℹ️  orders.customerId already nullable.");
+        }
+      }
+
       if (!orderColumns["isGuest"]) {
         console.log("➕ Adding isGuest to orders...");
         await sequelize.query(`ALTER TABLE "orders" ADD COLUMN "isGuest" BOOLEAN NOT NULL DEFAULT FALSE;`);
@@ -208,15 +233,98 @@ async function migrate() {
         console.log("ℹ️  orders.guestPhone already exists.");
       }
 
-      // Make customerId nullable for guest orders
-      const customerIdCol = orderColumns["customerId"] as { allowNull?: boolean } | undefined;
-      if (customerIdCol && customerIdCol.allowNull === false) {
-        console.log("🔧 Making orders.customerId nullable for guest orders...");
-        await sequelize.query(`ALTER TABLE "orders" ALTER COLUMN "customerId" DROP NOT NULL;`);
-        console.log("✅ orders.customerId is now nullable.");
-      } else {
-        console.log("ℹ️  orders.customerId already nullable.");
+      // Other columns that may be missing in older schemas
+      if (!orderColumns["subtotal"]) {
+        console.log("➕ Adding subtotal to orders...");
+        await sequelize.query(`ALTER TABLE "orders" ADD COLUMN "subtotal" DECIMAL(12,2) NOT NULL DEFAULT 0;`);
+        console.log("✅ orders.subtotal added.");
       }
+      if (!orderColumns["taxAmount"]) {
+        console.log("➕ Adding taxAmount to orders...");
+        await sequelize.query(`ALTER TABLE "orders" ADD COLUMN "taxAmount" DECIMAL(12,2) NOT NULL DEFAULT 0;`);
+        console.log("✅ orders.taxAmount added.");
+      }
+      if (!orderColumns["discountAmount"]) {
+        console.log("➕ Adding discountAmount to orders...");
+        await sequelize.query(`ALTER TABLE "orders" ADD COLUMN "discountAmount" DECIMAL(12,2) NOT NULL DEFAULT 0;`);
+        console.log("✅ orders.discountAmount added.");
+      }
+      if (!orderColumns["totalAmount"]) {
+        console.log("➕ Adding totalAmount to orders...");
+        await sequelize.query(`ALTER TABLE "orders" ADD COLUMN "totalAmount" DECIMAL(12,2) NOT NULL DEFAULT 0;`);
+        console.log("✅ orders.totalAmount added.");
+      }
+      if (!orderColumns["deliveryAddress"]) {
+        console.log("➕ Adding deliveryAddress to orders...");
+        await sequelize.query(`ALTER TABLE "orders" ADD COLUMN "deliveryAddress" TEXT NOT NULL DEFAULT '';`);
+        console.log("✅ orders.deliveryAddress added.");
+      }
+      if (!orderColumns["deliveryNotes"]) {
+        console.log("➕ Adding deliveryNotes to orders...");
+        await sequelize.query(`ALTER TABLE "orders" ADD COLUMN "deliveryNotes" TEXT DEFAULT NULL;`);
+        console.log("✅ orders.deliveryNotes added.");
+      }
+      if (!orderColumns["confirmedAt"]) {
+        console.log("➕ Adding confirmedAt to orders...");
+        await sequelize.query(`ALTER TABLE "orders" ADD COLUMN "confirmedAt" TIMESTAMPTZ DEFAULT NULL;`);
+        console.log("✅ orders.confirmedAt added.");
+      }
+      if (!orderColumns["shippedAt"]) {
+        console.log("➕ Adding shippedAt to orders...");
+        await sequelize.query(`ALTER TABLE "orders" ADD COLUMN "shippedAt" TIMESTAMPTZ DEFAULT NULL;`);
+        console.log("✅ orders.shippedAt added.");
+      }
+      if (!orderColumns["deliveredAt"]) {
+        console.log("➕ Adding deliveredAt to orders...");
+        await sequelize.query(`ALTER TABLE "orders" ADD COLUMN "deliveredAt" TIMESTAMPTZ DEFAULT NULL;`);
+        console.log("✅ orders.deliveredAt added.");
+      }
+      if (!orderColumns["cancelledAt"]) {
+        console.log("➕ Adding cancelledAt to orders...");
+        await sequelize.query(`ALTER TABLE "orders" ADD COLUMN "cancelledAt" TIMESTAMPTZ DEFAULT NULL;`);
+        console.log("✅ orders.cancelledAt added.");
+      }
+      if (!orderColumns["cancellationReason"]) {
+        console.log("➕ Adding cancellationReason to orders...");
+        await sequelize.query(`ALTER TABLE "orders" ADD COLUMN "cancellationReason" TEXT DEFAULT NULL;`);
+        console.log("✅ orders.cancellationReason added.");
+      }
+
+      // Ensure ENUM types exist for orderStatus and paymentStatus
+      if (!orderColumns["orderStatus"]) {
+        console.log("➕ Adding orderStatus to orders...");
+        await sequelize.query(`
+          DO $$ BEGIN
+            CREATE TYPE "enum_orders_orderStatus" AS ENUM('pending','confirmed','processing','shipped','delivered','cancelled');
+          EXCEPTION WHEN duplicate_object THEN null; END $$;
+        `);
+        await sequelize.query(`ALTER TABLE "orders" ADD COLUMN "orderStatus" "enum_orders_orderStatus" NOT NULL DEFAULT 'pending';`);
+        console.log("✅ orders.orderStatus added.");
+      }
+      if (!orderColumns["paymentStatus"]) {
+        console.log("➕ Adding paymentStatus to orders...");
+        await sequelize.query(`
+          DO $$ BEGIN
+            CREATE TYPE "enum_orders_paymentStatus" AS ENUM('unpaid','paid','refunded');
+          EXCEPTION WHEN duplicate_object THEN null; END $$;
+        `);
+        await sequelize.query(`ALTER TABLE "orders" ADD COLUMN "paymentStatus" "enum_orders_paymentStatus" NOT NULL DEFAULT 'unpaid';`);
+        console.log("✅ orders.paymentStatus added.");
+      }
+      if (!orderColumns["paymentMethod"]) {
+        console.log("➕ Adding paymentMethod to orders...");
+        await sequelize.query(`
+          DO $$ BEGIN
+            CREATE TYPE "enum_orders_paymentMethod" AS ENUM('cash','card','online','upi');
+          EXCEPTION WHEN duplicate_object THEN null; END $$;
+        `);
+        await sequelize.query(`ALTER TABLE "orders" ADD COLUMN "paymentMethod" "enum_orders_paymentMethod" NOT NULL DEFAULT 'cash';`);
+        console.log("✅ orders.paymentMethod added.");
+      }
+
+      console.log("✅ orders table schema verified.");
+    } else {
+      console.log("ℹ️  orders table not found — will be created by sync.");
     }
 
     // ── 5. Fix hero_slides table if it exists with old schema ─────────────────
@@ -273,6 +381,14 @@ async function migrate() {
 
     // ── 7. Create UI tables if missing ─────────────────────────────────────────
     console.log("➕ Creating UI content tables...");
+
+    // ── Add bgGradient to custom_themes BEFORE model sync ─────────────────────
+    const customThemeColsEarly = await q.describeTable("custom_themes").catch(() => null);
+    if (customThemeColsEarly && !customThemeColsEarly["bgGradient"]) {
+      console.log("➕ Adding bgGradient to custom_themes (early)...");
+      await sequelize.query(`ALTER TABLE "custom_themes" ADD COLUMN "bgGradient" TEXT DEFAULT NULL;`);
+      console.log("✅ custom_themes.bgGradient added.");
+    }
     
     // Sync models in explicit order to respect foreign key dependencies
     // Independent tables first
@@ -393,6 +509,43 @@ async function migrate() {
         console.log("✅ products.safetyInformation added.");
       } else {
         console.log("ℹ️  products.safetyInformation already exists.");
+      }
+    }
+
+    // ── 9. Add bgGradient to custom_themes if missing ────────────────────────
+    const customThemeColumns = await q.describeTable("custom_themes").catch(() => null);
+    if (customThemeColumns) {
+      if (!customThemeColumns["bgGradient"]) {
+        console.log("➕ Adding bgGradient to custom_themes...");
+        await sequelize.query(`ALTER TABLE "custom_themes" ADD COLUMN "bgGradient" TEXT DEFAULT NULL;`);
+        console.log("✅ custom_themes.bgGradient added.");
+      } else {
+        console.log("ℹ️  custom_themes.bgGradient already exists.");
+      }
+
+      // Always update default theme gradient values (safe upsert)
+      await sequelize.query(`
+        UPDATE "custom_themes"
+        SET "bgGradient" = 'linear-gradient(160deg, #dff0fb 0%, #eaf6ff 35%, #f4f9fc 65%, #edf5fb 100%)'
+        WHERE id = 'gold' AND ("bgGradient" IS NULL OR "bgGradient" = '');
+      `);
+      await sequelize.query(`
+        UPDATE "custom_themes"
+        SET "bgGradient" = 'linear-gradient(135deg, #e0f4fb 0%, #f0faff 40%, #e8f5f0 100%)'
+        WHERE id = 'medical' AND ("bgGradient" IS NULL OR "bgGradient" = '');
+      `);
+      console.log("✅ Default themes bgGradient values ensured.");
+    }
+
+    // ── 10. Add homeBg to site_theme if missing ──────────────────────────────
+    const siteThemeColumns = await q.describeTable("site_theme").catch(() => null);
+    if (siteThemeColumns) {
+      if (!siteThemeColumns["homeBg"]) {
+        console.log("➕ Adding homeBg to site_theme...");
+        await sequelize.query(`ALTER TABLE "site_theme" ADD COLUMN "homeBg" VARCHAR(20) NOT NULL DEFAULT 'blue';`);
+        console.log("✅ site_theme.homeBg added.");
+      } else {
+        console.log("ℹ️  site_theme.homeBg already exists.");
       }
     }
 

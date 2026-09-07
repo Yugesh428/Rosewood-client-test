@@ -71,7 +71,7 @@ function LoginForm() {
       if (result?.error) {
         setError("Invalid email or password.");
       } else {
-        window.location.href = "/account";
+        window.location.href = "/";
       }
     } catch {
       setError("Something went wrong. Please try again.");

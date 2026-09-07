@@ -9,7 +9,7 @@ import OurValuesDynamic from "@/components/about/OurValuesDynamic";
 
 export default function AboutPage() {
   return (
-    <div className="bg-[#F9F9F9]">
+    <div>
       <Navbar />
       <main className="min-h-screen pt-14">
         {/* ── Hero / Page Title ──────────────────────────────────────────────── */}
