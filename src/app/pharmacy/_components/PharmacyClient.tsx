@@ -378,7 +378,7 @@ export default function PharmacyClient({ categories, products }: PharmacyClientP
                             boxShadow: `0 4px 16px color-mix(in srgb, var(--color-primary) 25%, transparent)`,
                           } : {
                             background: "#ffffff",
-                            border: "1.5px solid #D0CBBF",
+                            border: "1.5px solid #9CA3AF",
                             boxShadow: "0 1px 3px rgba(0,0,0,0.06)",
                           })
                         }}
@@ -393,7 +393,7 @@ export default function PharmacyClient({ categories, products }: PharmacyClientP
                         onMouseLeave={e => {
                           if (!active) {
                             e.currentTarget.style.background = "#ffffff";
-                            e.currentTarget.style.borderColor = "#D0CBBF";
+                            e.currentTarget.style.borderColor = "#9CA3AF";
                             e.currentTarget.style.transform = "";
                             e.currentTarget.style.boxShadow = "0 1px 3px rgba(0,0,0,0.06)";
                           }
@@ -411,11 +411,11 @@ export default function PharmacyClient({ categories, products }: PharmacyClientP
                         )}
                         {!isAll && (
                           <div className="flex-shrink-0 w-2 h-2 rounded-full"
-                            style={{ background: active ? "var(--color-primary)" : "#D1CCC0" }} />
+                            style={{ background: active ? "var(--color-primary)" : "#6B7280" }} />
                         )}
                         <div className="flex-1 min-w-0">
                           <p className="text-xs font-medium leading-tight truncate"
-                            style={{ color: active ? "var(--color-text-heading)" : "#374151" }}>
+                            style={{ color: active ? "var(--color-text-heading)" : "#111827" }}>
                             {cat.label}
                           </p>
                         </div>
@@ -444,26 +444,6 @@ export default function PharmacyClient({ categories, products }: PharmacyClientP
               )}
             </p>
             <div className="flex items-center gap-2">
-              <button onClick={() => setCartOpen(true)}
-                className="hidden sm:flex items-center gap-2 px-3 py-1.5 border border-gray-200 rounded-sm text-sm text-gray-600 relative transition-colors"
-                onMouseEnter={e => { e.currentTarget.style.borderColor = "var(--color-primary)"; e.currentTarget.style.color = "var(--color-primary)"; }}
-                onMouseLeave={e => { e.currentTarget.style.borderColor = ""; e.currentTarget.style.color = ""; }}>
-                <ShoppingCart className="w-4 h-4" /> Cart
-                {totalItems > 0 && (
-                  <span className="absolute -top-1.5 -right-1.5 w-4 h-4 text-[9px] font-bold rounded-full flex items-center justify-center"
-                    style={{ background: "var(--color-primary)", color: "var(--color-primary-text)" }}>
-                    {totalItems}
-                  </span>
-                )}
-              </button>
-              <div className="relative">
-                <select value={sort} onChange={e => { setSort(e.target.value); resetPage(); }}
-                  className="appearance-none border border-gray-200 text-sm text-gray-700 bg-white pl-3 pr-8 py-1.5 rounded-sm focus:outline-none font-sans cursor-pointer"
-                  style={{ "--tw-ring-color": "var(--color-primary)" } as React.CSSProperties}>
-                  {SORT_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
-                </select>
-                <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
-              </div>
             </div>
           </div>
 
