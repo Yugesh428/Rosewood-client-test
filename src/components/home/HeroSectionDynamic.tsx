@@ -123,12 +123,13 @@ export default function HeroSectionDynamic() {
                 initial={{ opacity: 0, y: 16 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.3, duration: 0.6 }}
-                className="font-heading text-4xl md:text-5xl lg:text-6xl text-white leading-tight mb-4"
+                className="hero-heading font-heading text-4xl md:text-5xl lg:text-6xl text-white leading-tight mb-4 cursor-default"
                 style={{
                   display: "-webkit-box",
                   WebkitLineClamp: 3,
                   WebkitBoxOrient: "vertical",
                   overflow: "hidden",
+                  transition: "color 0.3s ease",
                 }}
                 dangerouslySetInnerHTML={{ __html: currentSlide.title.replace(/\n/g, "<br />") }}
               />
@@ -191,6 +192,10 @@ export default function HeroSectionDynamic() {
 
       <div className="absolute bottom-0 left-0 right-0 h-[2px]"
         style={{ background: `linear-gradient(90deg, transparent, color-mix(in srgb, var(--color-primary) 40%, transparent), transparent)` }} />
+
+      <style>{`
+        .hero-heading:hover { color: #D4AF37 !important; }
+      `}</style>
     </section>
   );
 }
