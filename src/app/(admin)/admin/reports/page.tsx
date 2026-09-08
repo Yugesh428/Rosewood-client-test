@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import {
   TrendingUp, TrendingDown, ShoppingCart, DollarSign,
-  Package, Clock, Download, RefreshCw, Calendar, CreditCard, Users,
+  Package, Clock, Download, RefreshCw, Calendar, CreditCard, Users, ArrowUpRight, Sparkles,
 } from "lucide-react";
 import { Card } from "@/components/ui/card";
 
@@ -41,6 +41,12 @@ const METHOD_COLORS: Record<string, string> = {
   cash: "#D4AF37", card: "#3B82F6", online: "#8B5CF6", upi: "#10B981",
 };
 
+const formatMoney = (value: number) =>
+  `£${value.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+
+const formatCompactMoney = (value: number) =>
+  new Intl.NumberFormat("en-GB", { style: "currency", currency: "GBP", notation: "compact", maximumFractionDigits: 1 }).format(value);
+
 // ─── Bar chart (SVG-free, CSS only) ──────────────────────────────────────────
 
 function BarChart({ data, valueKey, labelKey, color = "#D4AF37", height = 120 }:
@@ -71,14 +77,12 @@ function BarChart({ data, valueKey, labelKey, color = "#D4AF37", height = 120 }:
 
 function DonutChart({ data }: { data: { label: string; value: number; color: string }[] }) {
   const total = data.reduce((s, d) => s + d.value, 0) || 1;
-  let cumulative = 0;
   const r = 36; const cx = 50; const cy = 50;
   const circumference = 2 * Math.PI * r;
 
-  const segments = data.map(d => {
+  const segments = data.map((d, index) => {
     const pct = d.value / total;
-    const offset = cumulative;
-    cumulative += pct;
+    const offset = data.slice(0, index).reduce((sum, item) => sum + item.value / total, 0);
     return { ...d, pct, offset };
   });
 
@@ -111,14 +115,15 @@ function DonutChart({ data }: { data: { label: string; value: number; color: str
 function StatCard({ title, value, subtitle, icon: Icon, iconColor = "text-gray-400", trend }:
   { title: string; value: string; subtitle?: string; icon: React.ElementType; iconColor?: string; trend?: number }) {
   return (
-    <Card className="p-6 border border-gray-200 hover:shadow-md transition-shadow">
+    <Card className="group relative overflow-hidden p-5 border border-[#E8E4DC] bg-white shadow-[0_10px_30px_rgba(38,31,18,0.04)] transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_16px_36px_rgba(38,31,18,0.10)]">
+      <div className="absolute inset-x-0 top-0 h-[3px] bg-gradient-to-r from-[#b8952e] via-[#ffe87c] to-[#D4AF37] opacity-80" />
       <div className="flex items-start justify-between mb-4">
-        <p className="text-[10px] tracking-[0.15em] uppercase text-gray-500 font-sans">{title}</p>
-        <div className={`p-2 rounded-sm bg-gray-50 ${iconColor}`}>
+        <p className="text-[10px] tracking-[0.18em] uppercase text-gray-500 font-sans font-semibold">{title}</p>
+        <div className={`p-2.5 rounded-md bg-[#FBF8EF] ring-1 ring-[#D4AF37]/15 ${iconColor}`}>
           <Icon className="w-4 h-4" />
         </div>
       </div>
-      <h3 className="text-3xl font-heading text-gray-900 mb-1">{value}</h3>
+      <h3 className="text-3xl font-heading text-[#1A1A1A] mb-1">{value}</h3>
       {subtitle && <p className="text-xs text-gray-500 font-sans">{subtitle}</p>}
       {trend !== undefined && (
         <div className={`flex items-center gap-1 mt-2 text-xs font-medium ${trend >= 0 ? "text-green-600" : "text-red-600"}`}>
@@ -168,30 +173,34 @@ export default function ReportsPage() {
     }
   }, [period, customFrom, customTo]);
 
-  useEffect(() => { fetchData(); }, [fetchData]);
+  useEffect(() => {
+    const timeout = window.setTimeout(fetchData, 0);
+    return () => window.clearTimeout(timeout);
+  }, [fetchData]);
 
   const exportCSV = () => {
     if (!data) return;
     const rows = [["Date","Revenue","Orders"], ...data.dailyRevenue.map(d => [d.date, d.revenue.toFixed(2), d.orders])];
     const a = document.createElement("a");
-    a.href = "data:text/csv;charset=utf-8," + encodeURIComponent(rows.map(r => r.join(",")).join("\n"));
+    a.href = "data:text/csv;charset=utf-8," + encodeURIComponent(rows.map(r => r.map(value => `\"${String(value).replace(/\"/g, '\"\"')}\"`).join(",")).join("\n"));
     a.download = `rosewood-report-${period}.csv`;
     a.click();
   };
 
   return (
-    <div className="bg-[#F8F8F8] min-h-screen">
+    <div className="min-h-screen bg-[#F7F7F5]">
       {/* Page header — matches DashboardHeader style */}
-      <div className="border-b border-gray-200 bg-white sticky top-0 z-10">
-        <div className="px-8 py-6">
+      <div className="border-b border-[#D4AF37]/20 bg-[#171713] sticky top-0 z-10 shadow-[0_4px_20px_rgba(0,0,0,0.14)]">
+        <div className="px-5 py-5 lg:px-8 lg:py-6">
           <div className="flex flex-wrap items-center justify-between gap-4">
             <div>
-              <h1 className="text-2xl font-heading text-gray-900">Sales Reports</h1>
-              <p className="text-sm text-gray-500 mt-1 font-sans">Revenue, orders, product & customer breakdown</p>
+              <p className="mb-1 flex items-center gap-1.5 text-[10px] font-semibold tracking-[0.24em] uppercase text-[#D4AF37]"><Sparkles className="h-3 w-3" /> Executive intelligence</p>
+              <h1 className="text-2xl font-heading text-white">Sales Reports</h1>
+              <p className="text-sm text-white/55 mt-1 font-sans">Revenue, fulfilment, product and customer performance</p>
             </div>
             <div className="flex items-center gap-3 flex-wrap">
               <button onClick={fetchData} disabled={loading}
-                className="flex items-center gap-2 px-3 py-2 border border-gray-200 rounded-sm text-sm text-gray-600 bg-white hover:bg-gray-50 transition-colors font-sans">
+                className="flex items-center gap-2 px-3 py-2 border border-white/15 rounded-md text-sm text-white/80 bg-white/5 hover:bg-white/10 transition-colors font-sans">
                 <RefreshCw className={`w-3.5 h-3.5 ${loading ? "animate-spin" : ""}`} />
                 Refresh
               </button>
@@ -206,10 +215,10 @@ export default function ReportsPage() {
         </div>
       </div>
 
-      <div className="p-8">
+      <div className="p-5 lg:p-8">
         {/* Period selector */}
         <div className="flex flex-wrap items-center gap-3 mb-6">
-          <div className="flex items-center gap-1 p-1 bg-white rounded-sm border border-gray-200">
+          <div className="flex items-center gap-1 p-1 bg-white rounded-md border border-[#E8E4DC] shadow-sm">
             {PERIOD_OPTIONS.map(o => (
               <button key={o.value} onClick={() => setPeriod(o.value)}
                 className="px-3 py-1.5 text-xs rounded-sm transition-all font-sans"
@@ -257,6 +266,26 @@ export default function ReportsPage() {
                 subtitle="Pending → Delivered" icon={Clock} iconColor="text-orange-600" />
             </div>
 
+            <Card className="overflow-hidden border border-[#E3D5A6] bg-gradient-to-r from-[#1A1A1A] via-[#242117] to-[#1A1A1A] p-0 shadow-[0_14px_28px_rgba(26,26,26,0.16)]">
+              <div className="grid divide-y divide-white/10 md:grid-cols-[1.3fr_1fr_1fr] md:divide-x md:divide-y-0">
+                <div className="p-5">
+                  <p className="mb-2 flex items-center gap-2 text-[10px] font-semibold tracking-[0.18em] uppercase text-[#ffe87c]"><DollarSign className="h-3.5 w-3.5" /> Revenue snapshot</p>
+                  <p className="text-2xl font-heading text-white">{formatCompactMoney(data.summary.totalRevenue)} <span className="text-sm text-white/45">this period</span></p>
+                  <p className="mt-1 text-xs text-white/55">{data.summary.paidOrders} paid orders contributing to reported revenue.</p>
+                </div>
+                <div className="p-5">
+                  <p className="text-[10px] font-semibold tracking-[0.18em] uppercase text-[#ffe87c]">Leading product</p>
+                  <p className="mt-2 truncate text-base font-heading text-white">{data.topProducts[0]?.name || "No product data"}</p>
+                  <p className="mt-1 text-xs text-white/55">{data.topProducts[0] ? `${formatMoney(data.topProducts[0].revenue)} from ${data.topProducts[0].qty} units` : "Add completed orders to see performance."}</p>
+                </div>
+                <div className="p-5">
+                  <p className="text-[10px] font-semibold tracking-[0.18em] uppercase text-[#ffe87c]">Service health</p>
+                  <p className="mt-2 text-base font-heading text-white">{data.summary.deliveredOrders} deliveries completed</p>
+                  <p className="mt-1 text-xs text-white/55">Average fulfilment time: {data.summary.fulfillmentHours.toFixed(1)} hours.</p>
+                </div>
+              </div>
+            </Card>
+
             {/* ── Financial Summary ── */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               {[
@@ -273,8 +302,8 @@ export default function ReportsPage() {
             </div>
 
             {/* ── Daily Revenue Chart ── */}
-            <Card className="p-6 border border-gray-200">
-              <SectionTitle>Daily Revenue — {period}</SectionTitle>
+            <Card className="p-6 border border-[#E8E4DC] shadow-sm">
+              <div className="flex items-start justify-between gap-3"><SectionTitle>Daily Revenue — {period}</SectionTitle><span className="flex items-center gap-1 text-xs font-semibold text-[#b8952e]"><ArrowUpRight className="h-3.5 w-3.5" /> {formatCompactMoney(data.summary.totalRevenue)}</span></div>
               {data.dailyRevenue.length > 0 ? (
                 <>
                   <BarChart data={data.dailyRevenue as unknown as Record<string,unknown>[]} valueKey="revenue" labelKey="date" height={150} />
@@ -289,7 +318,7 @@ export default function ReportsPage() {
             </Card>
 
             {/* ── Monthly Revenue ── */}
-            <Card className="p-6 border border-gray-200">
+            <Card className="p-6 border border-[#E8E4DC] shadow-sm">
               <SectionTitle>Monthly Revenue — Last 12 Months</SectionTitle>
               {data.revenueByMonth.length > 0 ? (
                 <>

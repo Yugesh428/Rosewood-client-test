@@ -6,5 +6,5 @@
     "noEmit": false,
     "outDir": ".scripts-out"
   },
-  "include": ["src/lib/**/*.ts"]
+  "include": ["src/lib/**/*.ts", "src/**/*.ts", "scripts/**/*.ts", "docker/**/*.ts"]
 }

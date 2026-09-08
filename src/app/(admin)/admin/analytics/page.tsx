@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import {
-  TrendingUp, TrendingDown, Minus, Users, Zap, Clock, Tag, BarChart2, Activity, RefreshCw,
+  TrendingUp, TrendingDown, Minus, Users, Zap, Clock, Tag, BarChart2, Activity, RefreshCw, Sparkles, ArrowUpRight, Target,
 } from "lucide-react";
 import { Card } from "@/components/ui/card";
 
@@ -34,6 +34,9 @@ interface AnalyticsData {
   };
   categoryShare: { name: string; revenue: number; pct: number }[];
 }
+
+const formatMoney = (value: number, fractionDigits = 0) =>
+  `£${value.toLocaleString(undefined, { minimumFractionDigits: fractionDigits, maximumFractionDigits: fractionDigits })}`;
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -164,22 +167,26 @@ export default function AnalyticsPage() {
       .finally(() => setLoading(false));
   };
 
-  useEffect(() => { fetchData(); }, []);
+  useEffect(() => {
+    const timeout = window.setTimeout(fetchData, 0);
+    return () => window.clearTimeout(timeout);
+  }, []);
 
   const catColors = ["#D4AF37","#3B82F6","#8B5CF6","#10B981","#F59E0B","#EF4444","#06B6D4","#EC4899"];
 
   return (
-    <div className="bg-[#F8F8F8] min-h-screen">
+    <div className="min-h-screen bg-[#F7F7F5]">
       {/* Page header */}
-      <div className="border-b border-gray-200 bg-white sticky top-0 z-10">
-        <div className="px-8 py-6">
+      <div className="border-b border-[#D4AF37]/20 bg-[#171713] sticky top-0 z-10 shadow-[0_4px_20px_rgba(0,0,0,0.14)]">
+        <div className="px-5 py-5 lg:px-8 lg:py-6">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-2xl font-heading text-gray-900">Analytics</h1>
-              <p className="text-sm text-gray-500 mt-1 font-sans">Growth trends · Sales forecasting · Behavioral insights</p>
+              <p className="mb-1 flex items-center gap-1.5 text-[10px] font-semibold tracking-[0.24em] uppercase text-[#D4AF37]"><Sparkles className="h-3 w-3" /> Decision workspace</p>
+              <h1 className="text-2xl font-heading text-white">Analytics</h1>
+              <p className="text-sm text-white/55 mt-1 font-sans">Growth trends · Sales forecasting · Behavioral insights</p>
             </div>
             <button onClick={fetchData} disabled={loading}
-              className="flex items-center gap-2 px-3 py-2 border border-gray-200 rounded-sm text-sm text-gray-600 bg-white hover:bg-gray-50 transition-colors font-sans">
+              className="flex items-center gap-2 px-3 py-2 border border-white/15 rounded-md text-sm text-white/80 bg-white/5 hover:bg-white/10 transition-colors font-sans">
               <RefreshCw className={`w-3.5 h-3.5 ${loading ? "animate-spin" : ""}`} />
               Refresh
             </button>
@@ -187,7 +194,7 @@ export default function AnalyticsPage() {
         </div>
       </div>
 
-      <div className="p-8">
+      <div className="p-5 lg:p-8">
         {error && (
           <div className="mb-6 p-4 rounded-sm border border-red-200 bg-red-50 text-red-700 text-sm font-sans">{error}</div>
         )}
@@ -207,7 +214,8 @@ export default function AnalyticsPage() {
                 { label: "WoW Revenue",    value: `£${data.growthTrend.weekly.currentRevenue.toFixed(0)}`,   growth: data.growthTrend.weekly.revenueGrowth,  sub: `vs £${data.growthTrend.weekly.previousRevenue.toFixed(0)} last week` },
                 { label: "WoW Orders",     value: `${data.growthTrend.weekly.currentOrders}`,               growth: data.growthTrend.weekly.orderGrowth,    sub: `vs ${data.growthTrend.weekly.previousOrders} last week` },
               ].map((item, i) => (
-                <Card key={i} className="p-6 border border-gray-200 hover:shadow-md transition-shadow">
+                <Card key={i} className="relative overflow-hidden p-5 border border-[#E8E4DC] bg-white shadow-[0_10px_30px_rgba(38,31,18,0.04)] transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_16px_36px_rgba(38,31,18,0.10)]">
+                  <div className="absolute inset-x-0 top-0 h-[3px] bg-gradient-to-r from-[#b8952e] via-[#ffe87c] to-[#D4AF37] opacity-80" />
                   <div className="flex items-center justify-between mb-3">
                     <p className="text-[10px] uppercase tracking-[0.15em] text-gray-500 font-sans">{item.label}</p>
                     <GrowthBadge value={item.growth} />
@@ -218,8 +226,28 @@ export default function AnalyticsPage() {
               ))}
             </div>
 
+            <Card className="overflow-hidden border border-[#E3D5A6] bg-gradient-to-r from-[#1A1A1A] via-[#242117] to-[#1A1A1A] p-0 shadow-[0_14px_28px_rgba(26,26,26,0.16)]">
+              <div className="grid divide-y divide-white/10 md:grid-cols-3 md:divide-x md:divide-y-0">
+                <div className="p-5">
+                  <p className="mb-2 flex items-center gap-2 text-[10px] font-semibold tracking-[0.18em] uppercase text-[#ffe87c]"><Target className="h-3.5 w-3.5" /> Forecast signal</p>
+                  <p className="text-base font-heading text-white">{data.salesForecast.trend === "up" ? "Demand is trending upward" : data.salesForecast.trend === "down" ? "Demand needs attention" : "Demand is holding steady"}</p>
+                  <p className="mt-1 text-xs text-white/55">Projected daily movement: {data.salesForecast.dailySlope >= 0 ? "+" : ""}{formatMoney(data.salesForecast.dailySlope, 2)}.</p>
+                </div>
+                <div className="p-5">
+                  <p className="text-[10px] font-semibold tracking-[0.18em] uppercase text-[#ffe87c]">Peak order day</p>
+                  <p className="mt-2 text-base font-heading text-white">{[...data.weekdayOrders].sort((a, b) => b.count - a.count)[0]?.day || "No data"}</p>
+                  <p className="mt-1 text-xs text-white/55">{[...data.weekdayOrders].sort((a, b) => b.count - a.count)[0]?.count || 0} orders in the last 90 days.</p>
+                </div>
+                <div className="p-5">
+                  <p className="text-[10px] font-semibold tracking-[0.18em] uppercase text-[#ffe87c]">Fastest mover</p>
+                  <p className="mt-2 truncate text-base font-heading text-white">{data.productVelocity[0]?.name || "No product data"}</p>
+                  <p className="mt-1 flex items-center gap-1 text-xs text-white/55"><ArrowUpRight className="h-3.5 w-3.5 text-[#D4AF37]" /> {data.productVelocity[0] ? `${data.productVelocity[0].unitsPerDay} units per day` : "Order activity will appear here."}</p>
+                </div>
+              </div>
+            </Card>
+
             {/* ── Sales Forecast ── */}
-            <Card className="p-6 border border-gray-200">
+            <Card className="p-6 border border-[#E8E4DC] shadow-sm">
               <SectionTitle icon={Activity} subtitle="Linear regression on last 90 days · 30-day projection">
                 Sales Forecast
               </SectionTitle>
@@ -279,13 +307,13 @@ export default function AnalyticsPage() {
                     return (
                       <div key={i} className="flex items-center gap-3">
                         <span className="text-[10px] text-gray-500 font-sans w-12 flex-shrink-0">{d.day.slice(0,3)}</span>
-                        <div className="flex-1 h-6 rounded-sm bg-gray-100 overflow-hidden">
-                          <div className="h-full rounded-sm flex items-center pl-2 transition-all duration-500"
-                            style={{ width: `${pct}%`, backgroundColor: "#D4AF37", opacity: 0.8 }}>
-                            {pct > 15 && <span className="text-[9px] text-gray-900 font-bold">{d.count}</span>}
+                        <div className="flex-1 h-7 rounded-md bg-[#F6F4EE] ring-1 ring-[#E8E4DC] overflow-hidden">
+                          <div className="h-full min-w-[2px] rounded-md flex items-center justify-between px-2 transition-all duration-500"
+                            style={{ width: `${pct}%`, background: "linear-gradient(90deg, #b8952e 0%, #D4AF37 55%, #ffe87c 100%)" }}>
+                            {pct > 22 && <span className="text-[9px] text-[#1A1A1A] font-bold">{d.count} orders</span>}
                           </div>
                         </div>
-                        {pct <= 15 && <span className="text-[10px] text-gray-500 w-5">{d.count}</span>}
+                        <span className="text-[10px] font-semibold text-gray-600 w-7 text-right">{d.count}</span>
                       </div>
                     );
                   })}
