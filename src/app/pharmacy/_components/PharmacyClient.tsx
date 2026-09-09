@@ -274,6 +274,8 @@ export default function PharmacyClient({ categories, products }: PharmacyClientP
   const [page,    setPage]    = useState(1);
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [cartOpen,    setCartOpen]    = useState(false);
+  const [catalogSearch, setCatalogSearch] = useState("");
+  const [categorySearch, setCategorySearch] = useState("");
 
   const urlSearch  = searchParams.get("search")  ?? "";
   const urlProduct = searchParams.get("product") ?? "";
@@ -292,9 +294,10 @@ export default function PharmacyClient({ categories, products }: PharmacyClientP
   const filtered = products
     .filter(p => !selectedCategory || p.categoryId === selectedCategory)
     .filter(p => {
-      if (!urlSearch) return true;
-      return p.productName.toLowerCase().includes(urlSearch.toLowerCase()) ||
-        (p.category?.categoryName ?? "").toLowerCase().includes(urlSearch.toLowerCase());
+      const search = catalogSearch || urlSearch;
+      if (!search) return true;
+      return p.productName.toLowerCase().includes(search.toLowerCase()) ||
+        (p.category?.categoryName ?? "").toLowerCase().includes(search.toLowerCase());
     })
     .sort((a, b) => {
       if (sort === "price_asc")  return Number(a.sellingPrice) - Number(b.sellingPrice);
@@ -307,7 +310,31 @@ export default function PharmacyClient({ categories, products }: PharmacyClientP
   const resetPage  = () => setPage(1);
 
   return (
-    <div className="pt-14 min-h-screen">
+    <div className="min-h-screen bg-[#F9F9F9]" style={{ paddingTop: '80px' }}>
+
+      {/* Hero Header Section - Full Width */}
+      <div className="relative bg-gradient-to-r from-[#2d6a4f] to-[#52b788] py-12 mb-8 overflow-hidden w-screen -mx-[100vw] left-1/2 right-1/2 ml-[calc(-50vw)] mr-[calc(-50vw)]">
+        {/* Background pattern overlay */}
+        <div className="absolute inset-0 opacity-10">
+          <div className="absolute inset-0" style={{
+            backgroundImage: 'repeating-linear-gradient(45deg, transparent, transparent 35px, rgba(255,255,255,.05) 35px, rgba(255,255,255,.05) 70px)'
+          }}></div>
+        </div>
+        
+        <div className="w-full px-12 relative z-10">
+          <div className="text-center">
+            <p className="text-[#D4AF37] text-xs md:text-sm uppercase tracking-[0.2em] mb-3 font-sans font-medium">
+              OUR PHARMACY
+            </p>
+            <h1 className="text-3xl md:text-5xl font-heading font-bold text-white mb-4">
+              Medicines & Health Essentials
+            </h1>
+            <p className="text-white/80 text-sm md:text-base max-w-2xl mx-auto font-sans">
+              Explore trusted medicines, wellness products, and health essentials alongside specialty pharmaceutical care.
+            </p>
+          </div>
+        </div>
+      </div>
 
       {/* Floating cart */}
       {totalItems > 0 && (
@@ -339,92 +366,115 @@ export default function PharmacyClient({ categories, products }: PharmacyClientP
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 md:px-6 py-4 md:py-6 flex gap-6">
+      <div className="w-full px-12 py-4 md:py-6">
+
+        <div className="flex gap-6">
 
         {/* ── DESKTOP: sidebar ──────────────────────────────────────────────── */}
         <div className="hidden md:block flex-shrink-0 relative">
           <button type="button" onClick={() => setSidebarOpen(o => !o)}
-            className="absolute -right-3.5 top-4 z-20 w-7 h-7 flex items-center justify-center rounded-full bg-white shadow-sm border border-gray-200 transition-all group"
-            onMouseEnter={e => (e.currentTarget.style.borderColor = "var(--color-primary)")}
-            onMouseLeave={e => (e.currentTarget.style.borderColor = "")}>
+            className="absolute -right-3.5 top-4 z-20 w-7 h-7 flex items-center justify-center rounded-full bg-white shadow-sm border border-gray-200 transition-all group hover:border-[#D4AF37]">
             <ChevronLeft className={`w-3.5 h-3.5 text-gray-400 transition-transform duration-300 ${sidebarOpen ? "" : "rotate-180"}`} />
           </button>
 
-          <aside className={`overflow-hidden transition-all duration-300 ease-in-out ${sidebarOpen ? "w-52 opacity-100" : "w-0 opacity-0 pointer-events-none"}`}>
-            <div className="w-52 pr-4">
-              <div className="mb-5 pt-1">
-                <p className="text-[10px] uppercase tracking-[0.25em] font-bold text-gray-400 mb-0.5">Browse by</p>
-                <h2 className="font-heading text-lg leading-tight" style={{ color: "var(--color-text-heading)" }}>Category</h2>
-                <div className="mt-1.5 h-px w-8" style={{ background: `linear-gradient(90deg, var(--color-primary), var(--color-primary-light), transparent)` }} />
+          <aside className={`overflow-hidden transition-all duration-300 ease-in-out ${sidebarOpen ? "w-64 opacity-100" : "w-0 opacity-0 pointer-events-none"}`}>
+            <div className="w-64 bg-white rounded-2xl shadow-sm border border-gray-200 p-5 relative overflow-hidden">
+              
+              {/* Background image with overlay */}
+              <div className="absolute inset-0 z-0 opacity-20">
+                <img 
+                  src="https://images.unsplash.com/photo-1471864190281-a93a3070b6de?w=800&q=80" 
+                  alt="" 
+                  className="w-full h-full object-cover"
+                />
               </div>
 
-              <ul className="space-y-1.5 max-h-[calc(100vh-220px)] overflow-y-auto pr-1">
-                {categoryList.map((cat, idx) => {
-                  const active = selectedCategory === cat.id;
-                  const isAll  = cat.id === null;
-                  return (
-                    <li key={String(cat.id)}
-                      style={{ animationDelay: `${idx * 40}ms` }}
-                      className="animate-[fadeSlideIn_0.3s_ease_forwards] opacity-0"
-                    >
-                      <button type="button"
-                        onClick={() => { setSelectedCategory(cat.id); resetPage(); }}
-                        className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-left relative overflow-hidden group/cat"
-                        style={{
-                          transition: "all 0.22s cubic-bezier(0.4,0,0.2,1)",
-                          ...(active ? {
-                            background: `linear-gradient(135deg, color-mix(in srgb, var(--color-primary) 18%, #fff), color-mix(in srgb, var(--color-primary) 8%, #fff))`,
-                            border: `2px solid var(--color-primary)`,
-                            boxShadow: `0 4px 16px color-mix(in srgb, var(--color-primary) 25%, transparent)`,
-                          } : {
-                            background: "#ffffff",
-                            border: "1.5px solid #9CA3AF",
-                            boxShadow: "0 1px 3px rgba(0,0,0,0.06)",
-                          })
-                        }}
-                        onMouseEnter={e => {
-                          if (!active) {
-                            e.currentTarget.style.background = `color-mix(in srgb, var(--color-primary) 6%, #fff)`;
-                            e.currentTarget.style.borderColor = `var(--color-primary)`;
-                            e.currentTarget.style.transform = "translateX(3px)";
-                            e.currentTarget.style.boxShadow = `0 4px 12px rgba(0,0,0,0.10)`;
-                          }
-                        }}
-                        onMouseLeave={e => {
-                          if (!active) {
-                            e.currentTarget.style.background = "#ffffff";
-                            e.currentTarget.style.borderColor = "#9CA3AF";
-                            e.currentTarget.style.transform = "";
-                            e.currentTarget.style.boxShadow = "0 1px 3px rgba(0,0,0,0.06)";
-                          }
-                        }}
+              {/* Content with higher z-index */}
+              <div className="relative z-10">
+              
+              {/* Filter header */}
+              <div className="flex items-center justify-between mb-5">
+                <h2 className="text-2xl font-bold text-[#1A1A1A] font-sans">Filter</h2>
+                {selectedCategory && (
+                  <button 
+                    onClick={() => { setSelectedCategory(null); resetPage(); }}
+                    className="text-sm font-medium text-[#D4AF37] hover:text-[#b8952e] transition-colors font-sans"
+                  >
+                    Clear all
+                  </button>
+                )}
+              </div>
+
+              {/* Search catalog */}
+              <div className="mb-6">
+                <div className="relative">
+                  <input
+                    type="text"
+                    placeholder="Search catalog"
+                    value={categorySearch}
+                    onChange={(e) => setCategorySearch(e.target.value)}
+                    className="w-full pl-10 pr-4 py-3 bg-[#F9F9F9] border border-[#1A1A1A] text-sm placeholder-gray-400 focus:outline-none focus:border-[#D4AF37] focus:ring-2 focus:ring-[#D4AF37]/20 font-sans text-[#1A1A1A]"
+                    style={{ borderRadius: '9999px' }}
+                  />
+                  <svg 
+                    className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400"
+                    fill="none" 
+                    stroke="currentColor" 
+                    viewBox="0 0 24 24"
+                  >
+                    <circle cx="11" cy="11" r="8" strokeWidth="2"/>
+                    <path d="m21 21-4.35-4.35" strokeWidth="2" strokeLinecap="round"/>
+                  </svg>
+                </div>
+              </div>
+
+              {/* Category section */}
+              <div>
+                <h3 className="text-lg font-bold text-[#1A1A1A] mb-4 font-sans">Category</h3>
+                
+                <div className="space-y-3 max-h-[calc(100vh-400px)] overflow-y-auto pr-2 scrollbar-hide" style={{ scrollbarWidth: "none" }}>
+                  {categoryList
+                    .filter(cat => cat.label.toLowerCase().includes(categorySearch.toLowerCase()))
+                    .map((cat) => {
+                    const active = selectedCategory === cat.id;
+                    
+                    return (
+                      <label 
+                        key={String(cat.id)}
+                        className="flex items-center gap-3 cursor-pointer group"
                       >
-                        {active && (
-                          <div className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-6 rounded-r-full"
-                            style={{ background: "var(--color-primary)" }} />
-                        )}
-                        {isAll && (
-                          <div className="flex-shrink-0 w-7 h-7 rounded-lg flex items-center justify-center transition-all duration-200"
-                            style={active ? { background: "var(--color-primary)" } : { background: "#F0EDE6" }}>
-                            <LayoutGrid className="w-3.5 h-3.5" style={{ color: active ? "var(--color-primary-text)" : "#888" }} />
+                        <div className="relative flex items-center justify-center">
+                          <input
+                            type="radio"
+                            name="category"
+                            checked={active}
+                            onChange={() => { setSelectedCategory(cat.id); resetPage(); }}
+                            className="sr-only"
+                          />
+                          <div 
+                            className={`w-5 h-5 rounded-full border-2 transition-all duration-200 flex items-center justify-center ${
+                              active 
+                                ? 'border-[#D4AF37] bg-[#D4AF37]' 
+                                : 'border-[#1A1A1A] bg-white group-hover:border-[#D4AF37]'
+                            }`}
+                          >
+                            {active && (
+                              <div className="w-2 h-2 bg-white rounded-full"></div>
+                            )}
                           </div>
-                        )}
-                        {!isAll && (
-                          <div className="flex-shrink-0 w-2 h-2 rounded-full"
-                            style={{ background: active ? "var(--color-primary)" : "#6B7280" }} />
-                        )}
-                        <div className="flex-1 min-w-0">
-                          <p className="text-xs font-medium leading-tight truncate"
-                            style={{ color: active ? "var(--color-text-heading)" : "#111827" }}>
-                            {cat.label}
-                          </p>
                         </div>
-                        {active && <Check className="w-3 h-3 flex-shrink-0" style={{ color: "var(--color-primary)" }} />}
-                      </button>
-                    </li>
-                  );
-                })}
-              </ul>
+                        <span className={`text-sm font-medium transition-colors font-sans ${
+                          active ? 'text-[#1A1A1A]' : 'text-[#1A1A1A] group-hover:text-[#D4AF37]'
+                        }`}>
+                          {cat.label}
+                        </span>
+                      </label>
+                    );
+                  })}
+                </div>
+              </div>
+
+              </div>
             </div>
           </aside>
         </div>
@@ -498,6 +548,7 @@ export default function PharmacyClient({ categories, products }: PharmacyClientP
             </div>
           )}
         </div>
+      </div>
       </div>
     </div>
   );

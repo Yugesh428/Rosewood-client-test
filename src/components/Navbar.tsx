@@ -83,19 +83,23 @@ interface SearchResult {
 // ─── Search Bar ───────────────────────────────────────────────────────────────
 
 function SearchBar({ mobile = false }: { mobile?: boolean }) {
-  const router  = useRouter();
-  const wrapRef = useRef<HTMLDivElement>(null);
+  const router   = useRouter();
+  const wrapRef  = useRef<HTMLDivElement>(null);
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const [query,   setQuery]   = useState("");
   const [results, setResults] = useState<SearchResult[]>([]);
   const [loading, setLoading] = useState(false);
   const [open,    setOpen]    = useState(false);
+  const [focused, setFocused] = useState(false);
 
   // Close on outside click
   useEffect(() => {
     function onOutside(e: MouseEvent) {
-      if (wrapRef.current && !wrapRef.current.contains(e.target as Node)) setOpen(false);
+      if (wrapRef.current && !wrapRef.current.contains(e.target as Node)) {
+        setOpen(false);
+        setFocused(false);
+      }
     }
     document.addEventListener("mousedown", onOutside);
     return () => document.removeEventListener("mousedown", onOutside);
@@ -129,11 +133,12 @@ function SearchBar({ mobile = false }: { mobile?: boolean }) {
       setOpen(false);
       router.push(`/pharmacy?search=${encodeURIComponent(query.trim())}`);
     }
-    if (e.key === "Escape") setOpen(false);
+    if (e.key === "Escape") { setOpen(false); setFocused(false); }
   };
 
   const handleResultClick = (id: string) => {
     setOpen(false);
+    setFocused(false);
     setQuery("");
     router.push(`/pharmacy/${id}`);
   };
@@ -144,102 +149,119 @@ function SearchBar({ mobile = false }: { mobile?: boolean }) {
   };
 
   return (
-    <div ref={wrapRef} className="relative w-full">
-      <style>{`
-        .search-glow::placeholder { color: rgba(255,255,255,0.5); }
-        .search-glow:focus { box-shadow: 0 0 18px rgba(255,255,255,0.45), 0 0 30px rgba(255,255,255,0.15) !important; border-color: rgba(255,255,255,0.95) !important; }
-      `}</style>
+    <motion.div
+      ref={wrapRef}
+      className="relative"
+      animate={{ width: mobile ? "100%" : focused ? 320 : 200 }}
+      transition={{ duration: 0.35, ease: [0.4, 0, 0.2, 1] }}
+    >
       <input
         type="text"
         placeholder="Search products..."
         value={query}
         onChange={handleChange}
         onKeyDown={handleKeyDown}
-        onFocus={() => { if (results.length > 0) setOpen(true); }}
-        className={`search-glow w-full bg-white/10 text-xs px-3 pr-8 rounded-sm focus:outline-none transition-all font-sans ${mobile ? "py-2" : "py-1.5"}`}
+        onFocus={() => { setFocused(true); if (results.length > 0) setOpen(true); }}
+        className={`w-full bg-white/10 text-xs px-4 pr-9 rounded-full focus:outline-none transition-colors duration-300 font-sans ${mobile ? "py-2" : "py-2"}`}
         style={{
-          border: "1px solid rgba(255,255,255,0.7)",
+          border: focused
+            ? "1px solid rgba(212,175,55,0.9)"
+            : "1px solid rgba(255,255,255,0.35)",
           color: "#ffffff",
-          boxShadow: "0 0 10px rgba(255,255,255,0.3), 0 0 20px rgba(255,255,255,0.12)",
+          boxShadow: focused
+            ? "0 0 0 3px rgba(212,175,55,0.15), 0 0 20px rgba(212,175,55,0.1)"
+            : "none",
         }}
       />
-      <span className="absolute right-2 top-1/2 -translate-y-1/2 text-white/60 pointer-events-none">
+      {/* Placeholder colour */}
+      <style>{`.search-input::placeholder{color:rgba(255,255,255,0.45)}`}</style>
+
+      {/* Icon */}
+      <span className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none transition-colors duration-300"
+        style={{ color: focused ? "#D4AF37" : "rgba(255,255,255,0.5)" }}>
         {loading ? (
-          <svg className="animate-spin" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+          <svg className="animate-spin" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
             <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83" />
           </svg>
         ) : <SearchIcon />}
       </span>
 
+      {/* Results dropdown */}
       <AnimatePresence>
-        {open && results.length > 0 && (
+        {open && (results.length > 0 || (!loading && query.trim().length > 1)) && (
           <motion.div
-            initial={{ opacity: 0, y: 6 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 6 }}
-            transition={{ duration: 0.15 }}
-            className="absolute top-full left-0 right-0 mt-1 bg-[#1A1A1A] border border-white/10 rounded-sm shadow-2xl z-50 overflow-hidden"
+            initial={{ opacity: 0, y: 8, scale: 0.97 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 8, scale: 0.97 }}
+            transition={{ duration: 0.2, ease: [0.4, 0, 0.2, 1] }}
+            className="absolute top-full left-0 right-0 mt-2 bg-[#111111] border border-white/10 rounded-xl shadow-2xl z-50 overflow-hidden"
           >
-            <ul>
-              {results.map((product) => (
-                <li key={product.id}>
-                  <button
-                    type="button"
-                    onClick={() => handleResultClick(product.id)}
-                    className="w-full flex items-center gap-3 px-3 py-2.5 hover:bg-white/[0.08] transition-colors text-left"
-                  >
-                    {/* Thumbnail */}
-                    <div className="w-8 h-8 rounded-sm bg-white/10 flex-shrink-0 overflow-hidden">
-                      {product.productImage ? (
-                        // eslint-disable-next-line @next/next/no-img-element
-                        <img
-                          src={product.productImage}
-                          alt={product.productName}
-                          className="w-full h-full object-cover"
-                          onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
-                        />
-                      ) : (
-                        <div className="w-full h-full flex items-center justify-center text-[#D4AF37] text-xs font-bold">
-                          {product.productName.charAt(0)}
+            {results.length > 0 ? (
+              <>
+                <ul>
+                  {results.map((product, i) => (
+                    <motion.li
+                      key={product.id}
+                      initial={{ opacity: 0, x: -10 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: i * 0.05, duration: 0.2 }}
+                    >
+                      <button
+                        type="button"
+                        onClick={() => handleResultClick(product.id)}
+                        className="w-full flex items-center gap-3 px-3 py-2.5 hover:bg-white/[0.07] transition-colors text-left"
+                      >
+                        <div className="w-9 h-9 rounded-lg bg-white/10 flex-shrink-0 overflow-hidden">
+                          {product.productImage ? (
+                            // eslint-disable-next-line @next/next/no-img-element
+                            <img
+                              src={product.productImage}
+                              alt={product.productName}
+                              className="w-full h-full object-cover"
+                              onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
+                            />
+                          ) : (
+                            <div className="w-full h-full flex items-center justify-center text-[#D4AF37] text-xs font-bold">
+                              {product.productName.charAt(0)}
+                            </div>
+                          )}
                         </div>
-                      )}
-                    </div>
-                    {/* Info */}
-                    <div className="flex-1 min-w-0">
-                      <p className="text-xs text-white truncate font-sans">{product.productName}</p>
-                      <p className="text-[10px] text-white/40 font-sans truncate">
-                        {product.category?.categoryName ?? ""}
-                      </p>
-                    </div>
-                    {/* Price */}
-                    <span className="text-xs font-semibold text-[#D4AF37] flex-shrink-0 font-sans">
-                      £{Number(product.sellingPrice).toFixed(2)}
-                    </span>
-                  </button>
-                </li>
-              ))}
-            </ul>
-            <button
-              onClick={handleViewAll}
-              className="w-full px-3 py-2 text-[11px] text-[#D4AF37] hover:bg-white/5 transition-colors text-center border-t border-white/10 font-sans"
-            >
-              View all results for &quot;{query}&quot; →
-            </button>
-          </motion.div>
-        )}
-        {open && !loading && results.length === 0 && query.trim().length > 1 && (
-          <motion.div
-            initial={{ opacity: 0, y: 6 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 6 }}
-            transition={{ duration: 0.15 }}
-            className="absolute top-full left-0 right-0 mt-1 bg-[#1A1A1A] border border-white/10 rounded-sm shadow-2xl z-50"
-          >
-            <p className="px-3 py-3 text-xs text-white/40 font-sans text-center">No products found.</p>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-xs text-white truncate font-sans">{product.productName}</p>
+                          <p className="text-[10px] text-white/40 font-sans truncate">
+                            {product.category?.categoryName ?? ""}
+                          </p>
+                        </div>
+                        <span className="text-xs font-semibold text-[#D4AF37] flex-shrink-0 font-sans">
+                          £{Number(product.sellingPrice).toFixed(2)}
+                        </span>
+                      </button>
+                    </motion.li>
+                  ))}
+                </ul>
+                <motion.button
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ delay: results.length * 0.05 + 0.05 }}
+                  onClick={handleViewAll}
+                  className="w-full px-3 py-2.5 text-[11px] text-[#D4AF37] hover:bg-white/5 transition-colors text-center border-t border-white/10 font-sans"
+                >
+                  View all results for &quot;{query}&quot; →
+                </motion.button>
+              </>
+            ) : (
+              <motion.p
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                className="px-3 py-4 text-xs text-white/40 font-sans text-center"
+              >
+                No products found.
+              </motion.p>
+            )}
           </motion.div>
         )}
       </AnimatePresence>
-    </div>
+    </motion.div>
   );
 }
 
@@ -430,36 +452,43 @@ export default function Navbar() {
         }`}
         style={{ backgroundColor: "var(--color-bg-nav)" }}
       >
-        <div className="max-w-7xl mx-auto px-6 h-14 flex items-center justify-between gap-6">
-          {/* Brand */}
-          <Link href="/" className="flex-shrink-0">
-            <span className="font-heading text-base tracking-[0.15em] uppercase leading-tight"
-              style={{ color: "var(--color-primary)" }}>
-              Rosewood
-            </span>
-          </Link>
+        <div className="w-full pl-8 pr-8 h-20 flex items-center justify-between gap-6">
+          {/* Brand + Nav links together on the left */}
+          <div className="flex items-center gap-8 flex-shrink-0">
+            <Link href="/" className="flex-shrink-0">
+              <div className="flex flex-col items-center leading-tight">
+                <span className="font-heading text-xl tracking-[0.12em] uppercase"
+                  style={{ color: "var(--color-primary)" }}>
+                  Rosewood
+                </span>
+                <span className="font-sans text-[10px] tracking-[0.35em] uppercase text-white mt-0.5">
+                  Pharmacy
+                </span>
+              </div>
+            </Link>
 
-          {/* Desktop nav links */}
-          <ul className="hidden md:flex items-center gap-6">
-            {navLinks.map((link) => (
-              <li key={link.href}>
-                <Link href={link.href}
-                  className="group relative text-white hover:text-[#FFD700] text-xs tracking-wide uppercase transition-colors duration-200 font-sans pb-0.5">
-                  {link.label}
-                  <span className="absolute bottom-0 left-0 w-full h-px bg-[#FFD700] scale-x-0 group-hover:scale-x-100 origin-left transition-transform duration-300 ease-out" />
-                </Link>
-              </li>
-            ))}
-          </ul>
-
-          {/* Search — desktop */}
-          <div className="hidden md:flex items-center flex-1 max-w-xs">
-            <SearchBar />
+            {/* Desktop nav links — right next to logo */}
+            <ul className="hidden md:flex items-center gap-6">
+              {navLinks.map((link) => (
+                <li key={link.href}>
+                  <Link href={link.href}
+                    className="group relative text-white hover:text-[#FFD700] text-xs tracking-wide uppercase transition-colors duration-200 font-sans pb-0.5">
+                    {link.label}
+                    <span className="absolute bottom-0 left-0 w-full h-px bg-[#FFD700] scale-x-0 group-hover:scale-x-100 origin-left transition-transform duration-300 ease-out" />
+                  </Link>
+                </li>
+              ))}
+            </ul>
           </div>
 
-          {/* Desktop icons */}
+          {/* Right side: Search + icons */}
           <div className="hidden md:flex items-center gap-4 text-white">
-            {/* Wishlist — only for logged in */}
+            {/* Search */}
+            <div className="flex items-center">
+              <SearchBar />
+            </div>
+
+            {/* Wishlist */}
             {isLoggedIn ? (
               <Link href="/account/wishlist" aria-label="Wishlist" className="hover:text-[#FFD700] transition-colors">
                 <WishlistIcon />
@@ -484,14 +513,14 @@ export default function Navbar() {
           </div>
 
           {/* Mobile menu button */}
-          <button className="md:hidden text-white hover:text-[#FFD700] transition-colors"
+          <button className="md:hidden text-white hover:text-[#FFD700] transition-colors ml-auto"
             onClick={() => setMobileOpen((v) => !v)} aria-label="Toggle menu">
             {mobileOpen ? <CloseIcon /> : <MenuIcon />}
           </button>
         </div>
 
         {/* Mobile search */}
-        <div className="md:hidden px-6 pb-3">
+        <div className="md:hidden px-4 pb-3">
           <SearchBar mobile />
         </div>
       </motion.nav>

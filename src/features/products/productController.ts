@@ -173,6 +173,15 @@ export async function getAllProducts(req: NextRequest): Promise<NextResponse> {
 
     logger.info(CTX, `getAllProducts — ${rows.length} of ${count}`);
 
+    // Serialize rows to plain JSON to ensure JSONB fields are properly formatted
+    const serializedRows = rows.map(row => {
+      const plain = row.get({ plain: true });
+      return {
+        ...plain,
+        productImages: Array.isArray(plain.productImages) ? plain.productImages : [],
+      };
+    });
+
     return NextResponse.json({
       success: true,
       pagination: {
@@ -183,7 +192,7 @@ export async function getAllProducts(req: NextRequest): Promise<NextResponse> {
         hasNext: page < Math.ceil(count / limit),
         hasPrev: page > 1,
       },
-      data: rows,
+      data: serializedRows,
     }, { status: 200 });
   } catch (error) {
     logger.error(CTX, "getAllProducts — failed", error);
@@ -209,7 +218,14 @@ export async function getProductById(
     }
 
     logger.info(CTX, "getProductById — found", { id, name: product.productName });
-    return NextResponse.json({ success: true, data: product }, { status: 200 });
+    
+    const plain = product.get({ plain: true });
+    const serialized = {
+      ...plain,
+      productImages: Array.isArray(plain.productImages) ? plain.productImages : [],
+    };
+    
+    return NextResponse.json({ success: true, data: serialized }, { status: 200 });
   } catch (error) {
     logger.error(CTX, "getProductById — failed", { id, error });
     return errorResponse(error);
@@ -237,12 +253,14 @@ export async function createProduct(req: NextRequest): Promise<NextResponse> {
     const contentType = req.headers.get("content-type") ?? "";
     let fields: Record<string, unknown> = {};
     let imageValue: string | null = null;
+    const extraImages: string[] = [];
 
     if (contentType.includes("multipart/form-data")) {
       const formData = await req.formData();
       for (const [key, value] of formData.entries()) {
-        if (key !== "image") fields[key] = value;
+        if (key !== "image" && !key.startsWith("gallery_")) fields[key] = value;
       }
+      // Primary image
       const file = formData.get("image") as File | null;
       if (file && file.size > 0) {
         ensureUploadDir();
@@ -254,9 +272,37 @@ export async function createProduct(req: NextRequest): Promise<NextResponse> {
       } else if (fields.imageUrl) {
         imageValue = String(fields.imageUrl);
       }
+      // Gallery images (gallery_0, gallery_1, ...)
+      for (let i = 0; ; i++) {
+        const galleryFile = formData.get(`gallery_${i}`) as File | null;
+        if (!galleryFile || galleryFile.size === 0) break;
+        ensureUploadDir();
+        const ext = path.extname(galleryFile.name) || ".jpg";
+        const filename = `${uuidv4()}${ext}`;
+        fs.writeFileSync(path.join(UPLOAD_DIR, filename), Buffer.from(await galleryFile.arrayBuffer()));
+        extraImages.push(`/uploads/products/${filename}`);
+      }
+      // Merge with existing URL-based images from productImages field
+      if (fields.productImages) {
+        try {
+          const existingImages = typeof fields.productImages === "string" 
+            ? JSON.parse(fields.productImages) 
+            : fields.productImages;
+          if (Array.isArray(existingImages)) {
+            extraImages.unshift(...existingImages); // Add existing URLs first
+          }
+          logger.debug(CTX, "createProduct — merged gallery", { existingCount: existingImages?.length || 0, newCount: extraImages.length });
+        } catch (err) {
+          logger.warn(CTX, "createProduct — failed to parse productImages", err);
+        }
+      }
     } else {
       fields     = await req.json();
       imageValue = (fields.imageUrl ?? fields.productImage ?? null) as string | null;
+      // For JSON request, productImages might already be provided
+      if (fields.productImages && Array.isArray(fields.productImages)) {
+        extraImages.push(...fields.productImages);
+      }
     }
 
     logger.debug(CTX, "createProduct — payload", { ...fields, imageValue });
@@ -282,6 +328,7 @@ export async function createProduct(req: NextRequest): Promise<NextResponse> {
       categoryId:          String(fields.categoryId),
       productName:         String(fields.productName).trim(),
       productImage:        imageValue,
+      productImages:       extraImages,
       dosageForm:          String(fields.dosageForm).trim(),
       strength:            String(fields.strength).trim(),
       packSize:            String(fields.packSize).trim(),
@@ -297,6 +344,8 @@ export async function createProduct(req: NextRequest): Promise<NextResponse> {
       safetyInformation: safetyInfo,
       isActive:            fields.isActive !== undefined ? String(fields.isActive) !== "false" : true,
     });
+
+    logger.debug(CTX, "createProduct — saved to DB", { productImages: extraImages });
 
     // Bulk-create ingredients if provided
     if (ingredients.length > 0) {
@@ -345,12 +394,15 @@ export async function updateProduct(
     const contentType = req.headers.get("content-type") ?? "";
     let fields: Record<string, unknown> = {};
     let imageValue: string | null | undefined = undefined;
+    const extraImages: string[] = [];
+    let hasGalleryUpdate = false;
 
     if (contentType.includes("multipart/form-data")) {
       const formData = await req.formData();
       for (const [key, value] of formData.entries()) {
-        if (key !== "image") fields[key] = value;
+        if (key !== "image" && !key.startsWith("gallery_")) fields[key] = value;
       }
+      // Primary image
       const file = formData.get("image") as File | null;
       if (file && file.size > 0) {
         ensureUploadDir();
@@ -361,11 +413,38 @@ export async function updateProduct(
       } else if ("imageUrl" in fields) {
         imageValue = String(fields.imageUrl || "") || null;
       }
+      // Gallery images
+      for (let i = 0; ; i++) {
+        const galleryFile = formData.get(`gallery_${i}`) as File | null;
+        if (!galleryFile || galleryFile.size === 0) break;
+        ensureUploadDir();
+        const ext = path.extname(galleryFile.name) || ".jpg";
+        const filename = `${uuidv4()}${ext}`;
+        fs.writeFileSync(path.join(UPLOAD_DIR, filename), Buffer.from(await galleryFile.arrayBuffer()));
+        extraImages.push(`/uploads/products/${filename}`);
+        hasGalleryUpdate = true;
+      }
+      // Merge with existing URL-based images from productImages field
+      if (fields.productImages !== undefined) {
+        hasGalleryUpdate = true;
+        try {
+          const existingImages = typeof fields.productImages === "string" 
+            ? JSON.parse(fields.productImages) 
+            : fields.productImages;
+          if (Array.isArray(existingImages)) {
+            extraImages.unshift(...existingImages); // Add existing URLs first, then new uploads
+          }
+          logger.debug(CTX, "updateProduct — merged gallery", { existingCount: existingImages?.length || 0, newCount: extraImages.length });
+        } catch (err) {
+          logger.warn(CTX, "updateProduct — failed to parse productImages", err);
+        }
+      }
     } else {
       fields = await req.json();
       if ("imageUrl" in fields || "productImage" in fields) {
         imageValue = (fields.imageUrl ?? fields.productImage ?? null) as string | null;
       }
+      if ("productImages" in fields) hasGalleryUpdate = true;
     }
 
     if (fields.categoryId && String(fields.categoryId) !== product.categoryId) {
@@ -391,6 +470,11 @@ export async function updateProduct(
       ...(fields.suitableFor         != null && { suitableFor:         parseSuitableFor(fields.suitableFor) }),
       ...(fields.howToUse            != null && { howToUse:            parseSuitableFor(fields.howToUse) }),
       ...(fields.safetyInformation   != null && { safetyInformation:   parseSuitableFor(fields.safetyInformation) }),
+      ...(hasGalleryUpdate && {
+        productImages: extraImages.length > 0
+          ? extraImages
+          : (fields.productImages ? (Array.isArray(fields.productImages) ? fields.productImages as string[] : JSON.parse(String(fields.productImages))) : []),
+      }),
     };
 
     await product.update(updates);

@@ -40,6 +40,7 @@ export interface ProductAttributes {
   categoryId: string;
   productName: string;
   productImage: string | null;
+  productImages: string[];
   dosageForm: string;
   strength: string;
   packSize: string;
@@ -60,7 +61,7 @@ export interface ProductAttributes {
 
 export interface ProductCreationAttributes extends Optional<
   ProductAttributes,
-  "id" | "productImage" | "productDescriptions" | "specifications" | "suitableFor" | "howToUse" | "safetyInformation" | "isActive" | "createdAt" | "updatedAt"
+  "id" | "productImage" | "productImages" | "productDescriptions" | "specifications" | "suitableFor" | "howToUse" | "safetyInformation" | "isActive" | "createdAt" | "updatedAt"
 > {}
 
 class Product
@@ -71,6 +72,7 @@ class Product
   declare categoryId: string;
   declare productName: string;
   declare productImage: string | null;
+  declare productImages: string[];
   declare dosageForm: string;
   declare strength: string;
   declare packSize: string;
@@ -112,6 +114,12 @@ Product.init(
       type: DataTypes.STRING(1000),
       allowNull: true,
       defaultValue: null,
+    },
+    productImages: {
+      type: DataTypes.JSONB,
+      allowNull: false,
+      defaultValue: [],
+      comment: "Array of additional image URLs/paths for the product gallery",
     },
     dosageForm: {
       type: DataTypes.STRING(100),

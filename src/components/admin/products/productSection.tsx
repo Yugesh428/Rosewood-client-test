@@ -26,6 +26,7 @@ type Product = {
   categoryId: string;
   productName: string;
   productImage: string | null;
+  productImages: string[];
   dosageForm: string;
   strength: string;
   packSize: string;
@@ -84,6 +85,8 @@ const BLANK_FORM = {
   safetyInformation: [] as string[],
   imageFile: null as File | null,
   imageUrl: "",
+  galleryFiles: [] as File[],
+  existingGallery: [] as string[],
 };
 
 // ─── Component ────────────────────────────────────────────────────────────────
@@ -108,6 +111,8 @@ export default function ProductSection() {
   const [submitting, setSubmitting]         = useState(false);
   const [activeTab, setActiveTab]           = useState<"basic" | "descriptions" | "specifications" | "ingredients" | "howToUse" | "safetyInformation">("basic");
   const [imagePreview, setImagePreview]     = useState<string | null>(null);
+  const [galleryPreviews, setGalleryPreviews] = useState<string[]>([]);
+  const [galleryUrlInput, setGalleryUrlInput] = useState("");
 
   // Bulk import
   const [bulkOpen, setBulkOpen]           = useState(false);
@@ -161,6 +166,8 @@ export default function ProductSection() {
     setEditingProduct(null);
     setForm({ ...BLANK_FORM, productDescriptions: [{ title: "", content: "" }] });
     setImagePreview(null);
+    setGalleryPreviews([]);
+    setGalleryUrlInput("");
     setActiveTab("basic");
     setModalOpen(true);
   };
@@ -199,8 +206,12 @@ export default function ProductSection() {
         safetyInformation: full.safetyInformation || [],
         imageFile: null,
         imageUrl:  full.productImage || "",
+        galleryFiles: [],
+        existingGallery: full.productImages || [],
       });
       setImagePreview(full.productImage || null);
+      setGalleryPreviews(full.productImages || []);
+      setGalleryUrlInput("");
       setActiveTab("basic");
       setModalOpen(true);
     } catch {
@@ -271,9 +282,12 @@ export default function ProductSection() {
       let body: FormData | string;
       let headers: HeadersInit = {};
 
-      if (form.imageFile) {
+      if (form.imageFile || form.galleryFiles.length > 0 || form.existingGallery.length > 0) {
         const fd = new FormData();
-        fd.append("image",           form.imageFile);
+        if (form.imageFile) fd.append("image", form.imageFile);
+        form.galleryFiles.forEach((file, idx) => fd.append(`gallery_${idx}`, file));
+        // Always send existing gallery (includes URLs + previously uploaded paths)
+        fd.append("productImages", JSON.stringify(form.existingGallery));
         fd.append("categoryId",      form.categoryId);
         fd.append("productName",     form.productName);
         fd.append("dosageForm",      form.dosageForm);
@@ -301,6 +315,7 @@ export default function ProductSection() {
           sellingPrice: Number(form.sellingPrice), originalPrice: Number(form.originalPrice),
           tax: Number(form.tax), discount: Number(form.discount),
           isActive: form.isActive, imageUrl: form.imageUrl || null,
+          productImages: form.existingGallery,
           productDescriptions: descriptions, specifications,
           suitableFor: form.suitableFor, ingredients,
           howToUse:          form.howToUse.filter(s => s.trim()),
@@ -668,6 +683,100 @@ export default function ProductSection() {
                             className="w-full rounded border border-[#E5E5E5] px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#D4AF37]" />
                         </div>
                       </div>
+                    </div>
+
+                    {/* Gallery Images */}
+                    <div>
+                      <label className="block text-sm font-medium mb-2">Gallery Images (Additional Views)</label>
+
+                      {/* File upload */}
+                      <input 
+                        type="file" 
+                        accept="image/*" 
+                        multiple
+                        onChange={(e) => {
+                          const files = Array.from(e.target.files || []);
+                          setField("galleryFiles", [...form.galleryFiles, ...files]);
+                          const newPreviews = files.map(f => URL.createObjectURL(f));
+                          setGalleryPreviews([...form.existingGallery, ...form.galleryFiles.map(f => URL.createObjectURL(f)), ...newPreviews]);
+                        }}
+                        className="w-full text-sm text-[#6B6B6B] file:mr-3 file:py-1.5 file:px-3 file:rounded file:border-0 file:text-sm file:bg-[#D4AF37] file:text-white hover:file:bg-[#b8952e] mb-2" 
+                      />
+
+                      {/* URL input */}
+                      <div className="flex gap-2 mb-3">
+                        <input
+                          type="text"
+                          placeholder="Paste image URL (e.g. from Google Images)..."
+                          value={galleryUrlInput}
+                          onChange={(e) => setGalleryUrlInput(e.target.value)}
+                          onKeyDown={(e) => {
+                            if (e.key === "Enter") {
+                              e.preventDefault();
+                              const trimmed = galleryUrlInput.trim();
+                              if (!trimmed) return;
+                              const newExisting = [...form.existingGallery, trimmed];
+                              setField("existingGallery", newExisting);
+                              setGalleryPreviews([...newExisting, ...form.galleryFiles.map(f => URL.createObjectURL(f))]);
+                              setGalleryUrlInput("");
+                            }
+                          }}
+                          className="flex-1 rounded border border-[#E5E5E5] px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#D4AF37]"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const trimmed = galleryUrlInput.trim();
+                            if (!trimmed) return;
+                            const newExisting = [...form.existingGallery, trimmed];
+                            setField("existingGallery", newExisting);
+                            setGalleryPreviews([...newExisting, ...form.galleryFiles.map(f => URL.createObjectURL(f))]);
+                            setGalleryUrlInput("");
+                          }}
+                          className="px-3 py-1.5 rounded bg-[#1A1A1A] text-white text-sm hover:bg-[#333] transition-colors whitespace-nowrap"
+                        >
+                          + Add URL
+                        </button>
+                      </div>
+
+                      {/* Thumbnails preview */}
+                      {galleryPreviews.length > 0 && (
+                        <div className="flex flex-wrap gap-2">
+                          {galleryPreviews.map((url, idx) => (
+                            <div key={idx} className="relative group">
+                              <ProductImage 
+                                src={url}
+                                alt={`Gallery ${idx + 1}`}
+                                width={60}
+                                height={60}
+                                className="w-15 h-15 object-cover rounded border border-[#E5E5E5]"
+                              />
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  const isExisting = idx < form.existingGallery.length;
+                                  if (isExisting) {
+                                    const newExisting = form.existingGallery.filter((_, i) => i !== idx);
+                                    setField("existingGallery", newExisting);
+                                    setGalleryPreviews([...newExisting, ...form.galleryFiles.map(f => URL.createObjectURL(f))]);
+                                  } else {
+                                    const fileIdx = idx - form.existingGallery.length;
+                                    const newFiles = form.galleryFiles.filter((_, i) => i !== fileIdx);
+                                    setField("galleryFiles", newFiles);
+                                    setGalleryPreviews([...form.existingGallery, ...newFiles.map(f => URL.createObjectURL(f))]);
+                                  }
+                                }}
+                                className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white rounded-full text-xs opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center"
+                              >
+                                ×
+                              </button>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                      <p className="text-xs text-[#9CA3AF] mt-2">
+                        Upload files or paste image URLs (Google Images, etc.) • Press Enter or click "+ Add URL" to add
+                      </p>
                     </div>
 
                     {/* Category + Name */}

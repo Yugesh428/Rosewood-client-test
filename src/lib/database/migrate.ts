@@ -510,6 +510,13 @@ async function migrate() {
       } else {
         console.log("ℹ️  products.safetyInformation already exists.");
       }
+      if (!productColsFull["productImages"]) {
+        console.log("➕ Adding productImages to products...");
+        await sequelize.query(`ALTER TABLE "products" ADD COLUMN "productImages" JSONB NOT NULL DEFAULT '[]';`);
+        console.log("✅ products.productImages added.");
+      } else {
+        console.log("ℹ️  products.productImages already exists.");
+      }
     }
 
     // ── 9. Add bgGradient to custom_themes if missing ────────────────────────

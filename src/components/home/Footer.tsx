@@ -16,16 +16,17 @@ export default function Footer() {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-10">
           {/* Brand */}
           <div className="md:col-span-2">
-            <p className="text-xs tracking-[0.35em] uppercase font-sans mb-1"
-              style={{ color: "var(--color-primary)" }}>
-              Rosewood
-            </p>
-            <h3
-              className="font-heading text-xl mb-4"
-              style={{ color: "#ffffff", textShadow: "0 0 18px rgba(255,255,255,0.55), 0 0 40px rgba(255,255,255,0.25)" }}
-            >
-              Pharmacy
-            </h3>
+            <div className="flex flex-col items-center leading-tight mb-4 w-fit">
+              <h3
+                className="font-heading text-3xl tracking-[0.12em] uppercase"
+                style={{ color: "var(--color-primary)", textShadow: "0 0 18px rgba(212,175,55,0.3)" }}
+              >
+                Rosewood
+              </h3>
+              <p className="text-[10px] tracking-[0.35em] uppercase font-sans text-white mt-0.5">
+                Pharmacy
+              </p>
+            </div>
             <p
               className="text-xs font-sans leading-relaxed max-w-xs"
               style={{ color: "rgba(255,255,255,0.7)", textShadow: "0 0 12px rgba(255,255,255,0.2)" }}

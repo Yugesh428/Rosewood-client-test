@@ -43,7 +43,7 @@ export default function HeroSectionDynamic() {
 
   if (loading) {
     return (
-      <section className="relative w-full h-[90vh] min-h-[580px] pt-14 flex items-center justify-center"
+      <section className="relative w-full h-[90vh] min-h-[580px] pt-20 flex items-center justify-center"
         style={{ backgroundColor: "transparent" }}>
         <div className="w-12 h-12 border-4 border-t-transparent rounded-full animate-spin"
           style={{ borderColor: "var(--color-primary)", borderTopColor: "transparent" }} />
@@ -54,7 +54,7 @@ export default function HeroSectionDynamic() {
   if (slides.length === 0) {
     // Fallback to static content if no slides
     return (
-      <section className="relative w-full h-[90vh] min-h-[580px] overflow-hidden pt-14">
+      <section className="relative w-full h-[90vh] min-h-[580px] overflow-hidden pt-20">
         <Image
           src="https://images.unsplash.com/photo-1608248543803-ba4f8c70ae0b?w=1600&q=80"
           alt="Luxury apothecary products"
@@ -64,7 +64,7 @@ export default function HeroSectionDynamic() {
         />
         <div className="absolute inset-0 bg-gradient-to-r from-black/60 via-black/30 to-transparent" />
         <div className="relative z-10 h-full flex items-center">
-          <div className="max-w-7xl mx-auto px-6 w-full">
+          <div className="w-full px-12">
             <div className="max-w-lg">
               <p className="text-xs tracking-[0.3em] uppercase text-[#1A1A1A] font-sans mb-4">
                 Your Personal Pharmacy
@@ -73,10 +73,10 @@ export default function HeroSectionDynamic() {
                 Quality Healthcare,<br />Right at Your Door
               </h1>
               <Link href="/pharmacy"
-                className="inline-flex items-center gap-2 text-white text-xs font-sans tracking-widest uppercase px-7 py-3 transition-all duration-300"
-                style={{ backgroundColor: "var(--color-bg-nav)" }}
-                onMouseEnter={e => { const el = e.currentTarget as HTMLElement; el.style.backgroundColor = "var(--color-primary)"; el.style.color = "var(--color-primary-text)"; }}
-                onMouseLeave={e => { const el = e.currentTarget as HTMLElement; el.style.backgroundColor = "var(--color-bg-nav)"; el.style.color = "#fff"; }}>
+                className="inline-flex items-center gap-2 text-xs font-sans tracking-widest uppercase px-7 py-3 transition-all duration-300"
+                style={{ backgroundColor: "#D4AF37", color: "#1A1A1A", borderRadius: "9999px" }}
+                onMouseEnter={e => { const el = e.currentTarget as HTMLElement; el.style.backgroundColor = "#b8952e"; }}
+                onMouseLeave={e => { const el = e.currentTarget as HTMLElement; el.style.backgroundColor = "#D4AF37"; }}>
                 Explore Pharmacy
               </Link>
             </div>
@@ -91,7 +91,7 @@ export default function HeroSectionDynamic() {
   const currentSlide = slides[currentIndex];
 
   return (
-    <section className="relative w-full h-[90vh] min-h-[580px] overflow-hidden pt-14">
+    <section className="relative w-full h-[90vh] min-h-[580px] overflow-hidden pt-20">
       {/* Background image with transition */}
       <motion.div
         key={currentSlide.id}
@@ -115,7 +115,7 @@ export default function HeroSectionDynamic() {
 
       {/* Content */}
       <div className="relative z-10 h-full flex items-center">
-        <div className="max-w-7xl mx-auto px-6 w-full">
+        <div className="w-full px-12">
           <div className="max-w-lg">
             {currentSlide.title && (
               <motion.h1
@@ -160,10 +160,10 @@ export default function HeroSectionDynamic() {
               transition={{ delay: 0.5, duration: 0.5 }}
             >
               <Link href="/pharmacy"
-                className="inline-flex items-center gap-2 text-white text-xs font-sans tracking-widest uppercase px-7 py-3 transition-all duration-300"
-                style={{ backgroundColor: "var(--color-bg-nav)" }}
-                onMouseEnter={e => { const el = e.currentTarget as HTMLElement; el.style.backgroundColor = "var(--color-primary)"; el.style.color = "var(--color-primary-text)"; }}
-                onMouseLeave={e => { const el = e.currentTarget as HTMLElement; el.style.backgroundColor = "var(--color-bg-nav)"; el.style.color = "#fff"; }}>
+                className="inline-flex items-center gap-2 text-xs font-sans tracking-widest uppercase px-7 py-3 transition-all duration-300"
+                style={{ backgroundColor: "#D4AF37", color: "#1A1A1A", borderRadius: "9999px" }}
+                onMouseEnter={e => { const el = e.currentTarget as HTMLElement; el.style.backgroundColor = "#b8952e"; }}
+                onMouseLeave={e => { const el = e.currentTarget as HTMLElement; el.style.backgroundColor = "#D4AF37"; }}>
                 Explore Pharmacy
               </Link>
             </motion.div>

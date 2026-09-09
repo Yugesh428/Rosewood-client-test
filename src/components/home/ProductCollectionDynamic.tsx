@@ -118,7 +118,7 @@ function VideoMedia({ videoUrl, videoFile, title }: { videoUrl: string | null; v
 export default function ProductCollectionDynamic() {
   const [categories, setCategories] = useState<CollectionCategory[]>([]);
   const [products, setProducts] = useState<CollectionProduct[]>([]);
-  const [activeTab, setActiveTab] = useState<string>("all");
+  const [activeTab, setActiveTab] = useState<string>("");
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -130,6 +130,7 @@ export default function ProductCollectionDynamic() {
       .then(([catJson, prodJson]) => {
         if (catJson.success && catJson.data) {
           setCategories(catJson.data);
+          if (catJson.data.length > 0) setActiveTab(catJson.data[0].id);
         }
         if (prodJson.success && prodJson.data) {
           setProducts(prodJson.data);
@@ -140,7 +141,7 @@ export default function ProductCollectionDynamic() {
   }, []);
 
   const filteredProducts =
-    activeTab === "all"
+    activeTab === ""
       ? products
       : products.filter((p) => p.categoryId === activeTab);
 
@@ -157,12 +158,12 @@ export default function ProductCollectionDynamic() {
 
   return (
     <section className="pt-4 pb-4">
-      <div className="max-w-7xl mx-auto px-6">
+      <div className="w-full px-12">
         <motion.div
           initial={{ opacity: 0, y: 12 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          className="text-center mb-8"
+          className="text-left mb-8"
         >
           <h2 className="font-heading text-3xl text-[#1A1A1A]">
             Our Product Collection
@@ -170,18 +171,22 @@ export default function ProductCollectionDynamic() {
         </motion.div>
 
         {/* Tabs */}
-        <div className="flex items-center justify-center gap-2 mb-10 flex-wrap">
-          {[{ id: "all", name: "All" }, ...categories.map(c => ({ id: c.id, name: c.name }))].map(tab => {
+        <div className="flex items-center justify-center gap-8 mb-10 flex-wrap">
+          {categories.map(c => ({ id: c.id, name: c.name })).map(tab => {
             const active = activeTab === tab.id;
             return (
               <button key={tab.id} onClick={() => setActiveTab(tab.id)}
-                className="text-xs font-sans px-5 py-2 rounded-sm border transition-all duration-200"
-                style={active
-                  ? { backgroundColor: "var(--color-text-heading)", color: "#fff", borderColor: "var(--color-text-heading)" }
-                  : { backgroundColor: "transparent", color: "#6B6B6B", borderColor: "var(--color-primary)" }}
-                onMouseEnter={e => { if (!active) { e.currentTarget.style.backgroundColor = "var(--color-primary)"; e.currentTarget.style.color = "#fff"; }}}
-                onMouseLeave={e => { if (!active) { e.currentTarget.style.backgroundColor = "transparent"; e.currentTarget.style.color = "#6B6B6B"; }}}>
+                className="relative text-xs font-sans tracking-[0.18em] uppercase pb-2 transition-colors duration-200 border-none bg-transparent"
+                style={{ color: active ? "#1A1A1A" : "#6B6B6B" }}>
                 {tab.name}
+                <span
+                  className="absolute left-0 bottom-0 h-[2px] rounded-full"
+                  style={{
+                    backgroundColor: "#2d6a4f",
+                    width: active ? "100%" : "0%",
+                    transition: "width 0.35s cubic-bezier(0.4,0,0.2,1)",
+                  }}
+                />
               </button>
             );
           })}
@@ -312,15 +317,14 @@ export default function ProductCollectionDynamic() {
           className="text-center mt-10"
         >
           <Link href="/pharmacy"
-            className="collection-view-all inline-flex items-center gap-2 text-xs font-sans tracking-widest uppercase px-8 py-3 transition-all duration-300"
-            style={{ color: "var(--color-text-heading)", borderColor: "var(--color-text-heading)", border: "1px solid var(--color-text-heading)", backgroundColor: "transparent" }}>
+            className="collection-view-all inline-flex items-center gap-2 text-xs font-sans tracking-widest uppercase px-10 py-3 transition-all duration-300"
+            style={{ color: "#ffffff", backgroundColor: "#1A1A1A", border: "none", borderRadius: "9999px" }}>
             View All Products
           </Link>
           <style>{`
             .collection-view-all:hover {
-              background-color: var(--color-primary) !important;
-              border-color: var(--color-primary) !important;
-              color: var(--color-primary-text) !important;
+              background-color: #D4AF37 !important;
+              color: #ffffff !important;
             }
           `}</style>
         </motion.div>

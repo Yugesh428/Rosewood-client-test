@@ -285,7 +285,7 @@ export default function BestSellers() {
 
   return (
     <section className="py-6" style={{ backgroundColor: "transparent" }}>
-      <div className="max-w-7xl mx-auto px-6">
+      <div className="w-full px-12">
 
         {/* Header */}
         <div className="flex items-end justify-between mb-8">

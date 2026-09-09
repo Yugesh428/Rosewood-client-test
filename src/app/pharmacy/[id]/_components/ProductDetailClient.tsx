@@ -13,6 +13,28 @@ import {
 import { useCart } from "@/context/CartContext";
 import ProductImage from "@/components/ui/ProductImage";
 
+// ─── Animation Variants (optimized for performance) ───────────────────────────
+
+const fadeIn = {
+  hidden: { opacity: 0 },
+  visible: { opacity: 1, transition: { duration: 0.3 } }
+};
+
+const slideUp = {
+  hidden: { opacity: 0, y: 20 },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.4 } }
+};
+
+const staggerContainer = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.1
+    }
+  }
+};
+
 // ─── Types ────────────────────────────────────────────────────────────────────
 
 interface Ingredient {
@@ -38,6 +60,7 @@ interface Product {
   categoryId: string;
   productName: string;
   productImage: string | null;
+  productImages: string[];
   dosageForm: string;
   strength: string;
   packSize: string;
@@ -131,21 +154,17 @@ function Accordion({ title, children, defaultOpen = false }: { title: string; ch
         {title}
         {open ? <ChevronUp className="w-4 h-4 text-gray-400 flex-shrink-0" /> : <ChevronDown className="w-4 h-4 text-gray-400 flex-shrink-0" />}
       </button>
-      <AnimatePresence initial={false}>
-        {open && (
-          <motion.div
-            initial={{ height: 0, opacity: 0 }}
-            animate={{ height: "auto", opacity: 1 }}
-            exit={{ height: 0, opacity: 0 }}
-            transition={{ duration: 0.22 }}
-            className="overflow-hidden"
-          >
-            <div className="pb-4 text-sm text-[#374151] leading-relaxed font-sans">
-              {children}
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+      <div
+        className="overflow-hidden transition-all duration-300 ease-in-out"
+        style={{
+          maxHeight: open ? "2000px" : "0",
+          opacity: open ? 1 : 0
+        }}
+      >
+        <div className="pb-4 text-sm text-[#374151] leading-relaxed font-sans">
+          {children}
+        </div>
+      </div>
     </div>
   );
 }
@@ -215,6 +234,7 @@ export default function ProductDetailClient({ product }: { product: Product }) {
   const [reviewStats,  setReviewStats]  = useState({ avg: 0, count: 0 });
   const [related,      setRelated]      = useState<RelatedProduct[]>([]);
   const [relatedIdx,   setRelatedIdx]   = useState(0);
+  const [selectedImageIndex, setSelectedImageIndex] = useState(0);
 
   // Wishlist state
   const [isInWishlist, setIsInWishlist] = useState(false);
@@ -225,6 +245,12 @@ export default function ProductDetailClient({ product }: { product: Product }) {
   const [reviewRating,    setReviewRating]    = useState(5);
   const [reviewText,      setReviewText]      = useState("");
   const [reviewSubmitting, setReviewSubmitting] = useState(false);
+
+  // Gallery images — primary + additional gallery images
+  const allImages = [
+    product.productImage,
+    ...(product.productImages || []),
+  ].filter((img): img is string => !!img);
 
   const user = session?.user as { id?: string; role?: string } | undefined;
   const isCustomer = !!user?.id && user?.role === "CUSTOMER";
@@ -366,7 +392,7 @@ export default function ProductDetailClient({ product }: { product: Product }) {
   const maxIdx  = Math.max(0, related.length - VISIBLE);
 
   return (
-    <div className="pt-14 pb-20">
+    <div className="pt-20 pb-20">
       <div className="max-w-7xl mx-auto px-6">
 
         {/* ── Breadcrumb ── */}
@@ -387,29 +413,92 @@ export default function ProductDetailClient({ product }: { product: Product }) {
         </nav>
 
         {/* ── Main product section ── */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-10 mb-14">
+        <motion.div 
+          className="grid grid-cols-1 md:grid-cols-2 gap-10 mb-14"
+          initial="hidden"
+          animate="visible"
+          variants={staggerContainer}
+        >
 
-          {/* Left — image */}
-          <div className="space-y-3">
-            <div className="relative aspect-square bg-[#F5F3EF] rounded-lg overflow-hidden border border-[#E8E4DC]">
-              <ProductImage
-                src={product.productImage}
-                alt={product.productName}
-                fill
-                priority
-                className="object-contain p-4"
-                sizes="(max-width: 768px) 100vw, 50vw"
-              />
-              {product.discount > 0 && (
-                <span className="absolute top-3 left-3 text-xs font-bold bg-[#C0392B] text-white px-2.5 py-1 rounded-sm">
-                  -{product.discount}% OFF
-                </span>
+          {/* Left — Nike-style image gallery: thumbnails + large viewer */}
+          <motion.div className="flex gap-3" variants={fadeIn}>
+            {/* Vertical thumbnail strip - always show if images exist */}
+            {allImages.length > 0 && (
+              <div className="flex flex-col gap-2 w-16 md:w-20">
+                {allImages.map((img, idx) => (
+                  <button
+                    key={idx}
+                    onClick={() => setSelectedImageIndex(idx)}
+                    className="relative aspect-square bg-[#F5F3EF] rounded-md overflow-hidden border-2 transition-all duration-200 cursor-pointer hover:scale-105"
+                    style={{
+                      borderColor: idx === selectedImageIndex ? "#1A1A1A" : "#E8E4DC",
+                    }}
+                  >
+                    <ProductImage
+                      src={img}
+                      alt={`${product.productName} view ${idx + 1}`}
+                      fill
+                      className="object-cover p-1"
+                      sizes="80px"
+                    />
+                  </button>
+                ))}
+              </div>
+            )}
+
+            {/* Large main image viewer */}
+            <div className="flex-1 space-y-3">
+              <div className="relative aspect-square bg-[#F5F3EF] rounded-lg overflow-hidden">
+                <AnimatePresence mode="wait">
+                  <motion.div
+                    key={selectedImageIndex}
+                    initial={{ opacity: 0, scale: 0.95 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0, scale: 1.05 }}
+                    transition={{ duration: 0.3, ease: "easeInOut" }}
+                    className="absolute inset-0"
+                  >
+                    <ProductImage
+                      src={allImages[selectedImageIndex] || product.productImage}
+                      alt={product.productName}
+                      fill
+                      priority
+                      className="object-cover"
+                      sizes="(max-width: 768px) 100vw, 50vw"
+                    />
+                  </motion.div>
+                </AnimatePresence>
+                {product.discount > 0 && (
+                  <span className="absolute top-3 left-3 text-xs font-bold bg-[#C0392B] text-white px-2.5 py-1 rounded-sm z-10">
+                    -{product.discount}% OFF
+                  </span>
+                )}
+              </div>
+
+              {/* Image navigation arrows (if multiple images) */}
+              {allImages.length > 1 && (
+                <div className="flex justify-center gap-2">
+                  <button
+                    onClick={() => setSelectedImageIndex((prev) => (prev > 0 ? prev - 1 : allImages.length - 1))}
+                    className="w-10 h-10 rounded-full bg-white border border-[#E8E4DC] flex items-center justify-center hover:bg-[#F5F3EF] transition-colors"
+                    aria-label="Previous image"
+                  >
+                    <ChevronLeft className="w-5 h-5 text-[#1A1A1A]" />
+                  </button>
+                  <button
+                    onClick={() => setSelectedImageIndex((prev) => (prev < allImages.length - 1 ? prev + 1 : 0))}
+                    className="w-10 h-10 rounded-full bg-white border border-[#E8E4DC] flex items-center justify-center hover:bg-[#F5F3EF] transition-colors"
+                    aria-label="Next image"
+                  >
+                    <ChRight className="w-5 h-5 text-[#1A1A1A]" />
+                  </button>
+                </div>
               )}
             </div>
-          </div>
+          </motion.div>
 
           {/* Right — info */}
-          <div className="flex flex-col">
+          <motion.div className="flex flex-col" variants={slideUp}>
             {/* Category */}
             {product.category && (
               <p className="text-[11px] uppercase tracking-[0.18em] text-[#9CA3AF] font-sans font-semibold mb-2">
@@ -489,7 +578,7 @@ export default function ProductDetailClient({ product }: { product: Product }) {
 
             {/* Qty + Add/Buy + Wishlist */}
             <div className="flex items-center gap-3 mb-3">
-              <div className="flex items-center border border-[#D1D5DB] rounded-sm overflow-hidden">
+              <div className="flex items-center border border-[#D1D5DB] rounded-md overflow-hidden">
                 <button onClick={() => setQty(q => Math.max(1, q - 1))}
                   className="w-9 h-10 flex items-center justify-center text-[#374151] hover:bg-[#F5F3EF] transition-colors text-lg font-bold">
                   −
@@ -502,21 +591,39 @@ export default function ProductDetailClient({ product }: { product: Product }) {
               </div>
 
               <button onClick={handleAddToCart}
-                className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-sm text-sm font-bold border transition-all duration-200 font-sans"
+                className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-md text-sm font-bold border transition-all duration-200 font-sans hover:scale-[1.02] active:scale-[0.98]"
                 style={added
                   ? { background: "#f0fdf4", borderColor: "#86efac", color: "#16a34a" }
-                  : { background: "var(--color-bg-card)", borderColor: "#D1D5DB", color: "var(--color-text-heading)" }}>
+                  : { background: "#ffffff", borderColor: "#D1D5DB", color: "#1A1A1A" }}
+                onMouseEnter={e => {
+                  if (!added) {
+                    e.currentTarget.style.background = "#D4AF37";
+                    e.currentTarget.style.color = "#ffffff";
+                    e.currentTarget.style.borderColor = "#D4AF37";
+                  }
+                }}
+                onMouseLeave={e => {
+                  if (!added) {
+                    e.currentTarget.style.background = "#ffffff";
+                    e.currentTarget.style.color = "#1A1A1A";
+                    e.currentTarget.style.borderColor = "#D1D5DB";
+                  }
+                }}>
                 {added ? <><Check className="w-4 h-4" /> Added!</> : <><ShoppingCart className="w-4 h-4" /> Add to Cart</>}
               </button>
 
               <button
                 onClick={toggleWishlist}
                 disabled={wishlistLoading}
-                className="p-2.5 rounded-sm border border-[#D1D5DB] hover:border-[#D4AF37] transition-all duration-200 disabled:opacity-50"
+                className="p-2.5 rounded-md border border-[#D1D5DB] hover:border-red-400 hover:bg-red-50 transition-all duration-200 disabled:opacity-50 group"
                 title={isInWishlist ? "Remove from wishlist" : "Add to wishlist"}
               >
                 <Heart
-                  className={`w-5 h-5 transition-all ${isInWishlist ? "fill-red-500 text-red-500" : "text-[#374151]"}`}
+                  className={`w-5 h-5 transition-all ${
+                    isInWishlist 
+                      ? "fill-red-500 text-red-500" 
+                      : "text-[#374151] group-hover:text-red-500 group-hover:fill-red-100"
+                  }`}
                 />
               </button>
             </div>
@@ -526,24 +633,35 @@ export default function ProductDetailClient({ product }: { product: Product }) {
               <div className="flex items-center gap-2 mb-3 text-xs font-sans text-[#6B6B6B]">
                 <span>{cartItem.quantity} in cart</span>
                 <button onClick={() => updateQty(cartItem.id, cartItem.quantity - 1)}
-                  className="w-5 h-5 rounded-full border border-gray-200 flex items-center justify-center hover:border-[#D4AF37] text-xs">−</button>
+                  className="w-5 h-5 rounded-full border border-gray-200 flex items-center justify-center hover:border-[#D4AF37] hover:bg-[#D4AF37]/10 transition-all text-xs">−</button>
                 <button onClick={() => updateQty(cartItem.id, cartItem.quantity + 1)}
-                  className="w-5 h-5 rounded-full border border-gray-200 flex items-center justify-center hover:border-[#D4AF37] text-xs">+</button>
+                  className="w-5 h-5 rounded-full border border-gray-200 flex items-center justify-center hover:border-[#D4AF37] hover:bg-[#D4AF37]/10 transition-all text-xs">+</button>
               </div>
             )}
 
             <button onClick={handleBuyNow}
-              className="w-full py-3 rounded-sm text-sm font-bold text-white transition-colors duration-200 font-sans"
-              style={{ backgroundColor: "var(--color-text-heading)" }}
-              onMouseEnter={e => (e.currentTarget.style.backgroundColor = "var(--color-primary)")}
-              onMouseLeave={e => (e.currentTarget.style.backgroundColor = "var(--color-text-heading)")}>
+              className="w-full py-3 rounded-md text-sm font-bold text-white transition-all duration-200 font-sans hover:scale-[1.02] active:scale-[0.98] shadow-md hover:shadow-lg"
+              style={{ 
+                background: "#1A1A1A"
+              }}
+              onMouseEnter={e => {
+                e.currentTarget.style.background = "#D4AF37";
+              }}
+              onMouseLeave={e => {
+                e.currentTarget.style.background = "#1A1A1A";
+              }}>
               Buy Now
             </button>
-          </div>
-        </div>
+          </motion.div>
+        </motion.div>
 
         {/* ── Detail sections (2-col) ── */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-14">
+        <motion.div 
+          className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-14"
+          initial="hidden"
+          animate="visible"
+          variants={fadeIn}
+        >
 
           {/* Left col — accordions */}
           <div className="md:col-span-2 space-y-0 border-t border-[#E8E4DC]">
@@ -619,10 +737,15 @@ export default function ProductDetailClient({ product }: { product: Product }) {
                 ))}
             </dl>
           </div>
-        </div>
+        </motion.div>
 
         {/* ── Reviews ── */}
-        <div className="mb-16 border-t border-[#E8E4DC] pt-10">
+        <motion.div 
+          className="mb-16 border-t border-[#E8E4DC] pt-10"
+          initial="hidden"
+          animate="visible"
+          variants={fadeIn}
+        >
           <h2 className="font-heading text-xl text-[#1A1A1A] text-center mb-8">Customer Reviews</h2>
           <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
 
@@ -699,11 +822,15 @@ export default function ProductDetailClient({ product }: { product: Product }) {
               )}
             </div>
           </div>
-        </div>
+        </motion.div>
 
         {/* ── Related products ── */}
         {related.length > 0 && (
-          <div>
+          <motion.div
+            initial="hidden"
+            animate="visible"
+            variants={fadeIn}
+          >
             <div className="flex items-center justify-between mb-5">
               <h2 className="font-heading text-xl text-[#1A1A1A]">You May Also Like</h2>
               <div className="flex gap-1.5">
@@ -726,7 +853,7 @@ export default function ProductDetailClient({ product }: { product: Product }) {
                 <RelatedCard key={p.id} product={p} />
               ))}
             </div>
-          </div>
+          </motion.div>
         )}
       </div>
 

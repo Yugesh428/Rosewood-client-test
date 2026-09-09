@@ -64,7 +64,7 @@ export default function TestimonialsDynamic() {
 
   return (
     <section className="pt-6 pb-20" style={{ backgroundColor: bg }}>
-      <div className="max-w-7xl mx-auto px-6">
+      <div className="w-full px-12">
         {/* Header */}
         <motion.div
           initial={{ opacity: 0, y: 16 }}

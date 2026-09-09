@@ -53,10 +53,10 @@ export default function ContactPage() {
   }
 
   return (
-    <div>
+    <div style={{ backgroundColor: "#ffffff" }}>
       <Navbar />
 
-      <main className="min-h-screen pt-14">
+      <main className="min-h-screen pt-20">
 
         {/* ── Two-column content ─────────────────────────────────────────── */}
         <section className="py-16" style={{ backgroundColor: "transparent" }}>

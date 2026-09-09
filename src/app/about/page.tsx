@@ -11,7 +11,7 @@ export default function AboutPage() {
   return (
     <div>
       <Navbar />
-      <main className="min-h-screen pt-14">
+      <main className="min-h-screen pt-20">
         {/* ── Hero / Page Title ──────────────────────────────────────────────── */}
         <AboutHeaderDynamic />
 
