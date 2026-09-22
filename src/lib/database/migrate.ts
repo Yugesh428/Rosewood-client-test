@@ -556,9 +556,101 @@ async function migrate() {
       }
     }
 
+    // ── 11. Create ui_featured_duo table if missing ───────────────────────────
+    const duoExists = await q.describeTable("ui_featured_duo").catch(() => null);
+    if (!duoExists) {
+      console.log("➕ Creating ui_featured_duo table...");
+      await sequelize.query(`
+        CREATE TABLE IF NOT EXISTS "ui_featured_duo" (
+          "id"          INTEGER       NOT NULL DEFAULT 1,
+          "eyebrow"     VARCHAR(120)  DEFAULT NULL,
+          "heading"     VARCHAR(255)  DEFAULT NULL,
+          "shopNowUrl"  VARCHAR(500)  DEFAULT '/pharmacy',
+          "leftImage"   VARCHAR(1000) DEFAULT NULL,
+          "leftBrand"   VARCHAR(120)  DEFAULT NULL,
+          "leftTitle"   VARCHAR(255)  DEFAULT NULL,
+          "leftLink"    VARCHAR(500)  DEFAULT '/pharmacy',
+          "rightImage"  VARCHAR(1000) DEFAULT NULL,
+          "rightBrand"  VARCHAR(120)  DEFAULT NULL,
+          "rightTitle"  VARCHAR(255)  DEFAULT NULL,
+          "rightLink"   VARCHAR(500)  DEFAULT '/pharmacy',
+          "isActive"    BOOLEAN       NOT NULL DEFAULT TRUE,
+          "createdAt"   TIMESTAMPTZ   NOT NULL DEFAULT NOW(),
+          "updatedAt"   TIMESTAMPTZ   NOT NULL DEFAULT NOW(),
+          PRIMARY KEY ("id")
+        );
+      `);
+      console.log("✅ ui_featured_duo table created.");
+    } else {
+      console.log("ℹ️  ui_featured_duo already exists.");
+    }
+
+    // ── 12. Create promotion_slides table if missing ──────────────────────────
+    const promoExists = await q.describeTable("promotion_slides").catch(() => null);
+    if (!promoExists) {
+      console.log("➕ Creating promotion_slides table...");
+      await sequelize.query(`
+        CREATE TABLE IF NOT EXISTS "promotion_slides" (
+          "id"          UUID          NOT NULL DEFAULT gen_random_uuid(),
+          "eyebrow"     VARCHAR(100)  DEFAULT NULL,
+          "brand"       VARCHAR(150)  DEFAULT NULL,
+          "title"       VARCHAR(200)  DEFAULT NULL,
+          "description" TEXT          DEFAULT NULL,
+          "ctaText"     VARCHAR(150)  DEFAULT NULL,
+          "ctaLink"     VARCHAR(500)  DEFAULT NULL,
+          "bgImage"     VARCHAR(500)  DEFAULT NULL,
+          "order"       INTEGER       NOT NULL DEFAULT 0,
+          "isActive"    BOOLEAN       NOT NULL DEFAULT TRUE,
+          "createdAt"   TIMESTAMPTZ   NOT NULL DEFAULT NOW(),
+          "updatedAt"   TIMESTAMPTZ   NOT NULL DEFAULT NOW(),
+          PRIMARY KEY ("id")
+        );
+      `);
+      console.log("✅ promotion_slides table created.");
+    } else {
+      console.log("ℹ️  promotion_slides already exists.");
+    }
+
+    // ── 13. Create ui_discover_section table if missing ──────────────────────
+    const discoverExists = await q.describeTable("ui_discover_section").catch(() => null);
+    if (!discoverExists) {
+      console.log("➕ Creating ui_discover_section table...");
+      await sequelize.query(`
+        CREATE TABLE IF NOT EXISTS "ui_discover_section" (
+          "id"                INTEGER       NOT NULL DEFAULT 1,
+          "eyebrow"           VARCHAR(150)  DEFAULT NULL,
+          "heading"           VARCHAR(255)  DEFAULT NULL,
+          "description"       TEXT          DEFAULT NULL,
+          "mainImage"         VARCHAR(1000) DEFAULT NULL,
+          "ctaText"           VARCHAR(100)  DEFAULT 'DISCOVER MORE',
+          "expandTitle"       VARCHAR(255)  DEFAULT NULL,
+          "expandDescription" TEXT          DEFAULT NULL,
+          "expandBtn1Text"    VARCHAR(100)  DEFAULT NULL,
+          "expandBtn1Link"    VARCHAR(500)  DEFAULT NULL,
+          "expandBtn2Text"    VARCHAR(100)  DEFAULT NULL,
+          "expandBtn2Link"    VARCHAR(500)  DEFAULT NULL,
+          "expandImage"       VARCHAR(1000) DEFAULT NULL,
+          "expandImageLabel"  VARCHAR(255)  DEFAULT NULL,
+          "diveInto"          VARCHAR(100)  DEFAULT NULL,
+          "diveHeading"       VARCHAR(255)  DEFAULT NULL,
+          "diveDescription"   TEXT          DEFAULT NULL,
+          "videoImage"        VARCHAR(1000) DEFAULT NULL,
+          "videoLabel"        VARCHAR(150)  DEFAULT NULL,
+          "videoTitle"        VARCHAR(255)  DEFAULT NULL,
+          "videoUrl"          VARCHAR(1000) DEFAULT NULL,
+          "isActive"          BOOLEAN       NOT NULL DEFAULT TRUE,
+          "createdAt"         TIMESTAMPTZ   NOT NULL DEFAULT NOW(),
+          "updatedAt"         TIMESTAMPTZ   NOT NULL DEFAULT NOW(),
+          PRIMARY KEY ("id")
+        );
+      `);
+      console.log("✅ ui_discover_section table created.");
+    } else {
+      console.log("ℹ️  ui_discover_section already exists.");
+    }
+
     console.log("\n🎉 Migration complete.");
-  } catch (error) {
-    console.error("❌ Migration failed:", error);
+  } catch (error) {    console.error("❌ Migration failed:", error);
     process.exit(1);
   } finally {
     await sequelize.close();

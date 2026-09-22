@@ -8,9 +8,9 @@ import { useSession, signOut } from "next-auth/react";
 import { useCart } from "@/context/CartContext";
 import CartDrawer from "@/components/CartDrawer";
 
-// ─── Nav links ────────────────────────────────────────────────────────────────
+// ─── Nav links (also used in mobile drawer) ───────────────────────────────────
 
-const navLinks = [
+export const navLinks = [
   { label: "Home",     href: "/"         },
   { label: "Pharmacy", href: "/pharmacy" },
   { label: "About Us", href: "/about"    },
@@ -21,43 +21,39 @@ const navLinks = [
 
 function SearchIcon() {
   return (
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
       <circle cx="11" cy="11" r="8" /><path d="m21 21-4.35-4.35" />
     </svg>
   );
 }
-function WishlistIcon() {
+function UserIcon({ size = 18 }: { size?: number }) {
   return (
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
-    </svg>
-  );
-}
-function CartIcon() {
-  return (
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <circle cx="9" cy="21" r="1" /><circle cx="20" cy="21" r="1" />
-      <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6" />
-    </svg>
-  );
-}
-function UserIcon() {
-  return (
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
       <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" /><circle cx="12" cy="7" r="4" />
+    </svg>
+  );
+}
+function CartIcon({ size = 18 }: { size?: number }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z" />
+      <line x1="3" y1="6" x2="21" y2="6" />
+      <path d="M16 10a4 4 0 0 1-8 0" />
     </svg>
   );
 }
 function MenuIcon() {
   return (
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <line x1="3" y1="6" x2="21" y2="6" /><line x1="3" y1="12" x2="21" y2="12" /><line x1="3" y1="18" x2="21" y2="18" />
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+      <line x1="3" y1="6"  x2="21" y2="6"  />
+      <line x1="3" y1="12" x2="21" y2="12" />
+      <line x1="3" y1="18" x2="21" y2="18" />
     </svg>
   );
 }
 function CloseIcon() {
   return (
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
       <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
     </svg>
   );
@@ -66,6 +62,13 @@ function ShieldIcon() {
   return (
     <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
       <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+    </svg>
+  );
+}
+function WishlistIcon() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
     </svg>
   );
 }
@@ -80,188 +83,196 @@ interface SearchResult {
   category?: { categoryName: string };
 }
 
-// ─── Search Bar ───────────────────────────────────────────────────────────────
+// ─── Search overlay ───────────────────────────────────────────────────────────
 
-function SearchBar({ mobile = false }: { mobile?: boolean }) {
+function SearchOverlay({ onClose }: { onClose: () => void }) {
   const router   = useRouter();
-  const wrapRef  = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const [query,   setQuery]   = useState("");
   const [results, setResults] = useState<SearchResult[]>([]);
   const [loading, setLoading] = useState(false);
-  const [open,    setOpen]    = useState(false);
-  const [focused, setFocused] = useState(false);
 
-  // Close on outside click
-  useEffect(() => {
-    function onOutside(e: MouseEvent) {
-      if (wrapRef.current && !wrapRef.current.contains(e.target as Node)) {
-        setOpen(false);
-        setFocused(false);
-      }
-    }
-    document.addEventListener("mousedown", onOutside);
-    return () => document.removeEventListener("mousedown", onOutside);
-  }, []);
+  useEffect(() => { inputRef.current?.focus(); }, []);
 
   const search = useCallback(async (q: string) => {
-    if (!q.trim()) { setResults([]); setOpen(false); return; }
+    if (!q.trim()) { setResults([]); return; }
     setLoading(true);
     try {
       const res  = await fetch(`/api/products?search=${encodeURIComponent(q)}&isActive=true&limit=6`);
       const json = await res.json();
       setResults(json.success ? (json.data ?? []) : []);
-      setOpen(true);
-    } catch {
-      setResults([]);
-    } finally {
-      setLoading(false);
-    }
+    } catch { setResults([]); }
+    finally  { setLoading(false); }
   }, []);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const val = e.target.value;
     setQuery(val);
     if (timerRef.current) clearTimeout(timerRef.current);
-    if (!val.trim()) { setResults([]); setOpen(false); return; }
+    if (!val.trim()) { setResults([]); return; }
     timerRef.current = setTimeout(() => search(val), 300);
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter" && query.trim()) {
-      setOpen(false);
+      onClose();
       router.push(`/pharmacy?search=${encodeURIComponent(query.trim())}`);
     }
-    if (e.key === "Escape") { setOpen(false); setFocused(false); }
+    if (e.key === "Escape") onClose();
   };
 
-  const handleResultClick = (id: string) => {
-    setOpen(false);
-    setFocused(false);
-    setQuery("");
-    router.push(`/pharmacy/${id}`);
-  };
-
-  const handleViewAll = () => {
-    setOpen(false);
-    router.push(`/pharmacy?search=${encodeURIComponent(query.trim())}`);
-  };
+  const go = (id: string) => { onClose(); router.push(`/pharmacy/${id}`); };
+  const viewAll = () => { onClose(); router.push(`/pharmacy?search=${encodeURIComponent(query.trim())}`); };
 
   return (
-    <motion.div
-      ref={wrapRef}
-      className="relative"
-      animate={{ width: mobile ? "100%" : focused ? 320 : 200 }}
-      transition={{ duration: 0.35, ease: [0.4, 0, 0.2, 1] }}
-    >
-      <input
-        type="text"
-        placeholder="Search products..."
-        value={query}
-        onChange={handleChange}
-        onKeyDown={handleKeyDown}
-        onFocus={() => { setFocused(true); if (results.length > 0) setOpen(true); }}
-        className={`w-full bg-white/10 text-xs px-4 pr-9 rounded-full focus:outline-none transition-colors duration-300 font-sans ${mobile ? "py-2" : "py-2"}`}
-        style={{
-          border: focused
-            ? "1px solid rgba(212,175,55,0.9)"
-            : "1px solid rgba(255,255,255,0.35)",
-          color: "#ffffff",
-          boxShadow: focused
-            ? "0 0 0 3px rgba(212,175,55,0.15), 0 0 20px rgba(212,175,55,0.1)"
-            : "none",
-        }}
+    <>
+      {/* Backdrop */}
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        transition={{ duration: 0.25 }}
+        className="fixed inset-0 z-[9997] bg-black/40"
+        onClick={onClose}
       />
-      {/* Placeholder colour */}
-      <style>{`.search-input::placeholder{color:rgba(255,255,255,0.45)}`}</style>
 
-      {/* Icon */}
-      <span className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none transition-colors duration-300"
-        style={{ color: focused ? "#D4AF37" : "rgba(255,255,255,0.5)" }}>
-        {loading ? (
-          <svg className="animate-spin" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-            <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83" />
-          </svg>
-        ) : <SearchIcon />}
-      </span>
-
-      {/* Results dropdown */}
-      <AnimatePresence>
-        {open && (results.length > 0 || (!loading && query.trim().length > 1)) && (
-          <motion.div
-            initial={{ opacity: 0, y: 8, scale: 0.97 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: 8, scale: 0.97 }}
-            transition={{ duration: 0.2, ease: [0.4, 0, 0.2, 1] }}
-            className="absolute top-full left-0 right-0 mt-2 bg-[#111111] border border-white/10 rounded-xl shadow-2xl z-50 overflow-hidden"
+      {/* Slide-in Panel */}
+      <motion.div
+        initial={{ x: "100%" }}
+        animate={{ x: 0 }}
+        exit={{ x: "100%" }}
+        transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
+        className="fixed top-0 right-0 bottom-0 z-[9998] w-full md:w-[480px] bg-white shadow-2xl flex flex-col overflow-hidden"
+      >
+        {/* Search Bar Header */}
+        <div className="flex items-center gap-4 px-6 py-5 border-b border-gray-200">
+          {/* Close Button */}
+          <button
+            onClick={onClose}
+            className="flex-shrink-0 text-gray-400 hover:text-gray-600 transition-colors"
+            aria-label="Close search"
           >
-            {results.length > 0 ? (
-              <>
-                <ul>
-                  {results.map((product, i) => (
-                    <motion.li
-                      key={product.id}
-                      initial={{ opacity: 0, x: -10 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      transition={{ delay: i * 0.05, duration: 0.2 }}
+            <CloseIcon />
+          </button>
+
+          {/* Search Input */}
+          <div className="flex-1 relative">
+            <input
+              ref={inputRef}
+              type="text"
+              value={query}
+              onChange={handleChange}
+              onKeyDown={handleKeyDown}
+              placeholder="Search"
+              className="w-full px-4 py-2.5 text-sm bg-gray-50 rounded-full border border-gray-200 focus:outline-none focus:border-gray-300 transition-colors font-sans text-[#1a1a1a] placeholder:text-gray-400"
+            />
+            
+            {/* Search Icon */}
+            <div className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none">
+              {loading ? (
+                <svg className="animate-spin w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83" />
+                </svg>
+              ) : (
+                <SearchIcon />
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* Content Area */}
+        <div className="flex-1 overflow-y-auto">
+          
+          {/* Quick Links Section */}
+          {!query.trim() && (
+            <div className="px-6 py-8">
+              <h3 className="text-sm font-semibold text-gray-900 mb-4 font-sans">Quick links</h3>
+              <ul className="space-y-3">
+                <li>
+                  <Link
+                    href="/about"
+                    onClick={onClose}
+                    className="block text-sm text-gray-700 hover:text-[#D4AF37] transition-colors font-sans"
+                  >
+                    Find our Store
+                  </Link>
+                </li>
+                <li>
+                  <Link
+                    href="/account/orders"
+                    onClick={onClose}
+                    className="block text-sm text-gray-700 hover:text-[#D4AF37] transition-colors font-sans"
+                  >
+                    Manage Subscriptions
+                  </Link>
+                </li>
+                <li>
+                  <Link
+                    href="/account/orders"
+                    onClick={onClose}
+                    className="block text-sm text-gray-700 hover:text-[#D4AF37] transition-colors font-sans"
+                  >
+                    My Orders
+                  </Link>
+                </li>
+              </ul>
+            </div>
+          )}
+
+          {/* Search Results */}
+          {query.trim() && results.length > 0 && (
+            <div className="px-6 py-6">
+              <h3 className="text-sm font-semibold text-gray-900 mb-4 font-sans">Products</h3>
+              <ul className="space-y-3">
+                {results.map((p) => (
+                  <li key={p.id}>
+                    <button
+                      onClick={() => go(p.id)}
+                      className="w-full flex items-center gap-4 py-2 text-left hover:bg-gray-50 rounded-lg transition-colors px-2"
                     >
-                      <button
-                        type="button"
-                        onClick={() => handleResultClick(product.id)}
-                        className="w-full flex items-center gap-3 px-3 py-2.5 hover:bg-white/[0.07] transition-colors text-left"
-                      >
-                        <div className="w-9 h-9 rounded-lg bg-white/10 flex-shrink-0 overflow-hidden">
-                          {product.productImage ? (
-                            // eslint-disable-next-line @next/next/no-img-element
-                            <img
-                              src={product.productImage}
-                              alt={product.productName}
-                              className="w-full h-full object-cover"
-                              onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
-                            />
-                          ) : (
-                            <div className="w-full h-full flex items-center justify-center text-[#D4AF37] text-xs font-bold">
-                              {product.productName.charAt(0)}
-                            </div>
-                          )}
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <p className="text-xs text-white truncate font-sans">{product.productName}</p>
-                          <p className="text-[10px] text-white/40 font-sans truncate">
-                            {product.category?.categoryName ?? ""}
-                          </p>
-                        </div>
-                        <span className="text-xs font-semibold text-[#D4AF37] flex-shrink-0 font-sans">
-                          £{Number(product.sellingPrice).toFixed(2)}
-                        </span>
-                      </button>
-                    </motion.li>
-                  ))}
-                </ul>
-                <motion.button
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  transition={{ delay: results.length * 0.05 + 0.05 }}
-                  onClick={handleViewAll}
-                  className="w-full px-3 py-2.5 text-[11px] text-[#D4AF37] hover:bg-white/5 transition-colors text-center border-t border-white/10 font-sans"
-                >
-                  View all results for &quot;{query}&quot; →
-                </motion.button>
-              </>
-            ) : (
-              <motion.p
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                className="px-3 py-4 text-xs text-white/40 font-sans text-center"
+                      <div className="w-12 h-12 rounded-lg bg-gray-100 flex-shrink-0 overflow-hidden">
+                        {p.productImage ? (
+                          // eslint-disable-next-line @next/next/no-img-element
+                          <img src={p.productImage} alt={p.productName} className="w-full h-full object-cover"
+                            onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center text-[#D4AF37] text-sm font-bold">
+                            {p.productName.charAt(0)}
+                          </div>
+                        )}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm text-gray-900 truncate font-sans">{p.productName}</p>
+                        <p className="text-xs text-gray-500 font-sans">{p.category?.categoryName ?? ""}</p>
+                      </div>
+                      <span className="text-sm font-semibold font-sans text-[#D4AF37]">
+                        £{Number(p.sellingPrice).toFixed(2)}
+                      </span>
+                    </button>
+                  </li>
+                ))}
+              </ul>
+              
+              <button 
+                onClick={viewAll}
+                className="w-full mt-6 py-3 text-sm font-sans text-center text-[#D4AF37] hover:bg-gray-50 rounded-lg transition-colors"
               >
-                No products found.
-              </motion.p>
-            )}
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </motion.div>
+                View all results for &quot;{query}&quot; →
+              </button>
+            </div>
+          )}
+
+          {/* No Results */}
+          {!loading && query.trim().length > 1 && results.length === 0 && (
+            <div className="px-6 py-12 text-center">
+              <p className="text-sm text-gray-400 font-sans">No products found for &quot;{query}&quot;</p>
+            </div>
+          )}
+        </div>
+      </motion.div>
+    </>
   );
 }
 
@@ -289,7 +300,8 @@ function AccountDropdown() {
         aria-label="Account"
         aria-expanded={open}
         onClick={() => setOpen((v) => !v)}
-        className={`hover:text-[#FFD700] transition-colors ${open ? "text-[#FFD700]" : "text-white"}`}
+        className="transition-opacity hover:opacity-60"
+        style={{ color: "var(--color-text-heading)" }}
       >
         <UserIcon />
       </button>
@@ -301,70 +313,47 @@ function AccountDropdown() {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 8, scale: 0.96 }}
             transition={{ duration: 0.15, ease: "easeOut" }}
-            className="absolute right-0 top-8 w-56 rounded-xl overflow-hidden z-[9999]"
-            style={{ backgroundColor: "#111111", border: "1px solid rgba(255,255,255,0.15)", boxShadow: "0 8px 32px rgba(0,0,0,0.6)" }}
+            className="absolute right-0 top-9 w-56 rounded-xl overflow-hidden z-[9999] bg-white shadow-2xl"
+            style={{ border: "1px solid rgba(0,0,0,0.1)" }}
           >
             {isLoggedIn ? (
               <>
-                {/* Logged-in user header */}
-                <div className="px-4 pt-3 pb-2 border-b border-white/10">
-                  <p className="text-[9px] tracking-[0.25em] uppercase font-sans" style={{ color: "rgba(255,255,255,0.35)" }}>Signed in as</p>
-                  <p className="text-xs font-semibold truncate font-sans mt-0.5" style={{ color: "#ffffff" }}>{user?.name}</p>
-                  <p className="text-[10px] truncate font-sans" style={{ color: "rgba(255,255,255,0.45)" }}>{user?.email}</p>
+                <div className="px-4 pt-3 pb-2 border-b border-black/8">
+                  <p className="text-[9px] tracking-[0.25em] uppercase font-sans text-black/40">Signed in as</p>
+                  <p className="text-xs font-semibold truncate font-sans mt-0.5 text-[#1a1a1a]">{user?.name}</p>
+                  <p className="text-[10px] truncate font-sans text-black/50">{user?.email}</p>
                 </div>
 
-                {/* ── Admin dashboard shortcut ── */}
                 {isAdmin && (
                   <>
-                    <Link
-                      href="/admin/dashboard"
-                      onClick={() => setOpen(false)}
-                      className="flex items-center gap-3 px-4 py-2.5 text-xs font-semibold transition-colors font-sans"
-                      style={{ color: "#D4AF37", background: "rgba(212,175,55,0.10)" }}
-                      onMouseEnter={e => (e.currentTarget.style.background = "rgba(212,175,55,0.20)")}
-                      onMouseLeave={e => (e.currentTarget.style.background = "rgba(212,175,55,0.10)")}
-                    >
-                      <ShieldIcon />
-                      My Dashboard
+                    <Link href="/admin/dashboard" onClick={() => setOpen(false)}
+                      className="flex items-center gap-3 px-4 py-2.5 text-xs font-semibold transition-colors font-sans hover:bg-[#faf8f0]"
+                      style={{ color: "var(--color-primary)" }}>
+                      <ShieldIcon /> My Dashboard
                     </Link>
-                    <div className="mx-4 border-t border-white/10" />
+                    <div className="mx-4 border-t border-black/8" />
                   </>
                 )}
 
-                {/* Customer links — only for non-admin */}
                 {!isAdmin && (
                   <>
                     <Link href="/account/orders" onClick={() => setOpen(false)}
-                      className="flex items-center gap-3 px-4 py-2.5 text-xs transition-colors font-sans"
-                      style={{ color: "rgba(255,255,255,0.85)" }}
-                      onMouseEnter={e => (e.currentTarget.style.backgroundColor = "rgba(255,255,255,0.08)")}
-                      onMouseLeave={e => (e.currentTarget.style.backgroundColor = "")}>
+                      className="flex items-center gap-3 px-4 py-2.5 text-xs transition-colors font-sans text-[#1a1a1a] hover:bg-[#f5f5f5]">
                       <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/>
+                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/>
                       </svg>
                       My Orders
                     </Link>
                     <Link href="/account/wishlist" onClick={() => setOpen(false)}
-                      className="flex items-center gap-3 px-4 py-2.5 text-xs transition-colors font-sans"
-                      style={{ color: "rgba(255,255,255,0.85)" }}
-                      onMouseEnter={e => (e.currentTarget.style.backgroundColor = "rgba(255,255,255,0.08)")}
-                      onMouseLeave={e => (e.currentTarget.style.backgroundColor = "")}>
-                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                        <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
-                      </svg>
-                      My Wishlist
+                      className="flex items-center gap-3 px-4 py-2.5 text-xs transition-colors font-sans text-[#1a1a1a] hover:bg-[#f5f5f5]">
+                      <WishlistIcon /> My Wishlist
                     </Link>
-                    <div className="mx-4 my-1 border-t border-white/10" />
+                    <div className="mx-4 my-1 border-t border-black/8" />
                   </>
                 )}
 
-                <button
-                  onClick={() => { setOpen(false); signOut({ callbackUrl: "/" }); }}
-                  className="flex items-center gap-3 w-full px-4 py-2.5 mb-1 text-xs transition-colors font-sans text-left"
-                  style={{ color: "#f87171" }}
-                  onMouseEnter={e => (e.currentTarget.style.backgroundColor = "rgba(239,68,68,0.12)")}
-                  onMouseLeave={e => (e.currentTarget.style.backgroundColor = "")}
-                >
+                <button onClick={() => { setOpen(false); signOut({ callbackUrl: "/" }); }}
+                  className="flex items-center gap-3 w-full px-4 py-2.5 mb-1 text-xs transition-colors font-sans text-left text-red-500 hover:bg-red-50">
                   <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                     <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/>
                   </svg>
@@ -373,48 +362,36 @@ function AccountDropdown() {
               </>
             ) : (
               <>
-                {/* Guest */}
                 <div className="px-4 pt-3 pb-1">
-                  <p className="text-[9px] tracking-[0.25em] uppercase font-sans" style={{ color: "rgba(255,255,255,0.35)" }}>Customer</p>
+                  <p className="text-[9px] tracking-[0.25em] uppercase font-sans text-black/40">Customer</p>
                 </div>
                 <Link href="/login" onClick={() => setOpen(false)}
-                  className="flex items-center gap-3 px-4 py-2.5 text-xs transition-colors font-sans"
-                  style={{ color: "rgba(255,255,255,0.85)" }}
-                  onMouseEnter={e => (e.currentTarget.style.backgroundColor = "rgba(255,255,255,0.08)")}
-                  onMouseLeave={e => (e.currentTarget.style.backgroundColor = "")}>
-                  <UserIcon /> Sign in
+                  className="flex items-center gap-3 px-4 py-2.5 text-xs transition-colors font-sans text-[#1a1a1a] hover:bg-[#f5f5f5]">
+                  <UserIcon size={12} /> Sign in
                 </Link>
                 <Link href="/register" onClick={() => setOpen(false)}
-                  className="flex items-center gap-3 px-4 py-2.5 text-xs transition-colors font-sans"
-                  style={{ color: "rgba(255,255,255,0.85)" }}
-                  onMouseEnter={e => (e.currentTarget.style.backgroundColor = "rgba(255,255,255,0.08)")}
-                  onMouseLeave={e => (e.currentTarget.style.backgroundColor = "")}>
+                  className="flex items-center gap-3 px-4 py-2.5 text-xs transition-colors font-sans text-[#1a1a1a] hover:bg-[#f5f5f5]">
                   <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                     <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/>
                     <line x1="19" y1="8" x2="19" y2="14"/><line x1="22" y1="11" x2="16" y2="11"/>
                   </svg>
                   Create account
                 </Link>
-                <div className="mx-4 my-1 border-t border-white/10" />
+                <div className="mx-4 my-1 border-t border-black/8" />
                 <Link href="/track-order" onClick={() => setOpen(false)}
-                  className="flex items-center gap-3 px-4 py-2.5 text-xs transition-colors font-sans"
-                  style={{ color: "rgba(255,255,255,0.5)" }}
-                  onMouseEnter={e => (e.currentTarget.style.backgroundColor = "rgba(255,255,255,0.08)")}
-                  onMouseLeave={e => (e.currentTarget.style.backgroundColor = "")}>
+                  className="flex items-center gap-3 px-4 py-2.5 text-xs transition-colors font-sans text-black/50 hover:bg-[#f5f5f5]">
                   <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                     <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
                   </svg>
-                  Track Order (Guest)
+                  Track Order
                 </Link>
-                <div className="mx-4 my-1 border-t border-white/10" />
+                <div className="mx-4 my-1 border-t border-black/8" />
                 <div className="px-4 pt-2 pb-1">
-                  <p className="text-[9px] tracking-[0.25em] uppercase font-sans" style={{ color: "rgba(212,175,55,0.6)" }}>Admin</p>
+                  <p className="text-[9px] tracking-[0.25em] uppercase font-sans" style={{ color: "var(--color-primary)" }}>Admin</p>
                 </div>
                 <Link href="/admin/login" onClick={() => setOpen(false)}
-                  className="flex items-center gap-3 px-4 py-2.5 mb-1 text-xs font-semibold transition-colors font-sans"
-                  style={{ color: "#D4AF37" }}
-                  onMouseEnter={e => (e.currentTarget.style.backgroundColor = "rgba(212,175,55,0.10)")}
-                  onMouseLeave={e => (e.currentTarget.style.backgroundColor = "")}>
+                  className="flex items-center gap-3 px-4 py-2.5 mb-1 text-xs font-semibold transition-colors font-sans hover:bg-[#faf8f0]"
+                  style={{ color: "var(--color-primary)" }}>
                   <ShieldIcon /> Admin portal
                 </Link>
               </>
@@ -426,207 +403,319 @@ function AccountDropdown() {
   );
 }
 
+// ─── Types ────────────────────────────────────────────────────────────────────
+
+interface NavCategory {
+  id: string;
+  categoryName: string;
+  parentId: string | null;
+}
+
 // ─── Navbar ───────────────────────────────────────────────────────────────────
 
 export default function Navbar() {
-  const [scrolled,   setScrolled]   = useState(false);
-  const [mobileOpen, setMobileOpen] = useState(false);
+  const [scrolled,    setScrolled]    = useState(false);
+  const [mobileOpen,  setMobileOpen]  = useState(false);
+  const [searchOpen,  setSearchOpen]  = useState(false);
+  const [categories,  setCategories]  = useState<NavCategory[]>([]);
+  const [catLoading,  setCatLoading]  = useState(false);
+  const [navigationStack, setNavigationStack] = useState<string[]>([]); // Breadcrumb navigation
   const { totalItems, isOpen: cartOpen, openCart, closeCart } = useCart();
   const { data: session } = useSession();
   const isLoggedIn = !!session?.user;
+  const router = useRouter();
 
   useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 20);
+    const onScroll = () => setScrolled(window.scrollY > 10);
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
+  // Fetch categories once when drawer first opens
+  useEffect(() => {
+    if (!mobileOpen || categories.length > 0) return;
+    setCatLoading(true);
+    fetch("/api/product-categories?isActive=true&limit=100")
+      .then(r => r.json())
+      .then(json => { if (json.success) setCategories(json.data ?? []); })
+      .catch(() => {})
+      .finally(() => setCatLoading(false));
+  }, [mobileOpen, categories.length]);
+
+  // Lock body scroll when mobile drawer is open
+  useEffect(() => {
+    document.body.style.overflow = mobileOpen ? "hidden" : "";
+    return () => { document.body.style.overflow = ""; };
+  }, [mobileOpen]);
+
+  const topLevelCats  = categories.filter(c => !c.parentId);
+  const childrenOf    = (id: string) => categories.filter(c => c.parentId === id);
+
+  // Get current level categories based on navigation stack
+  const getCurrentLevelCats = (): NavCategory[] => {
+    if (navigationStack.length === 0) {
+      return topLevelCats;
+    } else {
+      const currentParentId = navigationStack[navigationStack.length - 1];
+      return childrenOf(currentParentId);
+    }
+  };
+
+  // Navigate into a category (breadcrumb drill-down)
+  const navigateIntoCategory = (catId: string) => {
+    const children = childrenOf(catId);
+    if (children.length > 0) {
+      // Has children - drill down
+      setNavigationStack(prev => [...prev, catId]);
+    } else {
+      // Leaf category - navigate to pharmacy page
+      goToCategory(catId);
+    }
+  };
+
+  // Navigate back one level
+  const navigateBack = () => {
+    if (navigationStack.length > 0) {
+      const newStack = [...navigationStack];
+      newStack.pop();
+      setNavigationStack(newStack);
+    }
+  };
+
+  // Get current parent category name
+  const getCurrentParentCat = (): NavCategory | null => {
+    if (navigationStack.length === 0) return null;
+    const currentParentId = navigationStack[navigationStack.length - 1];
+    return categories.find(c => c.id === currentParentId) || null;
+  };
+
+  const goToCategory = (id: string) => {
+    setMobileOpen(false);
+    setNavigationStack([]); // Reset navigation
+    router.push(`/pharmacy?category=${id}`);
+  };
+
   return (
     <>
-      <motion.nav
-        initial={{ y: -64 }}
-        animate={{ y: 0 }}
-        transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
-        className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
-          scrolled ? "backdrop-blur-md shadow-lg" : ""
-        }`}
-        style={{ backgroundColor: "var(--color-bg-nav)" }}
-      >
-        <div className="w-full pl-8 pr-8 h-20 flex items-center justify-between gap-6">
-          {/* Brand + Nav links together on the left */}
-          <div className="flex items-center gap-8 flex-shrink-0">
-            <Link href="/" className="flex-shrink-0">
-              <div className="flex flex-col items-center leading-tight">
-                <span className="font-heading text-xl tracking-[0.12em] uppercase"
-                  style={{ color: "var(--color-primary)" }}>
-                  Rosewood
-                </span>
-                <span className="font-sans text-[10px] tracking-[0.35em] uppercase text-white mt-0.5">
-                  Pharmacy
-                </span>
-              </div>
-            </Link>
+      {/* ── Top contact bar ── */}
+      <div className="w-full bg-[#1A1A1A] text-white text-[11px] font-sans py-1.5 px-6 flex items-center justify-between z-[9999] fixed top-0 left-0 right-0">
+        {/* Left - phone */}
+        <div className="flex items-center gap-4">
+          <a href="tel:+441234567890" className="flex items-center gap-1.5 hover:text-[#D4AF37] transition-colors">
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 13.6 19.79 19.79 0 0 1 1.64 5a2 2 0 0 1 1.99-2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 10.9a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 17z"/>
+            </svg>
+            +44 123 456 7890
+          </a>
+          <a href="mailto:info@rosewoodpharmacy.com" className="flex items-center gap-1.5 hover:text-[#D4AF37] transition-colors">
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/>
+            </svg>
+            info@rosewoodpharmacy.com
+          </a>
+        </div>
 
-            {/* Desktop nav links — right next to logo */}
-            <ul className="hidden md:flex items-center gap-6">
-              {navLinks.map((link) => (
-                <li key={link.href}>
-                  <Link href={link.href}
-                    className="group relative text-white hover:text-[#FFD700] text-xs tracking-wide uppercase transition-colors duration-200 font-sans pb-0.5">
-                    {link.label}
-                    <span className="absolute bottom-0 left-0 w-full h-px bg-[#FFD700] scale-x-0 group-hover:scale-x-100 origin-left transition-transform duration-300 ease-out" />
-                  </Link>
-                </li>
-              ))}
-            </ul>
+        {/* Center - message */}
+        <p className="hidden md:block tracking-[0.15em] uppercase text-[10px] text-white/60">
+          Free delivery on orders over £50
+        </p>
+
+        {/* Right - opening hours */}
+        <div className="flex items-center gap-1.5 text-white/70">
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <circle cx="12" cy="12" r="10"/><polyline points="12,6 12,12 16,14"/>
+          </svg>
+          Mon–Fri: 9am–6pm · Sat: 10am–4pm
+        </div>
+      </div>
+
+      {/* ── Main bar ── */}
+      <motion.nav
+        initial={{ y: -80 }}
+        animate={{ y: 0 }}
+        transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
+        className="fixed left-0 right-0 z-50 transition-shadow duration-300"
+        style={{
+          top: "30px",
+          backgroundColor: "#ffffff",
+          borderBottom: "1px solid rgba(0,0,0,0.10)",
+          boxShadow: scrolled ? "0 1px 12px rgba(0,0,0,0.06)" : "none",
+        }}
+      >
+        <div className="w-full px-5 md:px-10 h-[64px] grid grid-cols-3 items-center">
+
+          {/* ── LEFT: hamburger ── */}
+          <div className="flex items-center">
+            <button
+              aria-label="Menu"
+              onClick={() => setMobileOpen((v) => !v)}
+              className="transition-opacity hover:opacity-60"
+              style={{ color: "var(--color-text-heading)" }}
+            >
+              {mobileOpen ? <CloseIcon /> : <MenuIcon />}
+            </button>
           </div>
 
-          {/* Right side: Search + icons */}
-          <div className="hidden md:flex items-center gap-4 text-white">
-            {/* Search */}
-            <div className="flex items-center">
-              <SearchBar />
-            </div>
+          {/* ── CENTER: logo ── */}
+          <div className="flex justify-center">
+            <Link href="/" className="flex flex-col items-center leading-none select-none">
+              <span
+                className="font-heading text-[22px] md:text-[26px] tracking-[-0.01em]"
+                style={{ color: "var(--color-text-heading)" }}
+              >
+                Rosewood
+              </span>
+              <span
+                className="font-sans text-[9px] tracking-[0.28em] uppercase mt-0.5"
+                style={{ color: "var(--color-text-muted)" }}
+              >
+                Pharmacy
+              </span>
+            </Link>
+          </div>
 
-            {/* Wishlist */}
-            {isLoggedIn ? (
-              <Link href="/account/wishlist" aria-label="Wishlist" className="hover:text-[#FFD700] transition-colors">
-                <WishlistIcon />
-              </Link>
-            ) : (
-              <Link href="/login" aria-label="Wishlist" className="hover:text-[#FFD700] transition-colors opacity-60" title="Sign in to use wishlist">
-                <WishlistIcon />
-              </Link>
-            )}
+          {/* ── RIGHT: search · account · cart ── */}
+          <div className="flex items-center justify-end gap-5" style={{ color: "var(--color-text-heading)" }}>
+            {/* Search */}
+            <button
+              aria-label="Search"
+              onClick={() => setSearchOpen(true)}
+              className="transition-opacity hover:opacity-60"
+            >
+              <SearchIcon />
+            </button>
+
+            {/* Account */}
+            <AccountDropdown />
 
             {/* Cart */}
-            <button aria-label="Cart" onClick={openCart} className="hover:text-[#FFD700] transition-colors relative">
+            <button
+              aria-label="Cart"
+              onClick={openCart}
+              className="relative transition-opacity hover:opacity-60"
+            >
               <CartIcon />
               {totalItems > 0 && (
-                <span className="absolute -top-1.5 -right-1.5 w-4 h-4 text-black text-[8px] font-bold rounded-full flex items-center justify-center"
-                  style={{ backgroundColor: "var(--color-primary)" }}>
+                <span
+                  className="absolute -top-1.5 -right-1.5 w-[16px] h-[16px] text-[8px] font-bold rounded-full flex items-center justify-center"
+                  style={{ backgroundColor: "var(--color-text-heading)", color: "#ffffff" }}
+                >
                   {totalItems > 99 ? "99+" : totalItems}
                 </span>
               )}
             </button>
-            <AccountDropdown />
           </div>
-
-          {/* Mobile menu button */}
-          <button className="md:hidden text-white hover:text-[#FFD700] transition-colors ml-auto"
-            onClick={() => setMobileOpen((v) => !v)} aria-label="Toggle menu">
-            {mobileOpen ? <CloseIcon /> : <MenuIcon />}
-          </button>
-        </div>
-
-        {/* Mobile search */}
-        <div className="md:hidden px-4 pb-3">
-          <SearchBar mobile />
         </div>
       </motion.nav>
 
-      {/* Mobile drawer */}
+      {/* ── Mobile full-screen drawer ── */}
       <AnimatePresence>
         {mobileOpen && (
-          <motion.div
-            initial={{ x: "100%" }} animate={{ x: 0 }} exit={{ x: "100%" }}
-            transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
-            className="fixed inset-y-0 right-0 z-40 w-72 bg-[#000000] border-l border-white/10 flex flex-col pt-20 px-8"
-          >
-            <ul className="space-y-6">
-              {navLinks.map((link) => (
-                <li key={link.href}>
-                  <Link href={link.href} onClick={() => setMobileOpen(false)}
-                    className="text-white hover:text-[#FFD700] text-sm tracking-widest uppercase transition-colors font-sans">
-                    {link.label}
-                  </Link>
-                </li>
-              ))}
-            </ul>
+          <>
+            {/* Overlay */}
+            <motion.div
+              initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+              transition={{ duration: 0.2 }}
+              className="fixed inset-0 z-40 bg-black/30"
+              onClick={() => setMobileOpen(false)}
+            />
 
-            <div className="mt-10 border-t border-white/10 pt-8 space-y-4">
-              <p className="text-[9px] tracking-[0.25em] uppercase text-white/30 font-sans">Account</p>
-              {isLoggedIn ? (
-                <>
-                  {/* Admin dashboard shortcut in mobile */}
-                  {(session?.user as { role?: string })?.role === "ADMIN" ||
-                   (session?.user as { role?: string })?.role === "SUPERADMIN" ? (
-                    <Link href="/admin/dashboard" onClick={() => setMobileOpen(false)}
-                      className="flex items-center gap-2 text-xs font-semibold transition-colors font-sans"
-                      style={{ color: "#D4AF37" }}>
-                      <ShieldIcon /> My Dashboard
-                    </Link>
-                  ) : (
-                    <>
-                      <Link href="/account/orders" onClick={() => setMobileOpen(false)}
-                        className="flex items-center gap-2 text-xs text-white hover:text-[#FFD700] transition-colors font-sans">
-                        <UserIcon /> My Orders
-                      </Link>
-                      <Link href="/account/wishlist" onClick={() => setMobileOpen(false)}
-                        className="flex items-center gap-2 text-xs text-white hover:text-[#FFD700] transition-colors font-sans">
-                        <WishlistIcon /> My Wishlist
-                      </Link>
-                    </>
-                  )}
-                  <button onClick={() => { setMobileOpen(false); signOut({ callbackUrl: "/" }); }}
-                    className="flex items-center gap-2 text-xs text-red-400 hover:text-red-300 transition-colors font-sans">
-                    Sign Out
-                  </button>
-                </>
-              ) : (
-                <>
-                  <Link href="/login" onClick={() => setMobileOpen(false)}
-                    className="flex items-center gap-2 text-xs text-white hover:text-[#FFD700] transition-colors font-sans">
-                    <UserIcon /> Customer Sign in
-                  </Link>
-                  <Link href="/register" onClick={() => setMobileOpen(false)}
-                    className="flex items-center gap-2 text-xs text-white hover:text-[#FFD700] transition-colors font-sans">
-                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" />
-                      <line x1="19" y1="8" x2="19" y2="14" /><line x1="22" y1="11" x2="16" y2="11" />
-                    </svg>
-                    Create account
-                  </Link>
-                  <Link href="/track-order" onClick={() => setMobileOpen(false)}
-                    className="flex items-center gap-2 text-xs text-white/50 hover:text-white/80 transition-colors font-sans">
-                    Track Order (Guest)
-                  </Link>
-                  <Link href="/admin/login" onClick={() => setMobileOpen(false)}
-                    className="flex items-center gap-2 text-xs text-[#FFD700] hover:text-[#FFD700] drop-shadow-[0_0_6px_rgba(255,215,0,0.5)] transition-colors font-sans">
-                    <ShieldIcon /> Admin portal
-                  </Link>
-                </>
-              )}
-            </div>
-
-            <div className="mt-8 flex gap-6 text-white">
-              <button aria-label="Cart" onClick={() => { setMobileOpen(false); openCart(); }}
-                className="hover:text-[#FFD700] transition-colors relative">
-                <CartIcon />
-                {totalItems > 0 && (
-                  <span className="absolute -top-1.5 -right-1.5 w-4 h-4 text-black text-[8px] font-bold rounded-full flex items-center justify-center"
-                    style={{ backgroundColor: "var(--color-primary)" }}>
-                    {totalItems}
-                  </span>
-                )}
+            {/* Drawer */}
+            <motion.div
+              initial={{ x: "-100%" }} animate={{ x: 0 }} exit={{ x: "-100%" }}
+              transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
+              className="fixed inset-y-0 left-0 z-50 w-[300px] bg-white flex flex-col pt-20 pb-10 overflow-y-auto"
+              style={{ borderRight: "1px solid rgba(0,0,0,0.08)" }}
+            >
+              {/* Close */}
+              <button
+                onClick={() => setMobileOpen(false)}
+                className="absolute top-5 left-6 transition-opacity hover:opacity-60"
+                style={{ color: "var(--color-text-heading)" }}
+              >
+                <CloseIcon />
               </button>
-            </div>
-          </motion.div>
+
+              {/* ── Product Categories ── */}
+              <div className="mt-2">
+                <div className="flex items-center justify-between px-6 py-3">
+                  {navigationStack.length > 0 && (
+                    <button
+                      onClick={navigateBack}
+                      className="flex items-center gap-1 text-sm font-sans"
+                      style={{ color: "var(--color-primary)" }}
+                    >
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <path d="m15 18-6-6 6-6" />
+                      </svg>
+                      Back
+                    </button>
+                  )}
+                  <p className="text-[10px] tracking-[0.25em] uppercase font-sans text-black/35">
+                    {navigationStack.length === 0 ? "Shop by Category" : getCurrentParentCat()?.categoryName || "Categories"}
+                  </p>
+                </div>
+
+                {catLoading ? (
+                  <div className="flex justify-center py-6">
+                    <svg className="animate-spin w-5 h-5 text-gray-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83" />
+                    </svg>
+                  </div>
+                ) : (
+                  <ul>
+                    {getCurrentLevelCats().map((cat) => {
+                      const children = childrenOf(cat.id);
+                      const hasChildren = children.length > 0;
+
+                      return (
+                        <li key={cat.id}>
+                          <button
+                            type="button"
+                            className="w-full flex items-center justify-between px-6 py-4 text-[15px] font-sans border-b border-black/6 transition-colors hover:bg-gray-50 text-left"
+                            style={{ color: "var(--color-text-heading)" }}
+                            onClick={() => navigateIntoCategory(cat.id)}
+                          >
+                            {cat.categoryName}
+                            {hasChildren && (
+                              <svg
+                                width="16" height="16" viewBox="0 0 24 24" fill="none"
+                                stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"
+                                className="flex-shrink-0 text-gray-400"
+                              >
+                                <path d="m9 18 6-6-6-6" />
+                              </svg>
+                            )}
+                          </button>
+                        </li>
+                      );
+                    })}
+                  </ul>
+                )}
+              </div>
+
+              {/* ── Cart shortcut ── */}
+              <div className="mt-auto pt-6 px-6 border-t border-black/8">
+                <button
+                  onClick={() => { setMobileOpen(false); openCart(); }}
+                  className="flex items-center gap-3 text-[15px] font-sans transition-opacity hover:opacity-70"
+                  style={{ color: "var(--color-text-heading)" }}
+                >
+                  <CartIcon size={16} />
+                  Cart {totalItems > 0 && `(${totalItems})`}
+                </button>
+              </div>
+            </motion.div>
+          </>
         )}
       </AnimatePresence>
 
-      {/* Mobile overlay */}
+      {/* ── Search overlay ── */}
       <AnimatePresence>
-        {mobileOpen && (
-          <motion.div
-            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-            className="fixed inset-0 z-30 bg-black/60 md:hidden"
-            onClick={() => setMobileOpen(false)}
-          />
-        )}
+        {searchOpen && <SearchOverlay onClose={() => setSearchOpen(false)} />}
       </AnimatePresence>
 
-      {/* Cart Drawer */}
+      {/* ── Cart Drawer ── */}
       <CartDrawer open={cartOpen} onClose={closeCart} />
     </>
   );

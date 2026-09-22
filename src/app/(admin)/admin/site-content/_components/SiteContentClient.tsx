@@ -15,6 +15,9 @@ import HeroSection          from "@/components/publicPages/HomePage/heroSection"
 import OurProductCollection from "@/components/publicPages/HomePage/ourProductCollection";
 import OurProductContent    from "@/components/publicPages/HomePage/ourProductContent";
 import TestimonialsSection  from "@/components/publicPages/HomePage/testimonialSection";
+import FeaturedDuoSection   from "@/components/publicPages/HomePage/featuredDuoSection";
+import PromotionsSection    from "@/components/publicPages/HomePage/promotionsSection";
+import DiscoverSectionAdmin from "@/components/publicPages/HomePage/discoverSection";
 import AboutSection         from "@/components/publicPages/aboutPage/aboutSection";
 import OurStorySection      from "@/components/publicPages/aboutPage/ourStory";
 import MissionSection       from "@/components/publicPages/aboutPage/ourMission";
@@ -140,6 +143,21 @@ export default function SiteContentClient() {
           {/* Hero Slides ---------------------------------------------------- */}
           <Section title="Hero Slides" icon={Home} badge="Carousel" defaultOpen>
             <HeroSection />
+          </Section>
+
+          {/* Promotions ----------------------------------------------------- */}
+          <Section title="Promotions" icon={Home} badge="Carousel">
+            <PromotionsSection />
+          </Section>
+
+          {/* Featured Duo --------------------------------------------------- */}
+          <Section title="Featured Duo" icon={Home} badge="Editorial">
+            <FeaturedDuoSection />
+          </Section>
+
+          {/* Discover Section ----------------------------------------------- */}
+          <Section title="Discover Section" icon={Home} badge="Expandable">
+            <DiscoverSectionAdmin />
           </Section>
 
           {/* Product Collection — Categories -------------------------------- */}

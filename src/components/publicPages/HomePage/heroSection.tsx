@@ -53,6 +53,8 @@ export default function HeroSection() {
   const [formData, setFormData]       = useState({ title: "", subtitle: "", order: 0, isActive: true });
   const [imageFile, setImageFile]     = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [imageUrl, setImageUrl]       = useState<string>("");
+  const [imageMode, setImageMode]     = useState<"file" | "url">("file");
   const [submitting, setSubmitting]   = useState(false);
 
   // ── Fetch ──────────────────────────────────────────────────────────────────
@@ -80,6 +82,8 @@ export default function HeroSection() {
     setFormData({ title: "", subtitle: "", order: slides.length, isActive: true });
     setImageFile(null);
     setImagePreview(null);
+    setImageUrl("");
+    setImageMode("file");
     setModalOpen(true);
   };
 
@@ -87,6 +91,9 @@ export default function HeroSection() {
     setEditingSlide(slide);
     setFormData({ title: slide.title || "", subtitle: slide.subtitle || "", order: slide.order, isActive: slide.isActive });
     setImageFile(null);
+    const isExtUrl = slide.imageUrl.startsWith("http");
+    setImageUrl(isExtUrl ? slide.imageUrl : "");
+    setImageMode(isExtUrl ? "url" : "file");
     setImagePreview(slide.imageUrl);
     setModalOpen(true);
   };
@@ -96,6 +103,7 @@ export default function HeroSection() {
     setEditingSlide(null);
     setImageFile(null);
     setImagePreview(null);
+    setImageUrl("");
   };
 
   // ── Form handlers ──────────────────────────────────────────────────────────
@@ -132,7 +140,18 @@ export default function HeroSection() {
       let body: FormData | string;
       let headers: HeadersInit = {};
 
-      if (imageFile) {
+      if (imageMode === "url" && imageUrl.trim()) {
+        // Use external URL directly
+        const payload: any = {
+          title:    formData.title    || undefined,
+          subtitle: formData.subtitle || undefined,
+          order:    formData.order,
+          isActive: formData.isActive,
+          imageUrl: imageUrl.trim(),
+        };
+        body = JSON.stringify(payload);
+        headers["Content-Type"] = "application/json";
+      } else if (imageFile) {
         const form = new FormData();
         form.append("image",    imageFile);
         form.append("title",    formData.title);
@@ -143,7 +162,7 @@ export default function HeroSection() {
       } else {
         if (!isEdit) {
           toast.error("Image required", {
-            description: "Please select an image file for a new slide."
+            description: "Please upload a file or enter an image URL."
           });
           setSubmitting(false);
           return;
@@ -163,10 +182,7 @@ export default function HeroSection() {
       if (!res.ok || !json.success)
         throw new Error(json.message || `Failed to ${isEdit ? "update" : "create"} slide`);
 
-      toast.success(isEdit ? "Slide updated" : "Slide created", {
-        description: isEdit ? "Your changes have been saved." : "New slide added successfully."
-      });
-
+      toast.success(isEdit ? "Slide updated" : "Slide created");
       await fetchSlides();
       closeModal();
     } catch (err) {
@@ -458,25 +474,57 @@ export default function HeroSection() {
 
             <form onSubmit={handleSubmit} className="px-6 py-5 space-y-5">
 
-              {/* Image upload */}
+              {/* Image upload / URL */}
               <div>
                 <label className="block text-[11px] uppercase tracking-[0.12em] font-semibold text-gray-600 mb-1.5">
                   Image {!editingSlide && <span className="text-red-500 normal-case">*</span>}
                 </label>
-                <input
-                  type="file"
-                  accept="image/jpeg,image/png,image/webp,image/avif"
-                  onChange={handleFileChange}
-                  className="w-full text-sm text-gray-600 file:mr-3 file:py-1.5 file:px-3 file:rounded-sm file:border-0 file:text-xs file:font-semibold file:text-black file:cursor-pointer hover:file:opacity-90 transition-colors"
-                  style={{ "--file-bg": "linear-gradient(135deg, #D4AF37 0%, #ffe87c 50%, #b8952e 100%)" } as any}
-                />
+
+                {/* Toggle tabs */}
+                <div className="flex rounded-sm border border-gray-200 overflow-hidden mb-3">
+                  <button
+                    type="button"
+                    onClick={() => setImageMode("file")}
+                    className={`flex-1 py-1.5 text-xs font-semibold transition-colors ${imageMode === "file" ? "bg-[#1A1A1A] text-white" : "bg-white text-gray-500 hover:bg-gray-50"}`}
+                  >
+                    Upload File
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setImageMode("url")}
+                    className={`flex-1 py-1.5 text-xs font-semibold transition-colors ${imageMode === "url" ? "bg-[#1A1A1A] text-white" : "bg-white text-gray-500 hover:bg-gray-50"}`}
+                  >
+                    Image URL
+                  </button>
+                </div>
+
+                {imageMode === "file" ? (
+                  <input
+                    type="file"
+                    accept="image/jpeg,image/png,image/webp,image/avif"
+                    onChange={handleFileChange}
+                    className="w-full text-sm text-gray-600 file:mr-3 file:py-1.5 file:px-3 file:rounded-sm file:border-0 file:text-xs file:font-semibold file:text-black file:cursor-pointer hover:file:opacity-90 transition-colors"
+                    style={{ "--file-bg": "linear-gradient(135deg, #D4AF37 0%, #ffe87c 50%, #b8952e 100%)" } as any}
+                  />
+                ) : (
+                  <input
+                    type="url"
+                    placeholder="https://drive.google.com/... or any image URL"
+                    value={imageUrl ?? ""}
+                    onChange={(e) => {
+                      setImageUrl(e.target.value);
+                      setImagePreview(e.target.value || null);
+                    }}
+                    className={inputCls}
+                  />
+                )}
+
+                {/* Preview */}
                 {imagePreview && (
                   <div className="mt-3 w-full h-36 relative bg-gray-50 rounded-sm overflow-hidden border border-gray-200">
-                    <Image src={imagePreview} alt="Preview" fill className="object-cover" sizes="400px" />
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src={imagePreview} alt="Preview" className="w-full h-full object-cover" />
                   </div>
-                )}
-                {!editingSlide && !imageFile && (
-                  <p className="text-xs text-gray-400 mt-1 font-sans">An image file is required for a new slide.</p>
                 )}
               </div>
 
@@ -487,7 +535,7 @@ export default function HeroSection() {
                 </label>
                 <input
                   id="title" name="title" type="text"
-                  value={formData.title} onChange={handleFormChange}
+                  value={formData.title ?? ""}  onChange={handleFormChange}
                   placeholder="Main heading overlay"
                   className={inputCls}
                 />

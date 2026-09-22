@@ -35,6 +35,9 @@ import OurValues        from "../../features/Ui/AboutUsPage/ourValues/ourValuesM
 import ContactInfo      from "../../features/Ui/contact/contactInfo/contactInfoModel";
 import ContactForm      from "../../features/Ui/contact/contactForm/contactFormModel";
 import SiteTheme, { CustomTheme } from "../../features/siteTheme/siteThemeModel";
+import FeaturedDuo from "../../features/Ui/featuredDuo/featuredDuoModel";
+import PromotionSlide from "../../features/Ui/promotions/promotionsModel";
+import DiscoverSection from "../../features/Ui/discoverSection/discoverModel";
 
 const OPTS = { force: false, alter: false } as const;
 
@@ -68,6 +71,9 @@ async function sync() {
     await ContactForm.sync(OPTS);
     await CustomTheme.sync(OPTS);
     await SiteTheme.sync(OPTS);
+    await FeaturedDuo.sync(OPTS);
+    await PromotionSlide.sync(OPTS);
+    await DiscoverSection.sync(OPTS);
 
     console.log("✅ All tables created (if not exist).");
     console.log("\n💡 To add new columns, run: npm run db:migrate");

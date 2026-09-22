@@ -1,10 +1,10 @@
 import type { Metadata } from "next";
-import { Libre_Caslon_Text, Inter } from "next/font/google";
+import { Libre_Baskerville, Inter } from "next/font/google";
 import "./globals.css";
 import Providers from "./providers";
 import { ReactNode } from "react";
 
-const libreCaslon = Libre_Caslon_Text({
+const libreBaskerville = Libre_Baskerville({
   variable: "--font-heading",
   subsets: ["latin"],
   weight: ["400", "700"],
@@ -25,7 +25,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html
       lang="en"
-      className={`${libreCaslon.variable} ${inter.variable} h-full antialiased`}
+      className={`${libreBaskerville.variable} ${inter.variable} h-full antialiased`}
       suppressHydrationWarning
     >
       <body className="min-h-full flex flex-col" suppressHydrationWarning>

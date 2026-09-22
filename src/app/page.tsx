@@ -2,9 +2,11 @@
 
 import Navbar from "@/components/Navbar";
 import HeroSectionDynamic from "@/components/home/HeroSectionDynamic";
-import BestSellers from "@/components/home/BestSellers";
-import ProductCollectionDynamic from "@/components/home/ProductCollectionDynamic";
-import TestimonialsDynamic from "@/components/home/TestimonialsDynamic";
+import TopSellingProducts from "@/components/home/TopSellingProducts";
+import PromotionsDynamic from "@/components/home/PromotionsDynamic";
+import FeaturedDuoDynamic from "@/components/home/FeaturedDuoDynamic";
+import DiscoverDynamic from "@/components/home/DiscoverDynamic";
+import ArticlesSection from "@/components/home/ArticlesSection";
 import Footer from "@/components/home/Footer";
 import { useTheme } from "@/context/ThemeContext";
 
@@ -21,9 +23,11 @@ export default function HomePage() {
     <div className="min-h-screen w-full" style={{ backgroundColor: bg, margin: 0, padding: 0 }}>
       <Navbar />
       <HeroSectionDynamic />
-      <BestSellers />
-      <ProductCollectionDynamic />
-      <TestimonialsDynamic />
+      <TopSellingProducts />
+      <FeaturedDuoDynamic />
+      <PromotionsDynamic />
+      <DiscoverDynamic />
+      <ArticlesSection />
       <Footer />
     </div>
   );
