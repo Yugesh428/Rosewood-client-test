@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { useState, useEffect, useCallback, useRef } from "react";
+import { motion, AnimatePresence, useMotionValue, useSpring, useTransform } from "framer-motion";
 import Link from "next/link";
 
 type PromotionSlide = {
@@ -22,6 +22,37 @@ export default function PromotionsDynamic() {
   const [current, setCurrent] = useState(0);
   const [loading, setLoading] = useState(true);
   const [paused, setPaused] = useState(false);
+  const [sectionHovered, setSectionHovered] = useState(false);
+
+  // ── 3D Tilt ──────────────────────────────────────────────────────────────
+  const cardRef = useRef<HTMLDivElement>(null);
+  const mouseX = useMotionValue(0);
+  const mouseY = useMotionValue(0);
+  const [shimmerPos, setShimmerPos] = useState({ x: 50, y: 50 });
+  const [isHovering, setIsHovering] = useState(false);
+
+  const rotateX = useSpring(useTransform(mouseY, [-0.5, 0.5], [8, -8]), { stiffness: 200, damping: 20 });
+  const rotateY = useSpring(useTransform(mouseX, [-0.5, 0.5], [-8, 8]), { stiffness: 200, damping: 20 });
+
+  const handleCardMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    const rect = cardRef.current?.getBoundingClientRect();
+    if (!rect) return;
+    const x = (e.clientX - rect.left) / rect.width - 0.5;
+    const y = (e.clientY - rect.top) / rect.height - 0.5;
+    mouseX.set(x);
+    mouseY.set(y);
+    // Shimmer follows mouse
+    setShimmerPos({
+      x: ((e.clientX - rect.left) / rect.width) * 100,
+      y: ((e.clientY - rect.top) / rect.height) * 100,
+    });
+  };
+
+  const handleCardMouseLeave = () => {
+    mouseX.set(0);
+    mouseY.set(0);
+    setIsHovering(false);
+  };
 
   useEffect(() => {
     fetch("/api/ui/promotions")
@@ -51,8 +82,8 @@ export default function PromotionsDynamic() {
   return (
     <section
       className="w-full relative"
-      onMouseEnter={() => setPaused(true)}
-      onMouseLeave={() => setPaused(false)}
+      onMouseEnter={() => { setPaused(true); setSectionHovered(true); }}
+      onMouseLeave={() => { setPaused(false); setSectionHovered(false); }}
     >
       {/* Section label in the gap */}
       <div className="w-full bg-white py-8 text-center">
@@ -81,28 +112,71 @@ export default function PromotionsDynamic() {
             <div className="absolute inset-0" style={{ backgroundColor: "#1a1a2e" }} />
           )}
 
-          {/* Dark overlay for depth */}
+          {/* Dark overlay */}
           <div className="absolute inset-0"
-            style={{ background: "linear-gradient(135deg, rgba(0,0,0,0.55) 0%, rgba(0,0,0,0.2) 60%, rgba(0,0,0,0.45) 100%)" }}
+            style={{ background: "linear-gradient(135deg, rgba(0,0,0,0.45) 0%, rgba(0,0,0,0.1) 60%, rgba(0,0,0,0.35) 100%)" }}
           />
 
-          {/* ── Glassmorphism card (content above image) ── */}
+          {/* ── Card (content above image) ── */}
           <div className="relative z-10 w-full h-full flex items-center justify-end px-8 md:px-16 py-16" style={{ minHeight: "520px" }}>
+            <AnimatePresence>
+            {sectionHovered && (
             <motion.div
-              initial={{ opacity: 0, y: 30 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.2 }}
-              className="max-w-md w-full"
+              ref={cardRef}
+              initial={{ opacity: 0, scale: 0.92, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.92, y: 20 }}
+              transition={{ duration: 0.35, ease: "easeOut" }}
+              onMouseMove={handleCardMouseMove}
+              onMouseEnter={() => setIsHovering(true)}
+              onMouseLeave={handleCardMouseLeave}
               style={{
-                background: "rgba(255, 255, 255, 0.01)",
-                backdropFilter: "blur(8px)",
-                WebkitBackdropFilter: "blur(8px)",
-                border: "1px solid rgba(255, 255, 255, 0.08)",
+                rotateX,
+                rotateY,
+                transformStyle: "preserve-3d",
+                perspective: 1000,
+                background: "rgba(0, 0, 0, 0.55)",
+                border: "1px solid rgba(255,255,255,0.12)",
                 borderRadius: "16px",
                 padding: "2.5rem",
-                boxShadow: "0 4px 16px rgba(0,0,0,0.08)",
+                boxShadow: "0 8px 32px rgba(0,0,0,0.4)",
+                position: "relative",
+                overflow: "hidden",
               }}
+              className="max-w-md w-full cursor-default"
             >
+              {/* Shimmer overlay - follows mouse */}
+              <motion.div
+                animate={{ opacity: isHovering ? 1 : 0 }}
+                transition={{ duration: 0.3 }}
+                style={{
+                  position: "absolute",
+                  inset: 0,
+                  background: `radial-gradient(circle 120px at ${shimmerPos.x}% ${shimmerPos.y}%, rgba(212,175,55,0.18) 0%, rgba(255,255,255,0.06) 40%, transparent 70%)`,
+                  pointerEvents: "none",
+                  borderRadius: "16px",
+                  zIndex: 0,
+                }}
+              />
+
+              {/* Sweep shimmer on hover */}
+              <motion.div
+                initial={{ x: "-100%", opacity: 0 }}
+                animate={isHovering ? { x: "200%", opacity: [0, 0.4, 0] } : { x: "-100%", opacity: 0 }}
+                transition={{ duration: 0.8, ease: "easeInOut" }}
+                style={{
+                  position: "absolute",
+                  top: 0, bottom: 0,
+                  width: "60%",
+                  background: "linear-gradient(90deg, transparent, rgba(255,255,255,0.12), transparent)",
+                  transform: "skewX(-15deg)",
+                  pointerEvents: "none",
+                  zIndex: 1,
+                }}
+              />
+
+              {/* All content — lifted above shimmer */}
+              <div style={{ position: "relative", zIndex: 2 }}>
               {/* Eyebrow */}
               {slide.eyebrow && (
                 <p className="text-[9px] tracking-[0.4em] uppercase font-sans mb-4"
@@ -215,7 +289,10 @@ export default function PromotionsDynamic() {
                   </span>
                 </div>
               )}
+              </div>{/* end content z-2 */}
             </motion.div>
+            )}
+            </AnimatePresence>
           </div>
 
         </motion.div>

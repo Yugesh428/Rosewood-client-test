@@ -3,7 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 
 type HeroSlide = {
   id: string;
@@ -14,15 +14,34 @@ type HeroSlide = {
   isActive: boolean;
 };
 
+type Bubble = {
+  id: number;
+  x: number;
+  y: number;
+  size: number;
+  color: string;
+};
+
 // Returns "left" for even slides, "right" for odd
 function textSide(index: number): "left" | "right" {
   return index % 2 === 0 ? "left" : "right";
 }
 
+const BUBBLE_COLORS = [
+  "rgba(212,175,55,0.5)",
+  "rgba(255,255,255,0.4)",
+  "rgba(212,175,55,0.35)",
+  "rgba(255,255,255,0.3)",
+  "rgba(180,150,40,0.45)",
+];
+
 export default function HeroSectionDynamic() {
-  const [slides, setSlides]           = useState<HeroSlide[]>([]);
+  const [slides, setSlides]             = useState<HeroSlide[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [loading, setLoading]         = useState(true);
+  const [loading, setLoading]           = useState(true);
+  const [bubbles, setBubbles]           = useState<Bubble[]>([]);
+  const bubbleId                        = useRef(0);
+  const sectionRef                      = useRef<HTMLElement>(null);
 
   useEffect(() => {
     fetch("/api/ui/hero")
@@ -32,12 +51,34 @@ export default function HeroSectionDynamic() {
       .finally(() => setLoading(false));
   }, []);
 
-  // Auto-rotate every 5 s
+  // Auto-rotate every 5s
   useEffect(() => {
     if (slides.length <= 1) return;
     const t = setInterval(() => setCurrentIndex((p) => (p + 1) % slides.length), 5000);
     return () => clearInterval(t);
   }, [slides.length]);
+
+  // Spawn bubble on mouse move
+  const handleMouseMove = useCallback((e: React.MouseEvent<HTMLElement>) => {
+    const rect = sectionRef.current?.getBoundingClientRect();
+    if (!rect) return;
+
+    // Throttle: only spawn every ~80ms
+    if (Math.random() > 0.4) return;
+
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+    const size = Math.random() * 80 + 40; // 40–120px
+    const color = BUBBLE_COLORS[Math.floor(Math.random() * BUBBLE_COLORS.length)];
+    const id = bubbleId.current++;
+
+    setBubbles(prev => [...prev.slice(-25), { id, x, y, size, color }]);
+
+    // Remove bubble after animation
+    setTimeout(() => {
+      setBubbles(prev => prev.filter(b => b.id !== id));
+    }, 1500);
+  }, []);
 
   /* ── Loading ── */
   if (loading) {
@@ -86,8 +127,34 @@ export default function HeroSectionDynamic() {
   const isRight      = side === "right";
 
   return (
-    <section className="relative w-full h-[90vh] min-h-[580px] overflow-hidden pt-[94px]">
-
+    <section
+      ref={sectionRef}
+      onMouseMove={handleMouseMove}
+      className="relative w-full h-[90vh] min-h-[580px] overflow-hidden pt-[94px]"
+    >
+      {/* ── Bubbles layer ── */}
+      <div className="absolute inset-0 z-20 pointer-events-none overflow-hidden">
+        <AnimatePresence>
+          {bubbles.map(bubble => (
+            <motion.div
+              key={bubble.id}
+              initial={{ opacity: 0.9, scale: 0, x: bubble.x - bubble.size / 2, y: bubble.y - bubble.size / 2 }}
+              animate={{ opacity: 0, scale: 1.2, y: bubble.y - bubble.size / 2 - 120 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 1.4, ease: "easeOut" }}
+              className="absolute rounded-full"
+              style={{
+                width: bubble.size,
+                height: bubble.size,
+                backgroundColor: bubble.color,
+                backdropFilter: "blur(6px)",
+                border: "2px solid rgba(255,255,255,0.35)",
+                boxShadow: `0 0 ${bubble.size * 0.5}px ${bubble.color}`,
+              }}
+            />
+          ))}
+        </AnimatePresence>
+      </div>
       {/* ── Background image ── */}
       <AnimatePresence mode="sync">
         <motion.div
