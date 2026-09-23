@@ -3,7 +3,8 @@
 import Image from "next/image";
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
+import gsap from "gsap";
 
 type FeaturedDuoData = {
   id: number;
@@ -24,6 +25,9 @@ type FeaturedDuoData = {
 export default function FeaturedDuoDynamic() {
   const [data, setData] = useState<FeaturedDuoData | null>(null);
   const [loading, setLoading] = useState(true);
+  const shopNowRef = useRef<HTMLAnchorElement>(null);
+  const underlineRef = useRef<HTMLSpanElement>(null);
+  const headingRef = useRef<HTMLHeadingElement>(null);
 
   useEffect(() => {
     fetch("/api/ui/featured-duo")
@@ -36,6 +40,76 @@ export default function FeaturedDuoDynamic() {
       .catch((err) => console.error("Failed to load featured duo:", err))
       .finally(() => setLoading(false));
   }, []);
+
+  // GSAP underline animation
+  useEffect(() => {
+    if (!shopNowRef.current || !underlineRef.current) return;
+
+    const link = shopNowRef.current;
+    const underline = underlineRef.current;
+
+    const handleMouseEnter = () => {
+      gsap.to(underline, {
+        scaleX: 1,
+        duration: 0.6,
+        ease: "power2.out",
+      });
+    };
+
+    const handleMouseLeave = () => {
+      gsap.to(underline, {
+        scaleX: 0,
+        duration: 0.4,
+        ease: "power2.in",
+      });
+    };
+
+    link.addEventListener("mouseenter", handleMouseEnter);
+    link.addEventListener("mouseleave", handleMouseLeave);
+
+    return () => {
+      link.removeEventListener("mouseenter", handleMouseEnter);
+      link.removeEventListener("mouseleave", handleMouseLeave);
+    };
+  }, [data]);
+
+  // GSAP letter animation for heading
+  useEffect(() => {
+    if (!headingRef.current || !data?.heading) return;
+
+    const heading = headingRef.current;
+    const text = data.heading;
+    
+    // Split text into individual letters with spans
+    heading.innerHTML = text
+      .split("")
+      .map((char) => {
+        if (char === " ") return '<span style="display: inline-block; width: 0.3em;"></span>';
+        return `<span style="display: inline-block; opacity: 0;">${char}</span>`;
+      })
+      .join("");
+
+    const letters = heading.querySelectorAll("span");
+
+    // Animate each letter
+    gsap.fromTo(
+      letters,
+      {
+        opacity: 0,
+        rotationX: -90,
+        y: 20,
+      },
+      {
+        opacity: 1,
+        rotationX: 0,
+        y: 0,
+        duration: 0.8,
+        stagger: 0.03,
+        ease: "back.out(1.2)",
+        delay: 0.3,
+      }
+    );
+  }, [data]);
 
   if (loading) return null;
   if (!data || !data.isActive) return null;
@@ -60,17 +134,32 @@ export default function FeaturedDuoDynamic() {
               </p>
             )}
             {data.heading && (
-              <h2 className="font-heading text-3xl md:text-4xl text-[#1A1A1A]">
+              <h2
+                ref={headingRef}
+                className="text-3xl md:text-4xl text-[#1A1A1A]"
+                style={{
+                  fontFamily: "'Lucida Calligraphy', 'Lucida Handwriting', 'Palatino Linotype', cursive",
+                  fontWeight: 400,
+                  letterSpacing: "0.02em",
+                  perspective: "1000px",
+                }}
+              >
                 {data.heading}
               </h2>
             )}
           </div>
           {data.shopNowUrl && (
             <Link
+              ref={shopNowRef}
               href={data.shopNowUrl}
-              className="flex-shrink-0 text-[11px] tracking-[0.18em] uppercase font-sans text-[#1A1A1A] hover:text-[#D4AF37] transition-colors border-b border-[#1A1A1A] hover:border-[#D4AF37] pb-0.5 ml-8"
+              className="flex-shrink-0 relative text-[11px] tracking-[0.18em] uppercase font-sans text-[#1A1A1A] ml-8 pb-1"
             >
               Shop Now
+              <span
+                ref={underlineRef}
+                className="absolute bottom-0 left-0 w-full h-[2px] bg-[#D4AF37] origin-left"
+                style={{ transform: "scaleX(0)" }}
+              />
             </Link>
           )}
         </motion.div>
@@ -119,7 +208,12 @@ export default function FeaturedDuoDynamic() {
                   )}
                   {data.leftTitle && (
                     <motion.h3 
-                      className="font-heading text-2xl md:text-3xl text-white leading-tight"
+                      className="text-2xl md:text-3xl text-white leading-tight"
+                      style={{
+                        fontFamily: "'Lucida Calligraphy', 'Lucida Handwriting', 'Palatino Linotype', cursive",
+                        fontWeight: 400,
+                        letterSpacing: "0.02em",
+                      }}
                       initial={{ opacity: 0, y: 20 }}
                       whileInView={{ opacity: 1, y: 0 }}
                       viewport={{ once: true }}
@@ -174,7 +268,12 @@ export default function FeaturedDuoDynamic() {
                   )}
                   {data.rightTitle && (
                     <motion.h3 
-                      className="font-heading text-2xl md:text-3xl text-white leading-tight"
+                      className="text-2xl md:text-3xl text-white leading-tight"
+                      style={{
+                        fontFamily: "'Lucida Calligraphy', 'Lucida Handwriting', 'Palatino Linotype', cursive",
+                        fontWeight: 400,
+                        letterSpacing: "0.02em",
+                      }}
                       initial={{ opacity: 0, y: 20 }}
                       whileInView={{ opacity: 1, y: 0 }}
                       viewport={{ once: true }}

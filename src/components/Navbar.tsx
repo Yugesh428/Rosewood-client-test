@@ -17,6 +17,121 @@ export const navLinks = [
   { label: "Contact",  href: "/contact"  },
 ];
 
+// ─── Mega Menu ────────────────────────────────────────────────────────────────
+
+interface MegaMenuProps {
+  categories: NavCategory[];
+  onClose: () => void;
+}
+
+function MegaMenu({ categories, onClose }: MegaMenuProps) {
+  const router = useRouter();
+  const topLevel = categories.filter(c => !c.parentId);
+  const childrenOf = (id: string) => categories.filter(c => c.parentId === id);
+
+  const goTo = (id: string) => {
+    onClose();
+    router.push(`/pharmacy?category=${id}`);
+  };
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: -8 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: -8 }}
+      transition={{ duration: 0.2, ease: "easeOut" }}
+      className="fixed left-0 right-0 bg-white z-[9990] shadow-2xl"
+      style={{
+        top: "94px",
+        borderTop: "2px solid #D4AF37",
+        borderBottom: "1px solid rgba(0,0,0,0.08)",
+      }}
+    >
+      <div className="w-full px-10 py-8">
+        <div className="flex gap-10">
+          {/* Shop All link */}
+          <div className="w-[160px] flex-shrink-0">
+            <p className="text-[10px] tracking-[0.25em] uppercase font-sans text-black/40 mb-4">Pharmacy</p>
+            <button
+              onClick={() => { onClose(); router.push("/pharmacy"); }}
+              className="block text-sm font-semibold font-sans text-[#1A1A1A] hover:text-[#D4AF37] transition-colors mb-2"
+            >
+              Shop all products
+            </button>
+            <button
+              onClick={() => { onClose(); router.push("/pharmacy?sort=newest"); }}
+              className="block text-sm font-sans text-[#1A1A1A] hover:text-[#D4AF37] transition-colors mb-2"
+            >
+              New this week
+            </button>
+            <button
+              onClick={() => { onClose(); router.push("/pharmacy?sort=price_asc"); }}
+              className="block text-sm font-sans text-[#1A1A1A] hover:text-[#D4AF37] transition-colors mb-2"
+            >
+              Best sellers
+            </button>
+            <button
+              onClick={() => { onClose(); router.push("/pharmacy"); }}
+              className="block text-sm font-sans mt-2"
+              style={{ color: "#D4AF37" }}
+            >
+              View promotions
+            </button>
+          </div>
+
+          {/* Divider */}
+          <div className="w-px bg-gray-100 flex-shrink-0" />
+
+          {/* Category columns */}
+          <div className="flex-1 grid gap-8"
+            style={{
+              gridTemplateColumns: `repeat(${Math.min(topLevel.length, 5)}, 1fr)`,
+            }}
+          >
+            {topLevel.map(cat => {
+              const children = childrenOf(cat.id);
+              return (
+                <div key={cat.id}>
+                  {/* Parent category */}
+                  <button
+                    onClick={() => goTo(cat.id)}
+                    className="block text-sm font-bold font-sans text-[#1A1A1A] hover:text-[#D4AF37] transition-colors mb-3 uppercase tracking-wide text-left"
+                  >
+                    {cat.categoryName}
+                  </button>
+                  {/* Children */}
+                  <ul className="space-y-2">
+                    {children.map(child => (
+                      <li key={child.id}>
+                        <button
+                          onClick={() => goTo(child.id)}
+                          className="text-sm font-sans text-gray-600 hover:text-[#D4AF37] transition-colors text-left"
+                        >
+                          {child.categoryName}
+                        </button>
+                      </li>
+                    ))}
+                    {children.length === 0 && (
+                      <li>
+                        <button
+                          onClick={() => goTo(cat.id)}
+                          className="text-sm font-sans text-gray-500 hover:text-[#D4AF37] transition-colors text-left"
+                        >
+                          View all
+                        </button>
+                      </li>
+                    )}
+                  </ul>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      </div>
+    </motion.div>
+  );
+}
+
 // ─── SVG Icons ────────────────────────────────────────────────────────────────
 
 function SearchIcon() {
@@ -560,8 +675,13 @@ export default function Navbar() {
           <div className="flex justify-center">
             <Link href="/" className="flex flex-col items-center leading-none select-none">
               <span
-                className="font-heading text-[22px] md:text-[26px] tracking-[-0.01em]"
-                style={{ color: "var(--color-text-heading)" }}
+                className="text-[22px] md:text-[26px]"
+                style={{
+                  color: "var(--color-text-heading)",
+                  fontFamily: "'Lucida Calligraphy', 'Lucida Handwriting', 'Palatino Linotype', cursive",
+                  fontWeight: 400,
+                  letterSpacing: "0.02em",
+                }}
               >
                 Rosewood
               </span>
@@ -624,9 +744,10 @@ export default function Navbar() {
             <motion.div
               initial={{ x: "-100%" }} animate={{ x: 0 }} exit={{ x: "-100%" }}
               transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
-              className="fixed inset-y-0 left-0 z-50 w-[300px] bg-white flex flex-col pt-20 pb-10 overflow-y-auto"
-              style={{ borderRight: "1px solid rgba(0,0,0,0.08)" }}
+              className="fixed inset-y-0 left-0 z-50 w-[300px] bg-white flex flex-col pt-20 pb-10"
+              style={{ borderRight: "1px solid rgba(0,0,0,0.12)", overflowY: "auto", scrollbarWidth: "none", msOverflowStyle: "none" }}
             >
+              <style>{`.mobile-drawer::-webkit-scrollbar { display: none; }`}</style>
               {/* Close */}
               <button
                 onClick={() => setMobileOpen(false)}
@@ -635,6 +756,31 @@ export default function Navbar() {
               >
                 <CloseIcon />
               </button>
+
+              {/* ── Page Links — above categories ── */}
+              <div className="px-6 pt-4 pb-4 border-b border-black/8">
+                <p className="text-[10px] tracking-[0.25em] uppercase font-sans text-black/35 mb-3">Pages</p>
+                <Link
+                  href="/pharmacy"
+                  onClick={() => setMobileOpen(false)}
+                  className="flex items-center py-2.5 text-[15px] font-sans transition-all duration-200 border-b"
+                  style={{ color: "var(--color-text-heading)", borderColor: "rgba(0,0,0,0.12)", paddingLeft: "24px" }}
+                  onMouseEnter={e => {
+                    e.currentTarget.style.backgroundColor = "#fdfbf4";
+                    e.currentTarget.style.color = "#D4AF37";
+                    e.currentTarget.style.paddingLeft = "28px";
+                    e.currentTarget.style.borderLeft = "3px solid #D4AF37";
+                  }}
+                  onMouseLeave={e => {
+                    e.currentTarget.style.backgroundColor = "";
+                    e.currentTarget.style.color = "var(--color-text-heading)";
+                    e.currentTarget.style.paddingLeft = "24px";
+                    e.currentTarget.style.borderLeft = "";
+                  }}
+                >
+                  Pharmacy
+                </Link>
+              </div>
 
               {/* ── Product Categories ── */}
               <div className="mt-2">
@@ -667,22 +813,29 @@ export default function Navbar() {
                     {getCurrentLevelCats().map((cat) => {
                       const children = childrenOf(cat.id);
                       const hasChildren = children.length > 0;
-
                       return (
                         <li key={cat.id}>
                           <button
                             type="button"
-                            className="w-full flex items-center justify-between px-6 py-4 text-[15px] font-sans border-b border-black/6 transition-colors hover:bg-gray-50 text-left"
-                            style={{ color: "var(--color-text-heading)" }}
+                            className="mobile-cat-item w-full flex items-center justify-between px-6 py-4 text-[15px] font-sans border-b text-left transition-all duration-200"
+                            style={{ color: "var(--color-text-heading)", borderColor: "rgba(0,0,0,0.12)" }}
                             onClick={() => navigateIntoCategory(cat.id)}
+                            onMouseEnter={e => {
+                              e.currentTarget.style.backgroundColor = "#fdfbf4";
+                              e.currentTarget.style.color = "#D4AF37";
+                              e.currentTarget.style.paddingLeft = "28px";
+                              e.currentTarget.style.borderLeft = "3px solid #D4AF37";
+                            }}
+                            onMouseLeave={e => {
+                              e.currentTarget.style.backgroundColor = "";
+                              e.currentTarget.style.color = "var(--color-text-heading)";
+                              e.currentTarget.style.paddingLeft = "24px";
+                              e.currentTarget.style.borderLeft = "";
+                            }}
                           >
                             {cat.categoryName}
                             {hasChildren && (
-                              <svg
-                                width="16" height="16" viewBox="0 0 24 24" fill="none"
-                                stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"
-                                className="flex-shrink-0 text-gray-400"
-                              >
+                              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="flex-shrink-0 text-gray-400">
                                 <path d="m9 18 6-6-6-6" />
                               </svg>
                             )}
@@ -692,18 +845,6 @@ export default function Navbar() {
                     })}
                   </ul>
                 )}
-              </div>
-
-              {/* ── Cart shortcut ── */}
-              <div className="mt-auto pt-6 px-6 border-t border-black/8">
-                <button
-                  onClick={() => { setMobileOpen(false); openCart(); }}
-                  className="flex items-center gap-3 text-[15px] font-sans transition-opacity hover:opacity-70"
-                  style={{ color: "var(--color-text-heading)" }}
-                >
-                  <CartIcon size={16} />
-                  Cart {totalItems > 0 && `(${totalItems})`}
-                </button>
               </div>
             </motion.div>
           </>

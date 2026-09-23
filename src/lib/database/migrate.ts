@@ -594,7 +594,8 @@ async function migrate() {
           "id"          UUID          NOT NULL DEFAULT gen_random_uuid(),
           "eyebrow"     VARCHAR(100)  DEFAULT NULL,
           "brand"       VARCHAR(150)  DEFAULT NULL,
-          "title"       VARCHAR(200)  DEFAULT NULL,
+          "title"       VARCHAR(500)  DEFAULT NULL,
+          "subtitle"    TEXT          DEFAULT NULL,
           "description" TEXT          DEFAULT NULL,
           "ctaText"     VARCHAR(150)  DEFAULT NULL,
           "ctaLink"     VARCHAR(500)  DEFAULT NULL,
@@ -608,6 +609,15 @@ async function migrate() {
       `);
       console.log("✅ promotion_slides table created.");
     } else {
+      // Add subtitle column if missing (migration for existing tables)
+      const promoColumns = promoExists as Record<string, unknown>;
+      if (!promoColumns["subtitle"]) {
+        console.log("➕ Adding subtitle column to promotion_slides...");
+        await sequelize.query(`ALTER TABLE "promotion_slides" ADD COLUMN IF NOT EXISTS "subtitle" TEXT DEFAULT NULL;`);
+        console.log("✅ subtitle column added.");
+      }
+      // Widen title column if still 200
+      await sequelize.query(`ALTER TABLE "promotion_slides" ALTER COLUMN "title" TYPE VARCHAR(500);`).catch(() => null);
       console.log("ℹ️  promotion_slides already exists.");
     }
 

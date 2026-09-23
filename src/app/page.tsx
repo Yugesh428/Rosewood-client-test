@@ -5,7 +5,7 @@ import HeroSectionDynamic from "@/components/home/HeroSectionDynamic";
 import TopSellingProducts from "@/components/home/TopSellingProducts";
 import PromotionsDynamic from "@/components/home/PromotionsDynamic";
 import FeaturedDuoDynamic from "@/components/home/FeaturedDuoDynamic";
-import DiscoverDynamic from "@/components/home/DiscoverDynamic";
+import ProductCollectionDynamic from "@/components/home/ProductCollectionDynamic";
 import ArticlesSection from "@/components/home/ArticlesSection";
 import Footer from "@/components/home/Footer";
 import { useTheme } from "@/context/ThemeContext";
@@ -26,7 +26,7 @@ export default function HomePage() {
       <TopSellingProducts />
       <FeaturedDuoDynamic />
       <PromotionsDynamic />
-      <DiscoverDynamic />
+      <ProductCollectionDynamic />
       <ArticlesSection />
       <Footer />
     </div>

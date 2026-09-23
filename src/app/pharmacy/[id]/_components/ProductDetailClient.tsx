@@ -209,12 +209,9 @@ function RelatedCard({ product }: { product: RelatedProduct }) {
             e.preventDefault();
             addToCart({ id: product.id as unknown as number, name: product.productName, price, image: product.productImage ?? "", category: product.category?.categoryName ?? "" });
           }}
-          className="mt-2 w-full py-1.5 rounded-sm text-[11px] font-bold text-white transition-colors duration-200"
-          style={{ backgroundColor: "var(--color-text-heading)" }}
-          onMouseEnter={e => (e.currentTarget.style.backgroundColor = "var(--color-primary)")}
-          onMouseLeave={e => (e.currentTarget.style.backgroundColor = "var(--color-text-heading)")}
+          className="btn-fill-cart mt-2 w-full py-1.5 text-[11px] font-bold text-white flex items-center justify-center"
         >
-          Add to Cart
+          <ShoppingCart className="w-3.5 h-3.5" />
         </button>
       </div>
     </Link>
@@ -393,6 +390,68 @@ export default function ProductDetailClient({ product }: { product: Product }) {
 
   return (
     <div className="pt-20 pb-20">
+      <style>{`
+        .btn-fill-cart {
+          display: inline-block;
+          padding: .5rem 1.25rem;
+          border-radius: 10rem;
+          color: #fff !important;
+          text-transform: uppercase;
+          font-size: .7rem;
+          letter-spacing: .12rem;
+          font-family: inherit;
+          transition: all .3s;
+          position: relative;
+          overflow: hidden;
+          z-index: 1;
+          border: none;
+          cursor: pointer;
+        }
+        .btn-fill-cart:after {
+          content: '';
+          position: absolute;
+          bottom: 0; left: 0;
+          width: 100%; height: 100%;
+          background-color: #1a1a1a;
+          border-radius: 10rem;
+          z-index: -2;
+        }
+        .btn-fill-cart:before {
+          content: '';
+          position: absolute;
+          bottom: 0; left: 0;
+          width: 0%; height: 100%;
+          background-color: #D4AF37;
+          transition: all .3s;
+          border-radius: 10rem;
+          z-index: -1;
+        }
+        .btn-fill-cart:hover:before { width: 100%; }
+        .btn-fill-cart:active { transform: scale(0.95); }
+
+        .btn-fill-cart-detail {
+          position: relative;
+          overflow: hidden;
+          z-index: 1;
+          border: 1px solid #D1D5DB !important;
+          color: #1A1A1A !important;
+          background: #ffffff !important;
+          transition: color .3s, border-color .3s;
+        }
+        .btn-fill-cart-detail:before {
+          content: '';
+          position: absolute;
+          bottom: 0; left: 0;
+          width: 0%; height: 100%;
+          background-color: #D4AF37;
+          transition: width .3s;
+          z-index: -1;
+          border-radius: inherit;
+        }
+        .btn-fill-cart-detail:hover:before { width: 100%; }
+        .btn-fill-cart-detail:hover { color: #fff !important; border-color: #D4AF37 !important; }
+        .btn-fill-cart-detail:active { transform: scale(0.98); }
+      `}</style>
       <div className="max-w-7xl mx-auto px-6">
 
         {/* ── Breadcrumb ── */}
@@ -591,24 +650,11 @@ export default function ProductDetailClient({ product }: { product: Product }) {
               </div>
 
               <button onClick={handleAddToCart}
-                className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-md text-sm font-bold border transition-all duration-200 font-sans hover:scale-[1.02] active:scale-[0.98]"
+                className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-md text-sm font-bold border transition-all duration-200 font-sans btn-fill-cart-detail"
                 style={added
                   ? { background: "#f0fdf4", borderColor: "#86efac", color: "#16a34a" }
-                  : { background: "#ffffff", borderColor: "#D1D5DB", color: "#1A1A1A" }}
-                onMouseEnter={e => {
-                  if (!added) {
-                    e.currentTarget.style.background = "#D4AF37";
-                    e.currentTarget.style.color = "#ffffff";
-                    e.currentTarget.style.borderColor = "#D4AF37";
-                  }
-                }}
-                onMouseLeave={e => {
-                  if (!added) {
-                    e.currentTarget.style.background = "#ffffff";
-                    e.currentTarget.style.color = "#1A1A1A";
-                    e.currentTarget.style.borderColor = "#D1D5DB";
-                  }
-                }}>
+                  : {}}
+              >
                 {added ? <><Check className="w-4 h-4" /> Added!</> : <><ShoppingCart className="w-4 h-4" /> Add to Cart</>}
               </button>
 

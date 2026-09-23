@@ -16,6 +16,7 @@ interface PromotionSlide {
   eyebrow: string | null;
   brand: string | null;
   title: string | null;
+  subtitle: string | null;
   description: string | null;
   ctaText: string | null;
   ctaLink: string | null;
@@ -34,6 +35,7 @@ export default function PromotionsSection() {
   const [eyebrow, setEyebrow] = useState("");
   const [brand, setBrand] = useState("");
   const [title, setTitle] = useState("");
+  const [subtitle, setSubtitle] = useState("");
   const [description, setDescription] = useState("");
   const [ctaText, setCtaText] = useState("");
   const [ctaLink, setCtaLink] = useState("");
@@ -66,6 +68,7 @@ export default function PromotionsSection() {
     setEyebrow("");
     setBrand("");
     setTitle("");
+    setSubtitle("");
     setDescription("");
     setCtaText("");
     setCtaLink("");
@@ -83,6 +86,7 @@ export default function PromotionsSection() {
     setEyebrow(slide.eyebrow || "");
     setBrand(slide.brand || "");
     setTitle(slide.title || "");
+    setSubtitle(slide.subtitle || "");
     setDescription(slide.description || "");
     setCtaText(slide.ctaText || "");
     setCtaLink(slide.ctaLink || "");
@@ -124,6 +128,7 @@ export default function PromotionsSection() {
       fd.append("eyebrow", eyebrow);
       fd.append("brand", brand);
       fd.append("title", title);
+      fd.append("subtitle", subtitle);
       fd.append("description", description);
       fd.append("ctaText", ctaText);
       fd.append("ctaLink", ctaLink);
@@ -325,18 +330,29 @@ export default function PromotionsSection() {
           </div>
 
           <div>
-            <label className="block text-sm font-medium mb-1">Title</label>
-            <input
-              type="text"
+            <label className="block text-sm font-medium mb-1">Title <span className="text-gray-400 font-normal">(Main heading — e.g. "TRUE BEAUTY BEGINS...")</span></label>
+            <textarea
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              placeholder="e.g. Save 20%"
+              placeholder="e.g. TRUE BEAUTY BEGINS WHERE NATURE TOUCHES THE SKIN"
+              rows={2}
               className={sharedInputClass}
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium mb-1">Description</label>
+            <label className="block text-sm font-medium mb-1">Subtitle <span className="text-gray-400 font-normal">(Description below title)</span></label>
+            <textarea
+              value={subtitle}
+              onChange={(e) => setSubtitle(e.target.value)}
+              placeholder="e.g. Discover skincare crafted with gentle ingredients that cleanse, nourish, and care for your skin every day."
+              rows={2}
+              className={sharedInputClass}
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium mb-1">Additional Description <span className="text-gray-400 font-normal">(optional extra text)</span></label>
             <textarea
               value={description}
               onChange={(e) => setDescription(e.target.value)}

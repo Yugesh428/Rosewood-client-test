@@ -2,165 +2,197 @@
 
 import { motion } from "framer-motion";
 import Link from "next/link";
-import Image from "next/image";
 
-const articles = [
+const faqs = [
   {
-    id: "best-beauty-gift-ideas",
-    category: "GIFTING",
-    title: "12 Best Beauty Gift Ideas",
-    date: "Sep 22, 2026",
-    excerpt: "Find the best pharmacy beauty gift ideas, from results-led skincare to refined bath and body treats, chosen for every recipient and occasion with care.",
-    image: "/uploads/ui/products/photo1/230a35de-d2b8-43e5-8764-ecdbd822020d.jpg",
+    question: "Are your products 100% natural?",
+    answer:
+      "Yes, every Rosewood product is meticulously crafted with 100% natural botanical extracts sourced from sustainable organic farms. We ensure that no synthetic fragrances or artificial colors touch your skin.",
+    defaultOpen: true,
   },
   {
-    id: "best-gifts-wellness-lovers",
-    category: "GIFTING",
-    title: "12 of the Best Gifts for Wellness Lovers",
-    date: "Sep 21, 2026",
-    excerpt: "Find the best gifts for wellness lovers, from advanced skincare and sleep rituals to considered supplements and restorative everyday essentials at home.",
-    image: "/uploads/ui/products/photo2/0351f449-8675-46cf-bafd-7d563c3e6306.jpg",
+    question: "Are they suitable for sensitive skin?",
+    answer:
+      "Absolutely. Our formulas are dermatologist-tested and specifically designed to be gentle on sensitive skin. We avoid harsh chemicals and allergens commonly found in other products.",
+    defaultOpen: false,
+  },
+  {
+    question: "Do you use parabens or sulfates?",
+    answer:
+      "Never. All our products are completely free from parabens, sulfates, phthalates, and other harmful preservatives. We believe in clean beauty that works.",
+    defaultOpen: false,
+  },
+  {
+    question: "How should I store the botanical products?",
+    answer:
+      "Store in a cool, dry place away from direct sunlight. Most products are best kept at room temperature between 15–25°C. Avoid storing in humid environments like bathrooms.",
+    defaultOpen: false,
   },
 ];
 
-const sidebarArticles = [
-  {
-    id: "royal-jelly-explained",
-    category: "ROYAL JELLY",
-    title: "Royal Jelly Explained for Everyday Wellness",
-    date: "Sep 20, 2026",
-  },
-  {
-    id: "autumn-immune-support",
-    category: "AUTUMN",
-    title: "Autumn Immune Support for the Cooler Months",
-    date: "Sep 19, 2026",
-  },
-  {
-    id: "vitamin-routine-winter",
-    category: "FATIGUE",
-    title: "Vitamin Routine for Winter Fatigue That Fits",
-    date: "Sep 18, 2026",
-  },
-];
+function FAQItem({ question, answer, defaultOpen }: { question: string; answer: string; defaultOpen: boolean }) {
+  const [open, setOpen] = useState(defaultOpen);
+
+  return (
+    <div
+      className="border-b border-gray-200 last:border-0"
+    >
+      <button
+        onClick={() => setOpen(o => !o)}
+        className="w-full flex items-center justify-between py-5 text-left group"
+      >
+        <span
+          className="text-base font-semibold font-sans transition-colors duration-200"
+          style={{ color: open ? "#1A1A1A" : "#1A1A1A" }}
+        >
+          {question}
+        </span>
+        <ChevronDown
+          className="w-5 h-5 flex-shrink-0 ml-4 transition-transform duration-300"
+          style={{
+            transform: open ? "rotate(180deg)" : "rotate(0deg)",
+            color: "#D4AF37",
+          }}
+        />
+      </button>
+
+      <AnimatePresence initial={false}>
+        {open && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: "auto", opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.3, ease: "easeInOut" }}
+            className="overflow-hidden"
+          >
+            <p className="text-sm text-gray-500 font-sans leading-relaxed pb-5 pr-8">
+              {answer}
+            </p>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+}
 
 export default function ArticlesSection() {
   return (
-    <section className="w-full bg-white py-6">
-      <div className="w-full px-8 md:px-16">
-        
-        {/* Header */}
-        <div className="flex items-center justify-between mb-8">
-          <motion.h2
-            initial={{ opacity: 0, x: -20 }}
+    <>
+
+      {/* ── Articles + Model Banner ───────────────────────────────────────── */}
+      <section
+        className="w-full relative overflow-visible bg-white pt-16"
+        style={{ minHeight: "420px" }}
+      >
+        <div className="w-full flex flex-col lg:flex-row items-end">
+
+          {/* LEFT — Model image overflowing upward */}
+          <motion.div
+            initial={{ opacity: 0, y: 40 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.8, ease: "easeOut" }}
+            className="relative z-20 flex-shrink-0"
+            style={{ marginBottom: "-1px" }}
+          >
+            <img
+              src="/uploads/modeltry.png"
+              alt="Skincare model"
+              className="w-auto object-contain object-bottom"
+              style={{ height: "700px", marginTop: "-200px" }}
+            />
+          </motion.div>
+
+          {/* RIGHT — Articles list */}
+          <motion.div
+            initial={{ opacity: 0, x: 30 }}
             whileInView={{ opacity: 1, x: 0 }}
             viewport={{ once: true }}
-            className="font-heading text-3xl md:text-4xl text-[#1A1A1A]"
+            transition={{ duration: 0.7 }}
+            className="flex-1 py-12 px-10 md:px-16"
           >
-            Latest from John Bell & Croyden
-          </motion.h2>
-          
-          <Link
-            href="/articles"
-            className="flex items-center gap-2 text-sm font-sans text-[#1A1A1A] hover:text-[#D4AF37] transition-colors group"
-          >
-            <span>View all</span>
-            <svg
-              width="20"
-              height="20"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              className="group-hover:translate-x-1 transition-transform"
-            >
-              <circle cx="12" cy="12" r="10" />
-              <path d="M12 8l4 4-4 4M8 12h8" />
-            </svg>
-          </Link>
-        </div>
-
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
-          
-          {/* Main Articles (2 columns on left) */}
-          <div className="lg:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-8">
-            {articles.map((article, idx) => (
-              <motion.article
-                key={article.id}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: idx * 0.1 }}
-                className="group"
+            {/* Header */}
+            <div className="flex items-center justify-between mb-8">
+              <h3
+                className="text-3xl text-[#1A1A1A]"
+                style={{ fontFamily: "'Lucida Calligraphy', cursive", fontWeight: 400 }}
               >
-                <Link href={`/articles/${article.id}`} className="block">
-                  {/* Image */}
-                  <div className="relative aspect-[4/3] overflow-hidden rounded-sm mb-5">
-                    <img
-                      src={article.image}
-                      alt={article.title}
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
-                    />
-                  </div>
-
-                  {/* Category */}
-                  <p className="text-[10px] tracking-[0.2em] uppercase font-sans text-black/40 mb-3">
-                    {article.category}
-                  </p>
-
-                  {/* Title */}
-                  <h3 className="font-heading text-xl md:text-2xl text-[#1A1A1A] mb-3 group-hover:text-[#D4AF37] transition-colors">
-                    {article.title}
-                  </h3>
-
-                  {/* Date */}
-                  <p className="text-xs text-black/50 font-sans mb-4">{article.date}</p>
-
-                  {/* Excerpt */}
-                  <p className="text-sm text-black/60 font-sans leading-relaxed mb-5">
-                    {article.excerpt}
-                  </p>
-
-                  {/* Read More Button */}
-                  <button className="px-6 py-2.5 text-[10px] tracking-[0.2em] uppercase font-sans font-bold bg-[#1A1A1A] text-white rounded-sm hover:bg-[#D4AF37] transition-colors">
-                    READ MORE
-                  </button>
-                </Link>
-              </motion.article>
-            ))}
-          </div>
-
-          {/* Sidebar (1 column on right) */}
-          <motion.aside
-            initial={{ opacity: 0, x: 20 }}
-            whileInView={{ opacity: 1, x: 0 }}
-            viewport={{ once: true }}
-            className="space-y-8"
-          >
-            {sidebarArticles.map((article, idx) => (
-              <Link
-                key={article.id}
-                href={`/articles/${article.id}`}
-                className="block group pb-8 border-b border-gray-200 last:border-0"
-              >
-                {/* Category */}
-                <p className="text-[10px] tracking-[0.2em] uppercase font-sans text-black/40 mb-3">
-                  {article.category}
-                </p>
-
-                {/* Title */}
-                <h4 className="font-heading text-lg text-[#1A1A1A] mb-2 group-hover:text-[#D4AF37] transition-colors leading-snug">
-                  {article.title}
-                </h4>
-
-                {/* Date */}
-                <p className="text-xs text-black/50 font-sans">{article.date}</p>
+                Latest Articles
+              </h3>
+              <Link href="/articles" className="text-sm font-sans text-[#1A1A1A] hover:text-[#D4AF37] transition-colors flex items-center gap-1">
+                View all
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"/><path d="M12 8l4 4-4 4M8 12h8"/></svg>
               </Link>
-            ))}
-          </motion.aside>
+            </div>
 
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+
+              {/* Featured blog cards (2) */}
+              <div className="md:col-span-2 grid grid-cols-1 sm:grid-cols-2 gap-6">
+                {[
+                  {
+                    category: "SKINCARE",
+                    title: "10 Daily Habits for Healthier Skin",
+                    date: "Sep 22, 2026",
+                    excerpt: "Simple daily habits that transform your skin health over time, from hydration to sun protection and gentle cleansing routines.",
+                    image: "https://images.unsplash.com/photo-1556228578-8c89e6adf883?w=400&h=280&fit=crop&q=80",
+                  },
+                  {
+                    category: "WELLNESS",
+                    title: "Benefits of Natural Botanical Ingredients",
+                    date: "Sep 19, 2026",
+                    excerpt: "Discover how natural botanical extracts work to nourish, protect and revitalize your skin without harsh chemicals.",
+                    image: "https://images.unsplash.com/photo-1515377905703-c4788e51af15?w=400&h=280&fit=crop&q=80",
+                  },
+                ].map((article, idx) => (
+                  <motion.article
+                    key={idx}
+                    initial={{ opacity: 0, y: 20 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true }}
+                    transition={{ delay: idx * 0.1 }}
+                    className="group"
+                  >
+                    <Link href="/articles">
+                      <div className="aspect-[4/3] overflow-hidden rounded-sm mb-4">
+                        <img
+                          src={article.image}
+                          alt={article.title}
+                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
+                        />
+                      </div>
+                      <p className="text-[10px] tracking-[0.2em] uppercase font-sans text-black/40 mb-2">{article.category}</p>
+                      <h4 className="font-sans font-bold text-lg text-[#1A1A1A] mb-1 group-hover:text-[#D4AF37] transition-colors leading-snug">{article.title}</h4>
+                      <p className="text-xs text-black/50 font-sans mb-3">{article.date}</p>
+                      <p className="text-sm text-black/60 font-sans leading-relaxed mb-4">{article.excerpt}</p>
+                      <span className="inline-block px-5 py-2 text-[10px] tracking-[0.2em] uppercase font-sans font-bold bg-[#1A1A1A] text-white hover:bg-[#D4AF37] transition-colors">
+                        READ MORE
+                      </span>
+                    </Link>
+                  </motion.article>
+                ))}
+              </div>
+
+              {/* Sidebar — category list */}
+              <div className="space-y-6">
+                {[
+                  { category: "GIFTING", title: "12 of the Best Gifts for Wellness Lovers", date: "Sep 21, 2026" },
+                  { category: "ROYAL JELLY", title: "Royal Jelly Explained for Everyday Wellness", date: "Sep 20, 2026" },
+                  { category: "AUTUMN", title: "Autumn Immune Support for the Cooler Months", date: "Sep 19, 2026" },
+                  { category: "FATIGUE", title: "Vitamin Routine for Winter Fatigue That Fits", date: "Sep 18, 2026" },
+                ].map((item, idx) => (
+                  <Link key={idx} href="/articles" className="block group pb-6 border-b border-gray-200 last:border-0">
+                    <p className="text-[10px] tracking-[0.2em] uppercase font-sans text-black/40 mb-1">{item.category}</p>
+                    <h4 className="font-sans font-semibold text-base text-[#1A1A1A] group-hover:text-[#D4AF37] transition-colors leading-snug mb-1">{item.title}</h4>
+                    <p className="text-xs text-black/50 font-sans">{item.date}</p>
+                  </Link>
+                ))}
+              </div>
+
+            </div>
+          </motion.div>
         </div>
-      </div>
-    </section>
+      </section>
+    </>
   );
 }

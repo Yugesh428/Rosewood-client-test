@@ -476,25 +476,6 @@ export default function ProductCollectionDynamic() {
           </div>
         )}
 
-        {/* View all */}
-        <motion.div
-          initial={{ opacity: 0 }}
-          whileInView={{ opacity: 1 }}
-          viewport={{ once: true }}
-          className="text-center mt-10"
-        >
-          <Link href="/pharmacy"
-            className="collection-view-all inline-flex items-center gap-2 text-xs font-sans tracking-widest uppercase px-10 py-3 transition-all duration-300"
-            style={{ color: "#ffffff", backgroundColor: "#1A1A1A", border: "none", borderRadius: "9999px" }}>
-            View All Products
-          </Link>
-          <style>{`
-            .collection-view-all:hover {
-              background-color: #D4AF37 !important;
-              color: #ffffff !important;
-            }
-          `}</style>
-        </motion.div>
       </div>
     </section>
   );

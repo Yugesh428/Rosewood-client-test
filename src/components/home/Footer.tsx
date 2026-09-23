@@ -119,6 +119,49 @@ export default function Footer() {
           >
             © {new Date().getFullYear()} Rosewood Pharmacy. All rights reserved.
           </p>
+
+          {/* ── Payment Methods ── */}
+          <div className="flex items-center gap-2 flex-wrap justify-center">
+            {/* American Express */}
+            <div className="w-12 h-8 rounded-md flex items-center justify-center bg-[#016FD0] px-1.5">
+              <span className="text-[8px] font-black text-white leading-tight text-center">AM<br/>EX</span>
+            </div>
+            {/* Apple Pay */}
+            <div className="w-12 h-8 rounded-md flex items-center justify-center bg-white border border-gray-200 px-1.5">
+              <span className="text-[9px] font-semibold text-black">⬤ Pay</span>
+            </div>
+            {/* Google Pay */}
+            <div className="w-12 h-8 rounded-md flex items-center justify-center bg-white border border-gray-200 px-1.5">
+              <span className="text-[9px] font-semibold">
+                <span style={{color:"#4285F4"}}>G</span><span style={{color:"#34A853"}}>o</span><span style={{color:"#FBBC05"}}>o</span><span style={{color:"#4285F4"}}> Pay</span>
+              </span>
+            </div>
+            {/* Klarna */}
+            <div className="w-12 h-8 rounded-md flex items-center justify-center bg-[#FFB3C7] px-1.5">
+              <span className="text-[9px] font-bold text-black">Klarna</span>
+            </div>
+            {/* Mastercard */}
+            <div className="w-12 h-8 rounded-md flex items-center justify-center bg-[#252525] px-1">
+              <svg viewBox="0 0 38 24" className="w-9 h-6">
+                <circle cx="14" cy="12" r="8" fill="#EB001B" />
+                <circle cx="24" cy="12" r="8" fill="#F79E1B" />
+                <path d="M19 6.27A8 8 0 0 1 22.93 12 8 8 0 0 1 19 17.73 8 8 0 0 1 15.07 12 8 8 0 0 1 19 6.27z" fill="#FF5F00" />
+              </svg>
+            </div>
+            {/* PayPal */}
+            <div className="w-12 h-8 rounded-md flex items-center justify-center bg-white border border-gray-200 px-1.5">
+              <span className="text-[9px] font-bold" style={{color:"#003087"}}>Pay<span style={{color:"#009CDE"}}>Pal</span></span>
+            </div>
+            {/* Shop Pay */}
+            <div className="w-12 h-8 rounded-md flex items-center justify-center bg-[#5A31F4] px-1.5">
+              <span className="text-[9px] font-bold text-white">shop</span>
+            </div>
+            {/* Visa */}
+            <div className="w-12 h-8 rounded-md flex items-center justify-center bg-[#1A1F71] px-1.5">
+              <span className="text-[11px] font-black text-white italic tracking-wide">VISA</span>
+            </div>
+          </div>
+
           <p
             className="text-[10px] font-sans tracking-wide"
             style={{ color: "rgba(255,255,255,0.35)" }}

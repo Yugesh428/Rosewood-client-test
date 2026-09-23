@@ -37,6 +37,25 @@ type ApiResponse<T> = {
   message?: string;
 };
 
+// ─── Strict form state type — no nulls, no undefined ─────────────────────────
+type HeroFormData = {
+  title: string;
+  subtitle: string;
+  order: number;
+  isActive: boolean;
+};
+
+const EMPTY_FORM: HeroFormData = { title: "", subtitle: "", order: 0, isActive: true };
+
+function slideToForm(slide: HeroSlide): HeroFormData {
+  return {
+    title:    slide.title    ?? "",
+    subtitle: slide.subtitle ?? "",
+    order:    typeof slide.order === "number" ? slide.order : 0,
+    isActive: Boolean(slide.isActive),
+  };
+}
+
 const MAX_SLIDES = 5;
 const API_BASE   = "/api/ui/hero";
 
@@ -50,7 +69,7 @@ export default function HeroSection() {
   const [loading, setLoading]         = useState(true);
   const [modalOpen, setModalOpen]     = useState(false);
   const [editingSlide, setEditingSlide] = useState<HeroSlide | null>(null);
-  const [formData, setFormData]       = useState({ title: "", subtitle: "", order: 0, isActive: true });
+  const [formData, setFormData] = useState<HeroFormData>(EMPTY_FORM);
   const [imageFile, setImageFile]     = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [imageUrl, setImageUrl]       = useState<string>("");
@@ -79,7 +98,7 @@ export default function HeroSection() {
   // ── Modal helpers ──────────────────────────────────────────────────────────
   const openCreateModal = () => {
     setEditingSlide(null);
-    setFormData({ title: "", subtitle: "", order: slides.length, isActive: true });
+    setFormData({ ...EMPTY_FORM, order: slides.length });
     setImageFile(null);
     setImagePreview(null);
     setImageUrl("");
@@ -89,7 +108,7 @@ export default function HeroSection() {
 
   const openEditModal = (slide: HeroSlide) => {
     setEditingSlide(slide);
-    setFormData({ title: slide.title || "", subtitle: slide.subtitle || "", order: slide.order, isActive: slide.isActive });
+    setFormData(slideToForm(slide));
     setImageFile(null);
     const isExtUrl = slide.imageUrl.startsWith("http");
     setImageUrl(isExtUrl ? slide.imageUrl : "");
@@ -101,6 +120,7 @@ export default function HeroSection() {
   const closeModal = () => {
     setModalOpen(false);
     setEditingSlide(null);
+    setFormData(EMPTY_FORM);
     setImageFile(null);
     setImagePreview(null);
     setImageUrl("");
@@ -109,10 +129,16 @@ export default function HeroSection() {
   // ── Form handlers ──────────────────────────────────────────────────────────
   const handleFormChange = (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value, type } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      [name]: type === "checkbox" ? (e.target as HTMLInputElement).checked : value,
-    }));
+    setFormData((prev) => {
+      if (type === "checkbox") {
+        return { ...prev, [name]: (e.target as HTMLInputElement).checked };
+      }
+      if (type === "number") {
+        const parsed = parseInt(value, 10);
+        return { ...prev, [name]: isNaN(parsed) ? 0 : parsed };
+      }
+      return { ...prev, [name]: value };
+    });
   };
 
   const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
@@ -535,7 +561,7 @@ export default function HeroSection() {
                 </label>
                 <input
                   id="title" name="title" type="text"
-                  value={formData.title ?? ""}  onChange={handleFormChange}
+                  value={formData.title} onChange={handleFormChange}
                   placeholder="Main heading overlay"
                   className={inputCls}
                 />
