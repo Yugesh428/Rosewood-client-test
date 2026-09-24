@@ -9,7 +9,10 @@
     "lint": "eslint",
     "db:sync": "npx tsx --env-file=.env --tsconfig tsconfig.scripts.json src/lib/database/sync.ts",
     "db:seed": "npx tsx --env-file=.env --tsconfig tsconfig.scripts.json src/lib/seed/seed.ts",
-    "db:migrate": "npx tsx --env-file=.env --tsconfig tsconfig.scripts.json src/lib/database/migrate.ts"
+    "db:migrate": "npx tsx --env-file=.env --tsconfig tsconfig.scripts.json src/lib/database/migrate.ts",
+    "seed:nested-categories": "npx tsx --env-file=.env --tsconfig tsconfig.scripts.json scripts/seed-nested-categories.ts",
+    "reset:categories": "npx tsx --env-file=.env --tsconfig tsconfig.scripts.json scripts/reset-categories-products.ts",
+    "fresh:seed": "npx tsx --env-file=.env --tsconfig tsconfig.scripts.json scripts/fresh-seed.ts"
   },
   "dependencies": {
     "@base-ui/react": "^1.7.0",
@@ -29,6 +32,7 @@
     "pg-hstore": "^2.3.4",
     "react": "19.2.8",
     "react-dom": "19.2.8",
+    "react-hot-toast": "^2.6.1",
     "sequelize": "^6.37.8",
     "shadcn": "^4.19.0",
     "sonner": "^2.0.8",

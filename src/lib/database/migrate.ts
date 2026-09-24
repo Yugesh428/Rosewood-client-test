@@ -53,6 +53,24 @@ async function migrate() {
       console.log("ℹ️  categories.parentId already exists.");
     }
 
+    // Add slug column for SEO-friendly URLs
+    if (!categoryColumns["slug"]) {
+      console.log("➕ Adding slug to categories...");
+      await sequelize.query(`ALTER TABLE "categories" ADD COLUMN "slug" VARCHAR(150) UNIQUE DEFAULT NULL;`);
+      console.log("✅ categories.slug added.");
+      
+      // Generate slugs for existing categories
+      console.log("🔄 Generating slugs for existing categories...");
+      await sequelize.query(`
+        UPDATE "categories"
+        SET "slug" = LOWER(REGEXP_REPLACE("categoryName", '[^a-zA-Z0-9]+', '-', 'g'))
+        WHERE "slug" IS NULL;
+      `);
+      console.log("✅ Slugs generated for existing categories.");
+    } else {
+      console.log("ℹ️  categories.slug already exists.");
+    }
+
     // ── 2. users — add isActive if missing ────────────────────────────────────
     const userColumns = await q.describeTable("users");
     if (!userColumns["isActive"]) {

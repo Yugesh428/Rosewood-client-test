@@ -127,7 +127,7 @@ export default function FeaturedDuoDynamic() {
           transition={{ duration: 0.6 }}
           className="flex items-end justify-between mb-8"
         >
-          <div className="text-center flex-1">
+          <div>
             {data.eyebrow && (
               <p className="text-[11px] tracking-[0.25em] uppercase font-sans text-black/50 mb-2">
                 {data.eyebrow}
@@ -138,9 +138,9 @@ export default function FeaturedDuoDynamic() {
                 ref={headingRef}
                 className="text-3xl md:text-4xl text-[#1A1A1A]"
                 style={{
-                  fontFamily: "'Lucida Calligraphy', 'Lucida Handwriting', 'Palatino Linotype', cursive",
-                  fontWeight: 400,
-                  letterSpacing: "0.02em",
+                  fontFamily: "var(--font-montserrat), 'Montserrat', sans-serif",
+                  fontWeight: 700,
+                  letterSpacing: "-0.01em",
                   perspective: "1000px",
                 }}
               >

@@ -1,55 +1,26 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import Link from "next/link";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/home/Footer";
 import { useTheme } from "@/context/ThemeContext";
 
-const allArticles = [
-  {
-    id: "best-beauty-gift-ideas",
-    category: "GIFTING",
-    title: "12 Best Beauty Gift Ideas",
-    date: "Sep 22, 2026",
-    excerpt: "Find the best pharmacy beauty gift ideas, from results-led skincare to refined bath and body treats, chosen for every recipient and occasion with care.",
-    image: "/uploads/ui/products/photo1/230a35de-d2b8-43e5-8764-ecdbd822020d.jpg",
-  },
-  {
-    id: "best-gifts-wellness-lovers",
-    category: "GIFTING",
-    title: "12 of the Best Gifts for Wellness Lovers",
-    date: "Sep 21, 2026",
-    excerpt: "Find the best gifts for wellness lovers, from advanced skincare and sleep rituals to considered supplements and restorative everyday essentials at home.",
-    image: "/uploads/ui/products/photo2/0351f449-8675-46cf-bafd-7d563c3e6306.jpg",
-  },
-  {
-    id: "royal-jelly-explained",
-    category: "ROYAL JELLY",
-    title: "Royal Jelly Explained for Everyday Wellness",
-    date: "Sep 20, 2026",
-    excerpt: "Discover the benefits of royal jelly for everyday wellness and how this natural ingredient can support your health routine.",
-    image: "/uploads/ui/products/photo1/230a35de-d2b8-43e5-8764-ecdbd822020d.jpg",
-  },
-  {
-    id: "autumn-immune-support",
-    category: "AUTUMN",
-    title: "Autumn Immune Support for the Cooler Months",
-    date: "Sep 19, 2026",
-    excerpt: "Strengthen your immune system this autumn with our guide to essential supplements and wellness practices for the changing season.",
-    image: "/uploads/ui/products/photo2/0351f449-8675-46cf-bafd-7d563c3e6306.jpg",
-  },
-  {
-    id: "vitamin-routine-winter",
-    category: "FATIGUE",
-    title: "Vitamin Routine for Winter Fatigue That Fits",
-    date: "Sep 18, 2026",
-    excerpt: "Combat winter fatigue with a tailored vitamin routine designed to boost energy and support wellbeing during the colder months.",
-    image: "/uploads/ui/products/photo1/230a35de-d2b8-43e5-8764-ecdbd822020d.jpg",
-  },
-];
+interface Blog {
+  id: string;
+  title: string;
+  slug: string;
+  category: string;
+  excerpt: string;
+  coverImage: string;
+  date: string;
+  authorName: string;
+}
 
 export default function ArticlesPage() {
+  const [blogs, setBlogs] = useState<Blog[]>([]);
+  const [loading, setLoading] = useState(true);
   const { homeBg } = useTheme();
   const bg =
     homeBg === "white" ? "#ffffff" :
@@ -57,6 +28,35 @@ export default function ArticlesPage() {
     homeBg === "near-blue" ? "#cce8f7" :
     homeBg === "creamy-blue" ? "#e8f4f8" :
     "#dff0fb";
+
+  useEffect(() => {
+    async function fetchBlogs() {
+      try {
+        const res = await fetch("/api/ui/blog");
+        const data = await res.json();
+        if (data.success) {
+          setBlogs(data.data);
+        }
+      } catch (error) {
+        console.error("Error fetching blogs:", error);
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    fetchBlogs();
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen w-full flex items-center justify-center" style={{ backgroundColor: bg }}>
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#D4AF37] mx-auto mb-4"></div>
+          <p className="text-gray-500 font-sans">Loading articles...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen w-full" style={{ backgroundColor: bg }}>
@@ -82,7 +82,7 @@ export default function ArticlesPage() {
 
           {/* Articles Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {allArticles.map((article, idx) => (
+            {blogs.map((article, idx) => (
               <motion.article
                 key={article.id}
                 initial={{ opacity: 0, y: 20 }}
@@ -91,38 +91,38 @@ export default function ArticlesPage() {
                 transition={{ delay: idx * 0.1 }}
                 className="group"
               >
-                <Link href={`/articles/${article.id}`} className="block">
+                <Link href={`/articles/${article.slug}`} className="block">
                   {/* Image */}
-                  <div className="relative aspect-[4/3] overflow-hidden rounded-sm mb-5">
+                  <div className="relative aspect-[4/3] overflow-hidden rounded-sm mb-4">
                     <img
-                      src={article.image}
+                      src={article.coverImage}
                       alt={article.title}
                       className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
                     />
                   </div>
 
                   {/* Category */}
-                  <p className="text-[10px] tracking-[0.2em] uppercase font-sans text-black/40 mb-3">
+                  <p className="text-[10px] tracking-[0.2em] uppercase font-sans text-black/40 mb-2">
                     {article.category}
                   </p>
 
                   {/* Title */}
-                  <h3 className="font-heading text-xl md:text-2xl text-[#1A1A1A] mb-3 group-hover:text-[#D4AF37] transition-colors">
+                  <h3 className="font-heading text-xl md:text-2xl text-[#1A1A1A] mb-2 group-hover:text-[#D4AF37] transition-colors line-clamp-2">
                     {article.title}
                   </h3>
 
                   {/* Date */}
-                  <p className="text-xs text-black/50 font-sans mb-4">{article.date}</p>
+                  <p className="text-xs text-black/50 font-sans mb-3">{article.date}</p>
 
                   {/* Excerpt */}
-                  <p className="text-sm text-black/60 font-sans leading-relaxed mb-5">
+                  <p className="text-sm text-black/60 font-sans leading-relaxed mb-5 line-clamp-3">
                     {article.excerpt}
                   </p>
 
                   {/* Read More Button */}
-                  <button className="px-6 py-2.5 text-[10px] tracking-[0.2em] uppercase font-sans font-bold bg-[#1A1A1A] text-white rounded-sm hover:bg-[#D4AF37] transition-colors">
+                  <span className="inline-block px-6 py-2.5 text-[10px] tracking-[0.2em] uppercase font-sans font-bold bg-[#1A1A1A] text-white rounded-sm hover:bg-[#D4AF37] transition-colors">
                     READ MORE
-                  </button>
+                  </span>
                 </Link>
               </motion.article>
             ))}

@@ -17,6 +17,66 @@ export const navLinks = [
   { label: "Contact",  href: "/contact"  },
 ];
 
+// ─── Category Icons map ──────────────────────────────────────────────────────
+
+function CategoryIcon({ name }: { name: string }) {
+  const n = name.toLowerCase();
+  if (n.includes("skin") || n.includes("care"))
+    return (
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4">
+        <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/>
+        <line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/>
+      </svg>
+    );
+  if (n.includes("hair"))
+    return (
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4">
+        <path d="M12 2a5 5 0 0 1 5 5c0 3-2 5-5 9-3-4-5-6-5-9a5 5 0 0 1 5-5z"/>
+      </svg>
+    );
+  if (n.includes("vitamin") || n.includes("supplement") || n.includes("health"))
+    return (
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4">
+        <path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/>
+      </svg>
+    );
+  if (n.includes("body") || n.includes("bath"))
+    return (
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4">
+        <path d="M7 21h10M12 21V12M5 3h14l-2 9H7L5 3z"/>
+      </svg>
+    );
+  if (n.includes("fragrance") || n.includes("perfume"))
+    return (
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4">
+        <path d="M9 3h6l1 4H8L9 3z"/><rect x="6" y="7" width="12" height="13" rx="2"/>
+      </svg>
+    );
+  if (n.includes("make") || n.includes("lip") || n.includes("eye"))
+    return (
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4">
+        <circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/>
+        <line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/>
+      </svg>
+    );
+  // Default
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4">
+      <rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/>
+    </svg>
+  );
+}
+
+// Icon bg colors cycling for variety
+const ICON_COLORS = [
+  { bg: "#FEF3C7", color: "#D97706" },
+  { bg: "#FCE7F3", color: "#DB2777" },
+  { bg: "#E0F2FE", color: "#0284C7" },
+  { bg: "#D1FAE5", color: "#059669" },
+  { bg: "#EDE9FE", color: "#7C3AED" },
+  { bg: "#FEE2E2", color: "#DC2626" },
+];
+
 // ─── Mega Menu ────────────────────────────────────────────────────────────────
 
 interface MegaMenuProps {
@@ -29,103 +89,151 @@ function MegaMenu({ categories, onClose }: MegaMenuProps) {
   const topLevel = categories.filter(c => !c.parentId);
   const childrenOf = (id: string) => categories.filter(c => c.parentId === id);
 
+  // Featured blog static data
+  const featuredBlog = {
+    title: "The Daily Moisturizing Ritual Behind Effortlessly Glowing Skin",
+    excerpt: "Build a consistent routine with ingredients your skin actually recognizes.",
+    image: "/uploads/ui/products/photo1/230a35de-d2b8-43e5-8764-ecdbd822020d.jpg",
+    slug: "daily-moisturizing-ritual-glowing-skin",
+  };
+
   const goTo = (id: string) => {
     onClose();
-    router.push(`/pharmacy?category=${id}`);
+    router.push(`/pharmacy/category/${id}`);
   };
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: -8 }}
+      initial={{ opacity: 0, y: -6 }}
       animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: -8 }}
-      transition={{ duration: 0.2, ease: "easeOut" }}
-      className="fixed left-0 right-0 bg-white z-[9990] shadow-2xl"
+      exit={{ opacity: 0, y: -6 }}
+      transition={{ duration: 0.22, ease: "easeOut" }}
+      className="fixed left-0 right-0 z-[9990] bg-white"
       style={{
         top: "94px",
-        borderTop: "2px solid #D4AF37",
-        borderBottom: "1px solid rgba(0,0,0,0.08)",
+        borderTop: "3px solid #D4AF37",
+        boxShadow: "0 20px 60px rgba(0,0,0,0.12), 0 4px 16px rgba(0,0,0,0.06)",
       }}
     >
-      <div className="w-full px-10 py-8">
-        <div className="flex gap-10">
-          {/* Shop All link */}
-          <div className="w-[160px] flex-shrink-0">
-            <p className="text-[10px] tracking-[0.25em] uppercase font-sans text-black/40 mb-4">Pharmacy</p>
-            <button
-              onClick={() => { onClose(); router.push("/pharmacy"); }}
-              className="block text-sm font-semibold font-sans text-[#1A1A1A] hover:text-[#D4AF37] transition-colors mb-2"
-            >
-              Shop all products
-            </button>
-            <button
-              onClick={() => { onClose(); router.push("/pharmacy?sort=newest"); }}
-              className="block text-sm font-sans text-[#1A1A1A] hover:text-[#D4AF37] transition-colors mb-2"
-            >
-              New this week
-            </button>
-            <button
-              onClick={() => { onClose(); router.push("/pharmacy?sort=price_asc"); }}
-              className="block text-sm font-sans text-[#1A1A1A] hover:text-[#D4AF37] transition-colors mb-2"
-            >
-              Best sellers
-            </button>
-            <button
-              onClick={() => { onClose(); router.push("/pharmacy"); }}
-              className="block text-sm font-sans mt-2"
-              style={{ color: "#D4AF37" }}
-            >
-              View promotions
-            </button>
-          </div>
+      <div className="max-w-[1400px] mx-auto px-10 py-8">
+        <div className="flex gap-8">
 
-          {/* Divider */}
-          <div className="w-px bg-gray-100 flex-shrink-0" />
+          {/* ── Dynamic category columns ─────────────────────────── */}
+          <div className="flex-1">
+            {topLevel.length === 0 ? (
+              <p className="text-sm text-gray-400 font-sans">No categories yet.</p>
+            ) : (
+              <div
+                className="grid gap-x-8 gap-y-0"
+                style={{
+                  gridTemplateColumns: `repeat(${Math.min(topLevel.length, 6)}, 1fr)`,
+                }}
+              >
+                {topLevel.map((cat) => {
+                  const children = childrenOf(cat.id);
+                  return (
+                    <div key={cat.id} className="flex flex-col">
+                      {/* Column heading */}
+                      <button
+                        onClick={() => goTo(cat.id)}
+                        className="text-left mb-3 group"
+                      >
+                        <span className="text-[13px] font-bold font-sans text-[#1A1A1A] group-hover:text-[#D4AF37] transition-colors leading-snug uppercase tracking-wide">
+                          {cat.categoryName}
+                        </span>
+                      </button>
 
-          {/* Category columns */}
-          <div className="flex-1 grid gap-8"
-            style={{
-              gridTemplateColumns: `repeat(${Math.min(topLevel.length, 5)}, 1fr)`,
-            }}
-          >
-            {topLevel.map(cat => {
-              const children = childrenOf(cat.id);
-              return (
-                <div key={cat.id}>
-                  {/* Parent category */}
-                  <button
-                    onClick={() => goTo(cat.id)}
-                    className="block text-sm font-bold font-sans text-[#1A1A1A] hover:text-[#D4AF37] transition-colors mb-3 uppercase tracking-wide text-left"
-                  >
-                    {cat.categoryName}
-                  </button>
-                  {/* Children */}
-                  <ul className="space-y-2">
-                    {children.map(child => (
-                      <li key={child.id}>
-                        <button
-                          onClick={() => goTo(child.id)}
-                          className="text-sm font-sans text-gray-600 hover:text-[#D4AF37] transition-colors text-left"
-                        >
-                          {child.categoryName}
-                        </button>
-                      </li>
-                    ))}
-                    {children.length === 0 && (
-                      <li>
+                      {/* Subcategory links */}
+                      <ul className="space-y-0">
+                        {children.length > 0 ? (
+                          children.map((sub) => (
+                            <li key={sub.id}>
+                              <button
+                                onClick={() => goTo(sub.id)}
+                                className="text-left w-full py-[7px] text-[13px] font-sans text-[#444] hover:text-[#D4AF37] transition-colors leading-snug border-b border-gray-100 last:border-0"
+                              >
+                                {sub.categoryName}
+                              </button>
+                            </li>
+                          ))
+                        ) : (
+                          <li>
+                            <button
+                              onClick={() => goTo(cat.id)}
+                              className="text-left w-full py-[7px] text-[13px] font-sans text-[#444] hover:text-[#D4AF37] transition-colors leading-snug"
+                            >
+                              View all
+                            </button>
+                          </li>
+                        )}
+                      </ul>
+
+                      {/* View all link for categories with children */}
+                      {children.length > 0 && (
                         <button
                           onClick={() => goTo(cat.id)}
-                          className="text-sm font-sans text-gray-500 hover:text-[#D4AF37] transition-colors text-left"
+                          className="text-left mt-2 text-[11px] font-semibold font-sans text-[#D4AF37] hover:text-[#b8952e] transition-colors tracking-wide"
                         >
-                          View all
+                          View all →
                         </button>
-                      </li>
-                    )}
-                  </ul>
-                </div>
-              );
-            })}
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+
+            {/* Bottom shop links */}
+            <div className="mt-6 pt-5 border-t border-gray-100 flex items-center gap-6">
+              {[
+                { label: "Shop all products", href: "/pharmacy" },
+                { label: "New arrivals",      href: "/pharmacy?sort=newest" },
+                { label: "Best sellers",      href: "/pharmacy?sort=bestsellers" },
+                { label: "On sale",           href: "/pharmacy?sort=price_asc" },
+              ].map(({ label, href }) => (
+                <button
+                  key={label}
+                  onClick={() => { onClose(); router.push(href); }}
+                  className="text-[12px] font-sans font-semibold text-[#1A1A1A] hover:text-[#D4AF37] transition-colors tracking-wide uppercase"
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
           </div>
+
+          {/* ── Right: Featured image block ───────────────────────── */}
+          <div className="w-[200px] flex-shrink-0 border-l border-gray-100 pl-8">
+            <p className="text-[9px] tracking-[0.3em] uppercase font-sans font-semibold text-black/35 mb-4">
+              Featured
+            </p>
+            <div
+              className="group rounded-sm overflow-hidden cursor-pointer transition-all duration-200 hover:shadow-lg"
+              style={{ border: "1px solid rgba(0,0,0,0.07)" }}
+              onClick={() => { onClose(); router.push(`/articles/${featuredBlog.slug}`); }}
+            >
+              <div className="aspect-[4/3] overflow-hidden">
+                <img
+                  src={featuredBlog.image}
+                  alt={featuredBlog.title}
+                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                />
+              </div>
+              <div className="p-3 bg-white">
+                <p className="text-[10px] tracking-[0.2em] uppercase font-sans font-semibold mb-1.5" style={{ color: "#D4AF37" }}>
+                  Latest Article
+                </p>
+                <p className="text-xs font-sans font-semibold text-[#1A1A1A] leading-snug mb-2 line-clamp-2">
+                  {featuredBlog.title}
+                </p>
+                <span className="inline-flex items-center gap-1 text-[11px] font-semibold font-sans transition-colors" style={{ color: "#D4AF37" }}>
+                  Read article
+                  <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+                </span>
+              </div>
+            </div>
+          </div>
+
         </div>
       </div>
     </motion.div>
@@ -607,7 +715,7 @@ export default function Navbar() {
   const goToCategory = (id: string) => {
     setMobileOpen(false);
     setNavigationStack([]); // Reset navigation
-    router.push(`/pharmacy?category=${id}`);
+    router.push(`/pharmacy/category/${id}`);
   };
 
   return (

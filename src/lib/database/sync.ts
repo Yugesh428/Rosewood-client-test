@@ -38,6 +38,7 @@ import SiteTheme, { CustomTheme } from "../../features/siteTheme/siteThemeModel"
 import FeaturedDuo from "../../features/Ui/featuredDuo/featuredDuoModel";
 import PromotionSlide from "../../features/Ui/promotions/promotionsModel";
 import DiscoverSection from "../../features/Ui/discoverSection/discoverModel";
+import Blog from "../../features/Ui/blog/blogModel";
 
 const OPTS = { force: false, alter: false } as const;
 
@@ -74,6 +75,7 @@ async function sync() {
     await FeaturedDuo.sync(OPTS);
     await PromotionSlide.sync(OPTS);
     await DiscoverSection.sync(OPTS);
+    await Blog.sync(OPTS);
 
     console.log("✅ All tables created (if not exist).");
     console.log("\n💡 To add new columns, run: npm run db:migrate");

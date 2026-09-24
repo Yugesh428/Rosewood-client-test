@@ -1,7 +1,19 @@
 "use client";
 
-import { motion } from "framer-motion";
+import { useEffect, useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
+import { ChevronDown } from "lucide-react";
+
+interface Blog {
+  id: string;
+  title: string;
+  slug: string;
+  category: string;
+  excerpt: string;
+  coverImage: string;
+  date: string;
+}
 
 const faqs = [
   {
@@ -76,6 +88,33 @@ function FAQItem({ question, answer, defaultOpen }: { question: string; answer: 
 }
 
 export default function ArticlesSection() {
+  const [featuredBlogs, setFeaturedBlogs] = useState<Blog[]>([]);
+  const [sidebarBlogs, setSidebarBlogs] = useState<Blog[]>([]);
+
+  useEffect(() => {
+    async function fetchBlogs() {
+      try {
+        // Fetch featured blogs for main cards
+        const featuredRes = await fetch("/api/ui/blog?featured=true");
+        const featuredData = await featuredRes.json();
+        if (featuredData.success) {
+          setFeaturedBlogs(featuredData.data.slice(0, 2));
+        }
+
+        // Fetch recent blogs for sidebar
+        const allRes = await fetch("/api/ui/blog");
+        const allData = await allRes.json();
+        if (allData.success) {
+          setSidebarBlogs(allData.data.slice(0, 4));
+        }
+      } catch (error) {
+        console.error("Error fetching blogs:", error);
+      }
+    }
+
+    fetchBlogs();
+  }, []);
+
   return (
     <>
 
@@ -115,7 +154,11 @@ export default function ArticlesSection() {
             <div className="flex items-center justify-between mb-8">
               <h3
                 className="text-3xl text-[#1A1A1A]"
-                style={{ fontFamily: "'Lucida Calligraphy', cursive", fontWeight: 400 }}
+                style={{
+                  fontFamily: "var(--font-montserrat), 'Montserrat', sans-serif",
+                  fontWeight: 700,
+                  letterSpacing: "-0.01em",
+                }}
               >
                 Latest Articles
               </h3>
@@ -129,64 +172,110 @@ export default function ArticlesSection() {
 
               {/* Featured blog cards (2) */}
               <div className="md:col-span-2 grid grid-cols-1 sm:grid-cols-2 gap-6">
-                {[
-                  {
-                    category: "SKINCARE",
-                    title: "10 Daily Habits for Healthier Skin",
-                    date: "Sep 22, 2026",
-                    excerpt: "Simple daily habits that transform your skin health over time, from hydration to sun protection and gentle cleansing routines.",
-                    image: "https://images.unsplash.com/photo-1556228578-8c89e6adf883?w=400&h=280&fit=crop&q=80",
-                  },
-                  {
-                    category: "WELLNESS",
-                    title: "Benefits of Natural Botanical Ingredients",
-                    date: "Sep 19, 2026",
-                    excerpt: "Discover how natural botanical extracts work to nourish, protect and revitalize your skin without harsh chemicals.",
-                    image: "https://images.unsplash.com/photo-1515377905703-c4788e51af15?w=400&h=280&fit=crop&q=80",
-                  },
-                ].map((article, idx) => (
-                  <motion.article
-                    key={idx}
-                    initial={{ opacity: 0, y: 20 }}
-                    whileInView={{ opacity: 1, y: 0 }}
-                    viewport={{ once: true }}
-                    transition={{ delay: idx * 0.1 }}
-                    className="group"
-                  >
-                    <Link href="/articles">
-                      <div className="aspect-[4/3] overflow-hidden rounded-sm mb-4">
-                        <img
-                          src={article.image}
-                          alt={article.title}
-                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
-                        />
-                      </div>
-                      <p className="text-[10px] tracking-[0.2em] uppercase font-sans text-black/40 mb-2">{article.category}</p>
-                      <h4 className="font-sans font-bold text-lg text-[#1A1A1A] mb-1 group-hover:text-[#D4AF37] transition-colors leading-snug">{article.title}</h4>
-                      <p className="text-xs text-black/50 font-sans mb-3">{article.date}</p>
-                      <p className="text-sm text-black/60 font-sans leading-relaxed mb-4">{article.excerpt}</p>
-                      <span className="inline-block px-5 py-2 text-[10px] tracking-[0.2em] uppercase font-sans font-bold bg-[#1A1A1A] text-white hover:bg-[#D4AF37] transition-colors">
-                        READ MORE
-                      </span>
-                    </Link>
-                  </motion.article>
-                ))}
+                {featuredBlogs.length > 0 ? (
+                  featuredBlogs.map((article, idx) => (
+                    <motion.article
+                      key={article.id}
+                      initial={{ opacity: 0, y: 20 }}
+                      whileInView={{ opacity: 1, y: 0 }}
+                      viewport={{ once: true }}
+                      transition={{ delay: idx * 0.1 }}
+                      className="group"
+                    >
+                      <Link href={`/articles/${article.slug}`} className="block">
+                        <div className="aspect-[4/3] overflow-hidden rounded-sm mb-4">
+                          <img
+                            src={article.coverImage}
+                            alt={article.title}
+                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
+                          />
+                        </div>
+                        <p className="text-[10px] tracking-[0.2em] uppercase font-sans text-black/40 mb-2">{article.category}</p>
+                        <h4 className="font-sans font-bold text-lg text-[#1A1A1A] mb-1 group-hover:text-[#D4AF37] transition-colors leading-snug line-clamp-2">{article.title}</h4>
+                        <p className="text-xs text-black/50 font-sans mb-3">{article.date}</p>
+                        <p className="text-sm text-black/60 font-sans leading-relaxed mb-5 line-clamp-3">{article.excerpt}</p>
+                        <span className="inline-block px-5 py-2 text-[10px] tracking-[0.2em] uppercase font-sans font-bold bg-[#1A1A1A] text-white hover:bg-[#D4AF37] transition-colors">
+                          READ MORE
+                        </span>
+                      </Link>
+                    </motion.article>
+                  ))
+                ) : (
+                  // Fallback static content
+                  [
+                    {
+                      id: "1",
+                      category: "SKINCARE",
+                      title: "10 Daily Habits for Healthier Skin",
+                      date: "Sep 22, 2026",
+                      excerpt: "Simple daily habits that transform your skin health over time, from hydration to sun protection and gentle cleansing routines.",
+                      image: "https://images.unsplash.com/photo-1556228578-8c89e6adf883?w=400&h=280&fit=crop&q=80",
+                      slug: "daily-habits-healthier-skin",
+                    },
+                    {
+                      id: "2",
+                      category: "WELLNESS",
+                      title: "Benefits of Natural Botanical Ingredients",
+                      date: "Sep 19, 2026",
+                      excerpt: "Discover how natural botanical extracts work to nourish, protect and revitalize your skin without harsh chemicals.",
+                      image: "https://images.unsplash.com/photo-1515377905703-c4788e51af15?w=400&h=280&fit=crop&q=80",
+                      slug: "natural-botanical-ingredients",
+                    },
+                  ].map((article, idx) => (
+                    <motion.article
+                      key={article.id}
+                      initial={{ opacity: 0, y: 20 }}
+                      whileInView={{ opacity: 1, y: 0 }}
+                      viewport={{ once: true }}
+                      transition={{ delay: idx * 0.1 }}
+                      className="group"
+                    >
+                      <Link href="/articles" className="block">
+                        <div className="aspect-[4/3] overflow-hidden rounded-sm mb-4">
+                          <img
+                            src={article.image}
+                            alt={article.title}
+                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
+                          />
+                        </div>
+                        <p className="text-[10px] tracking-[0.2em] uppercase font-sans text-black/40 mb-2">{article.category}</p>
+                        <h4 className="font-sans font-bold text-lg text-[#1A1A1A] mb-1 group-hover:text-[#D4AF37] transition-colors leading-snug line-clamp-2">{article.title}</h4>
+                        <p className="text-xs text-black/50 font-sans mb-3">{article.date}</p>
+                        <p className="text-sm text-black/60 font-sans leading-relaxed mb-5 line-clamp-3">{article.excerpt}</p>
+                        <span className="inline-block px-5 py-2 text-[10px] tracking-[0.2em] uppercase font-sans font-bold bg-[#1A1A1A] text-white hover:bg-[#D4AF37] transition-colors">
+                          READ MORE
+                        </span>
+                      </Link>
+                    </motion.article>
+                  ))
+                )}
               </div>
 
               {/* Sidebar — category list */}
               <div className="space-y-6">
-                {[
-                  { category: "GIFTING", title: "12 of the Best Gifts for Wellness Lovers", date: "Sep 21, 2026" },
-                  { category: "ROYAL JELLY", title: "Royal Jelly Explained for Everyday Wellness", date: "Sep 20, 2026" },
-                  { category: "AUTUMN", title: "Autumn Immune Support for the Cooler Months", date: "Sep 19, 2026" },
-                  { category: "FATIGUE", title: "Vitamin Routine for Winter Fatigue That Fits", date: "Sep 18, 2026" },
-                ].map((item, idx) => (
-                  <Link key={idx} href="/articles" className="block group pb-6 border-b border-gray-200 last:border-0">
-                    <p className="text-[10px] tracking-[0.2em] uppercase font-sans text-black/40 mb-1">{item.category}</p>
-                    <h4 className="font-sans font-semibold text-base text-[#1A1A1A] group-hover:text-[#D4AF37] transition-colors leading-snug mb-1">{item.title}</h4>
-                    <p className="text-xs text-black/50 font-sans">{item.date}</p>
-                  </Link>
-                ))}
+                {sidebarBlogs.length > 0 ? (
+                  sidebarBlogs.map((item, idx) => (
+                    <Link key={item.id} href={`/articles/${item.slug}`} className="block group pb-6 border-b border-gray-200 last:border-0">
+                      <p className="text-[10px] tracking-[0.2em] uppercase font-sans text-black/40 mb-1">{item.category}</p>
+                      <h4 className="font-sans font-semibold text-base text-[#1A1A1A] group-hover:text-[#D4AF37] transition-colors leading-snug mb-1">{item.title}</h4>
+                      <p className="text-xs text-black/50 font-sans">{item.date}</p>
+                    </Link>
+                  ))
+                ) : (
+                  // Fallback static sidebar
+                  [
+                    { category: "GIFTING", title: "12 of the Best Gifts for Wellness Lovers", date: "Sep 21, 2026" },
+                    { category: "ROYAL JELLY", title: "Royal Jelly Explained for Everyday Wellness", date: "Sep 20, 2026" },
+                    { category: "AUTUMN", title: "Autumn Immune Support for the Cooler Months", date: "Sep 19, 2026" },
+                    { category: "FATIGUE", title: "Vitamin Routine for Winter Fatigue That Fits", date: "Sep 18, 2026" },
+                  ].map((item, idx) => (
+                    <Link key={idx} href="/articles" className="block group pb-6 border-b border-gray-200 last:border-0">
+                      <p className="text-[10px] tracking-[0.2em] uppercase font-sans text-black/40 mb-1">{item.category}</p>
+                      <h4 className="font-sans font-semibold text-base text-[#1A1A1A] group-hover:text-[#D4AF37] transition-colors leading-snug mb-1">{item.title}</h4>
+                      <p className="text-xs text-black/50 font-sans">{item.date}</p>
+                    </Link>
+                  ))
+                )}
               </div>
 
             </div>

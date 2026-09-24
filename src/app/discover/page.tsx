@@ -119,7 +119,7 @@ export default function DiscoverPage() {
                 </h1>
               )}
               {data.expandDescription && (
-                <p className="text-base md:text-lg text-black/60 font-sans leading-relaxed mb-10">
+                <p className="text-base md:text-lg leading-relaxed mb-10" style={{ color: "#1A1A1A", fontFamily: "'Times New Roman', Times, serif" }}>
                   {data.expandDescription}
                 </p>
               )}
@@ -208,7 +208,7 @@ export default function DiscoverPage() {
                 </h2>
               )}
               {data.diveDescription && (
-                <div className="space-y-6 text-base md:text-lg text-black/60 font-sans leading-relaxed">
+                <div className="space-y-6 text-base md:text-lg leading-relaxed" style={{ color: "#1A1A1A", fontFamily: "'Times New Roman', Times, serif" }}>
                   {data.diveDescription.split('\n\n').map((para, idx) => (
                     <p key={idx}>{para}</p>
                   ))}

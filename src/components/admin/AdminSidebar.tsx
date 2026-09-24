@@ -23,6 +23,7 @@ import {
   Palette,
   FileBarChart,
   LineChart,
+  FileText,
 } from "lucide-react";
 
 interface NavItem {
@@ -42,6 +43,7 @@ const navItems: NavItem[] = [
   { icon: Briefcase,       label: "STAFF",        href: "/admin/staff"        },
   { icon: Star,            label: "REVIEWS",      href: "/admin/reviews"      },
   { icon: MessageSquare,   label: "FEEDBACK",     href: "/admin/feedback"       },
+  { icon: FileText,        label: "BLOGS",        href: "/admin/blogs"          },
   { icon: FileBarChart,    label: "REPORTS",      href: "/admin/reports"        },
   { icon: LineChart,       label: "ANALYTICS",    href: "/admin/analytics"      },
   { icon: Globe,           label: "SITE CONTENT", href: "/admin/site-content"   },

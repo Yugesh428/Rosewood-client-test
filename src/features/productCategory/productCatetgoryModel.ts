@@ -6,6 +6,7 @@ export interface CategoryAttributes {
   id: string;
   categoryName: string;
   categoryDescription: string;
+  slug: string | null;
   parentId: string | null; // null = top-level category, UUID = subcategory of that parent
   isActive: boolean;
   createdAt?: Date;
@@ -14,7 +15,7 @@ export interface CategoryAttributes {
 
 export interface CategoryCreationAttributes extends Optional<
   CategoryAttributes,
-  "id" | "parentId" | "isActive" | "createdAt" | "updatedAt"
+  "id" | "slug" | "parentId" | "isActive" | "createdAt" | "updatedAt"
 > {}
 
 class Category

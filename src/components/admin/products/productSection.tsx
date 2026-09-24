@@ -285,6 +285,8 @@ export default function ProductSection() {
       if (form.imageFile || form.galleryFiles.length > 0 || form.existingGallery.length > 0) {
         const fd = new FormData();
         if (form.imageFile) fd.append("image", form.imageFile);
+        // Always send imageUrl so controller picks it up when no file is chosen
+        if (!form.imageFile && form.imageUrl) fd.append("imageUrl", form.imageUrl);
         form.galleryFiles.forEach((file, idx) => fd.append(`gallery_${idx}`, file));
         // Always send existing gallery (includes URLs + previously uploaded paths)
         fd.append("productImages", JSON.stringify(form.existingGallery));

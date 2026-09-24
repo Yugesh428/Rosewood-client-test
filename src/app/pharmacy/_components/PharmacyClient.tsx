@@ -1,10 +1,10 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import {
-  ChevronDown, ChevronLeft, ChevronRight,
+  ChevronLeft, ChevronRight,
   ShoppingCart, Star,
 } from "lucide-react";
 import { toast } from "sonner";
@@ -214,118 +214,281 @@ function ProductCard({ product, highlight = false }: { product: DBProduct; highl
   );
 }
 
-// ─── Mega Menu Category Bar (horizontal, top, hideable) ──────────────────────
+// ─── Category Icon component ─────────────────────────────────────────────────
 
-const PHARMACY_BAR_KEY = "rosewood_pharmacy_bar_hidden";
+function CategoryIcon({ name }: { name: string }) {
+  const n = name.toLowerCase();
+  if (n.includes("skin") || n.includes("care"))
+    return <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4"><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></svg>;
+  if (n.includes("hair"))
+    return <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4"><path d="M12 2a5 5 0 0 1 5 5c0 3-2 5-5 9-3-4-5-6-5-9a5 5 0 0 1 5-5z"/></svg>;
+  if (n.includes("vitamin") || n.includes("supplement") || n.includes("nutrition"))
+    return <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/></svg>;
+  if (n.includes("body") || n.includes("bath"))
+    return <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4"><path d="M7 21h10M12 21V12M5 3h14l-2 9H7L5 3z"/></svg>;
+  if (n.includes("cold") || n.includes("flu") || n.includes("fever"))
+    return <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4"><path d="M12 2v20M2 12h20"/><circle cx="12" cy="12" r="4"/></svg>;
+  if (n.includes("allerg"))
+    return <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>;
+  if (n.includes("eye"))
+    return <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>;
+  if (n.includes("ear"))
+    return <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4"><path d="M6 8.5a6 6 0 1 1 11.93 1c-.17 1.39-.91 2.61-1.93 3.5-1.5 1.3-2 2.5-2 4v.5a1.5 1.5 0 0 1-3 0v-.5"/><circle cx="12" cy="21" r="1"/></svg>;
+  if (n.includes("baby") || n.includes("mother"))
+    return <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4"><circle cx="12" cy="8" r="4"/><path d="M8 16H6a2 2 0 0 0-2 2v2h16v-2a2 2 0 0 0-2-2h-2"/></svg>;
+  if (n.includes("diabet"))
+    return <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5M2 12l10 5 10-5"/></svg>;
+  if (n.includes("pain"))
+    return <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4"><path d="M18 8h1a4 4 0 0 1 0 8h-1"/><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"/><line x1="6" y1="1" x2="6" y2="4"/><line x1="10" y1="1" x2="10" y2="4"/><line x1="14" y1="1" x2="14" y2="4"/></svg>;
+  if (n.includes("digest") || n.includes("stomach"))
+    return <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4"><ellipse cx="12" cy="12" rx="10" ry="7"/><path d="M12 5v14M5 12h14"/></svg>;
+  if (n.includes("heart"))
+    return <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>;
+  if (n.includes("medicine") || n.includes("medical"))
+    return <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>;
+  // Default
+  return <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>;
+}
+
+const ICON_COLORS = [
+  { bg: "#FEF3C7", color: "#D97706" },
+  { bg: "#FCE7F3", color: "#DB2777" },
+  { bg: "#E0F2FE", color: "#0284C7" },
+  { bg: "#D1FAE5", color: "#059669" },
+  { bg: "#EDE9FE", color: "#7C3AED" },
+  { bg: "#FEE2E2", color: "#DC2626" },
+  { bg: "#FEF9C3", color: "#CA8A04" },
+  { bg: "#DCFCE7", color: "#16A34A" },
+];
+
+// ─── Mega Menu Category Bar (single-line nav with hover dropdowns + expand) ──
 
 function MegaMenuBar({ categories, selectedCategory, onSelect }: {
   categories: DBCategory[];
   selectedCategory: string | null;
   onSelect: (id: string | null) => void;
 }) {
-  const [activeMenu, setActiveMenu] = useState<string | null>(null);
-  const [hidden, setHidden] = useState(false);
-  const [mounted, setMounted] = useState(false);
-  const contentRef = React.useRef<HTMLDivElement>(null);
+  const [hoveredCat, setHoveredCat] = useState<string | null>(null);
+  const [visibleLines, setVisibleLines] = useState(1);  const containerRef = useRef<HTMLDivElement>(null);
+  const [itemsPerLine, setItemsPerLine] = useState<number[]>([]);
 
-  const topLevel = categories.filter(c => !c.parentId);
+  const topLevel   = categories.filter(c => !c.parentId);
   const childrenOf = (id: string) => categories.filter(c => c.parentId === id);
 
-  useEffect(() => {
-    const saved = localStorage.getItem(PHARMACY_BAR_KEY);
-    // Default is visible (false = not hidden), only hide if explicitly saved as "true"
-    setHidden(saved === "true");
-    setMounted(true);
-  }, []);
+  // All items including "All Products"
+  const allItems = [{ id: "__all__", categoryName: "All Products" }, ...topLevel];
 
+  // Measure how many items fit per line
   useEffect(() => {
-    if (!mounted) return;
-    localStorage.setItem(PHARMACY_BAR_KEY, String(hidden));
-  }, [hidden, mounted]);
+    if (!containerRef.current || allItems.length === 0) return;
+
+    const measure = () => {
+      const container = containerRef.current;
+      if (!container) return;
+      const MORE_BTN_WIDTH = 100; // reserved px for "+ N more" button
+      const availableWidth = container.offsetWidth - MORE_BTN_WIDTH;
+
+      const temp = document.createElement("div");
+      temp.style.cssText = "position:absolute;visibility:hidden;white-space:nowrap;font-size:13px;font-family:sans-serif;";
+      document.body.appendChild(temp);
+
+      const widths: number[] = [];
+      allItems.forEach(item => {
+        temp.textContent = item.categoryName;
+        widths.push(temp.offsetWidth + 32); // 32px = px-4 * 2
+      });
+      document.body.removeChild(temp);
+
+      // Find how many items fit in one line
+      const lines: number[] = []; // stores the start index of each overflow line
+      let lineWidth = 0;
+      let lineStart = 0;
+
+      for (let i = 0; i < widths.length; i++) {
+        if (lineWidth + widths[i] > availableWidth && i > lineStart) {
+          lines.push(i); // line break at i
+          lineStart = i;
+          lineWidth = widths[i];
+        } else {
+          lineWidth += widths[i];
+        }
+      }
+
+      setItemsPerLine(lines);
+    };
+
+    measure();
+    window.addEventListener("resize", measure);
+    return () => window.removeEventListener("resize", measure);
+  }, [allItems.length]);
+
+  // line 1 always shows exactly items 0..firstBreak, never changes
+  const firstBreak = itemsPerLine.length > 0 ? itemsPerLine[0] : allItems.length;
+  const line1Items = allItems.slice(0, firstBreak);
+  const line2Items = allItems.slice(firstBreak);
+  const hasMore    = line2Items.length > 0;
+  const showLine2  = visibleLines > 1;
 
   return (
-    <div className="bg-white border-b border-gray-200 relative z-30">
-      {/* Animated wrapper — overflow hidden only during animation, visible when open so dropdowns work */}
-      <div
-        style={{
-          display: "grid",
-          gridTemplateRows: hidden ? "0fr" : "1fr",
-          opacity: hidden ? 0 : 1,
-          transition: "grid-template-rows 0.35s cubic-bezier(0.4,0,0.2,1), opacity 0.25s ease",
-        }}
-      >
-        <div style={{ overflow: hidden ? "hidden" : "visible" }}>
-        <div ref={contentRef} className="w-full px-6 py-3">
-          <div className="flex flex-wrap items-center gap-2">
-            {/* All Products */}
-            <button
-              onClick={() => { onSelect(null); setActiveMenu(null); }}
-              className="flex-shrink-0 flex items-center gap-1.5 px-4 py-2 text-xs font-sans font-medium transition-all rounded-full whitespace-nowrap"
-              style={{
-                color: selectedCategory === null ? "#D4AF37" : "#374151",
-                backgroundColor: selectedCategory === null ? "#fdfbf4" : "transparent",
-                border: selectedCategory === null ? "1px solid #D4AF37" : "1px solid #E5E7EB",
-              }}
-            >
-              All Products
-            </button>
+    <div
+      className="relative z-30 bg-white overflow-visible"
+      style={{
+        borderBottom: "1px solid #e5e7eb",
+        boxShadow: "0 2px 8px rgba(0,0,0,0.06)",
+      }}
+    >
+      <div className="w-full">
 
-            {/* Top-level categories */}
-            {topLevel.map(cat => {
-              const children = childrenOf(cat.id);
-              const isActive = selectedCategory === cat.id || children.some(c => c.id === selectedCategory);
-              const isOpen = activeMenu === cat.id;
+        {/* ── Line 1: always single row, no wrap ── */}
+        <div ref={containerRef} className="flex items-center overflow-visible pr-5 md:pr-10">
+          <style>{`
+            .cat-btn {
+              position: relative;
+              background: transparent;
+              border: none;
+              cursor: pointer;
+              font-family: var(--font-brandon), 'Josefin Sans', sans-serif;
+              letter-spacing: 0.04em;
+              font-weight: 700;
+              font-size: 13px;
+            }
+            .cat-btn::after {
+              content: '';
+              position: absolute;
+              bottom: 0;
+              left: 0;
+              width: 0%;
+              height: 2px;
+              background-color: #D4AF37;
+              transition: width 0.25s ease;
+            }
+            .cat-btn:hover::after {
+              width: 100%;
+            }
+            .cat-btn.active::after {
+              width: 100%;
+            }
+            .cat-item .cat-dropdown {
+              display: none;
+            }
+            .cat-item:hover .cat-dropdown {
+              display: block;
+            }
+          `}</style>
 
-              return (
-                <div
-                  key={cat.id}
-                  className="relative flex-shrink-0"
-                  onMouseEnter={() => children.length > 0 && setActiveMenu(cat.id)}
-                  onMouseLeave={() => setActiveMenu(null)}
-                >
+          {line1Items.map((cat, idx) => {
+            const isAll    = cat.id === "__all__";
+            const children = isAll ? [] : childrenOf(cat.id);
+            const isActive = isAll
+              ? selectedCategory === null
+              : selectedCategory === cat.id || children.some(c => c.id === selectedCategory);
+
+            return (
+              <div key={cat.id} className="cat-item relative flex-shrink-0">
+                {isAll ? (
                   <button
-                    onClick={() => { onSelect(cat.id); setActiveMenu(null); }}
-                    className="flex items-center gap-1 px-4 py-2 text-xs font-sans font-medium transition-all rounded-full whitespace-nowrap"
-                    style={{
-                      color: isActive ? "#D4AF37" : "#374151",
-                      backgroundColor: isActive ? "#fdfbf4" : "transparent",
-                      border: isActive ? "1px solid #D4AF37" : "1px solid #E5E7EB",
-                    }}
+                    onClick={() => onSelect(null)}
+                    className={`cat-btn ${idx === 0 ? "pl-5 md:pl-10 pr-4" : "px-4"} py-3 whitespace-nowrap${isActive ? " active" : ""}`}
+                    style={{ color: "#1A1A1A", fontWeight: isActive ? 700 : 400 }}
                   >
                     {cat.categoryName}
-                    {children.length > 0 && (
-                      <ChevronDown className="w-3 h-3 opacity-50" />
-                    )}
                   </button>
+                ) : (
+                  <a
+                    href={`/pharmacy/category/${cat.id}`}
+                    className={`cat-btn ${idx === 0 ? "pl-5 md:pl-10 pr-4" : "px-4"} py-3 whitespace-nowrap block${isActive ? " active" : ""}`}
+                    style={{ color: "#1A1A1A", fontWeight: isActive ? 700 : 400 }}
+                  >
+                    {cat.categoryName}
+                  </a>
+                )}
 
-                  {/* Subcategory dropdown on hover */}
-                  {children.length > 0 && isOpen && (
-                    <div
-                      className="absolute top-full left-0 mt-1 bg-white shadow-xl border border-gray-100 z-50 min-w-[200px] py-2 rounded-md"
-                      style={{ borderTop: "2px solid #D4AF37" }}
-                      onMouseEnter={() => setActiveMenu(cat.id)}
-                      onMouseLeave={() => setActiveMenu(null)}
+                {!isAll && children.length > 0 && (
+                  <div className="cat-dropdown absolute top-full left-0 bg-white z-50 py-2 min-w-[200px]"
+                    style={{ borderTop: "2px solid #D4AF37", boxShadow: "0 8px 32px rgba(0,0,0,0.12)" }}>
+                    <a
+                      href={`/pharmacy/category/${cat.id}`}
+                      className="block w-full text-left px-4 py-2 text-[11px] font-bold uppercase tracking-widest border-b border-gray-100 hover:text-[#D4AF37] transition-colors"
+                      style={{ color: isActive ? "#D4AF37" : "#1A1A1A", fontFamily: "var(--font-brandon), 'Josefin Sans', sans-serif" }}>
+                      All {cat.categoryName}
+                    </a>
+                    {children.map((sub) => (
+                      <a
+                        key={sub.id}
+                        href={`/pharmacy/category/${sub.id}`}
+                        className="block w-full text-left px-4 py-2 text-[12px] transition-colors hover:text-[#D4AF37] hover:bg-[#FEFBF0]"
+                        style={{ color: selectedCategory === sub.id ? "#D4AF37" : "#444", fontWeight: selectedCategory === sub.id ? 600 : 400, fontFamily: "var(--font-brandon), 'Josefin Sans', sans-serif" }}>
+                        {sub.categoryName}
+                      </a>
+                    ))}
+                  </div>
+                )}
+              </div>
+            );
+          })}
+
+          {/* + more / − less — always end of line 1 */}
+          {line2Items.length > 0 && (
+            <button
+              onClick={() => setVisibleLines(v => v > 1 ? 1 : 2)}
+              className="flex-shrink-0 flex items-center gap-1.5 px-3 py-3 text-[12px] font-semibold font-sans transition-colors whitespace-nowrap ml-auto"
+              style={{ color: "#D4AF37" }}
+            >
+              <span className="w-[18px] h-[18px] rounded-full border-2 border-[#D4AF37] flex items-center justify-center text-[12px] leading-none font-bold">
+                {showLine2 ? "−" : "+"}
+              </span>
+              {showLine2 ? "less" : `${line2Items.length} more`}
+            </button>
+          )}
+        </div>
+
+        {/* ── Line 2: extra categories, shown on demand ── */}
+        {showLine2 && (
+          <div className="flex flex-wrap items-center border-t border-gray-100 pl-5 md:pl-10">
+            {line2Items.map((cat) => {
+              const isAll    = cat.id === "__all__";
+              const children = isAll ? [] : childrenOf(cat.id);
+              const isActive = isAll
+                ? selectedCategory === null
+                : selectedCategory === cat.id || children.some(c => c.id === selectedCategory);
+
+              return (
+                <div key={cat.id} className="cat-item relative flex-shrink-0">
+                  {isAll ? (
+                    <button
+                      onClick={() => onSelect(null)}
+                      className={`cat-btn px-4 py-3 whitespace-nowrap${isActive ? " active" : ""}`}
+                      style={{ color: "#1A1A1A", fontWeight: isActive ? 700 : 400 }}
                     >
-                      <button
-                        onClick={() => { onSelect(cat.id); setActiveMenu(null); }}
-                        className="w-full text-left px-4 py-2 text-xs font-sans font-semibold border-b border-gray-100 hover:bg-gray-50 transition-colors"
-                        style={{ color: "#D4AF37" }}
-                      >
+                      {cat.categoryName}
+                    </button>
+                  ) : (
+                    <a
+                      href={`/pharmacy/category/${cat.id}`}
+                      className={`cat-btn px-4 py-3 whitespace-nowrap block${isActive ? " active" : ""}`}
+                      style={{ color: "#1A1A1A", fontWeight: isActive ? 700 : 400 }}
+                    >
+                      {cat.categoryName}
+                    </a>
+                  )}
+
+                  {!isAll && children.length > 0 && (
+                    <div className="cat-dropdown absolute top-full left-0 bg-white z-50 py-2 min-w-[200px]"
+                      style={{ borderTop: "2px solid #D4AF37", boxShadow: "0 8px 32px rgba(0,0,0,0.12)" }}>
+                      <a
+                        href={`/pharmacy/category/${cat.id}`}
+                        className="block w-full text-left px-4 py-2 text-[11px] font-bold uppercase tracking-widest border-b border-gray-100 hover:text-[#D4AF37] transition-colors"
+                        style={{ color: isActive ? "#D4AF37" : "#1A1A1A", fontFamily: "var(--font-brandon), 'Josefin Sans', sans-serif" }}>
                         All {cat.categoryName}
-                      </button>
-                      {children.map(child => (
-                        <button
-                          key={child.id}
-                          onClick={() => { onSelect(child.id); setActiveMenu(null); }}
-                          className="w-full text-left px-4 py-2 text-xs font-sans transition-colors hover:bg-gray-50"
-                          style={{
-                            color: selectedCategory === child.id ? "#D4AF37" : "#374151",
-                            fontWeight: selectedCategory === child.id ? 600 : 400,
-                            backgroundColor: selectedCategory === child.id ? "#fdfbf4" : "",
-                          }}
-                        >
-                          {child.categoryName}
-                        </button>
+                      </a>
+                      {children.map((sub) => (
+                        <a
+                          key={sub.id}
+                          href={`/pharmacy/category/${sub.id}`}
+                          className="block w-full text-left px-4 py-2 text-[12px] transition-colors hover:text-[#D4AF37] hover:bg-[#FEFBF0]"
+                          style={{ color: selectedCategory === sub.id ? "#D4AF37" : "#444", fontWeight: selectedCategory === sub.id ? 600 : 400, fontFamily: "var(--font-brandon), 'Josefin Sans', sans-serif" }}>
+                          {sub.categoryName}
+                        </a>
                       ))}
                     </div>
                   )}
@@ -333,27 +496,9 @@ function MegaMenuBar({ categories, selectedCategory, onSelect }: {
               );
             })}
           </div>
-        </div>
-        </div>
-      </div>
-
-      {/* Toggle tab — always visible at the bottom edge of the bar */}
-      <button
-        onClick={() => setHidden(v => !v)}
-        className="absolute -bottom-5 left-1/2 -translate-x-1/2 z-30 flex items-center gap-1 px-3 py-1 rounded-b-full bg-white border border-t-0 border-gray-200 text-[10px] font-sans text-gray-400 hover:text-[#D4AF37] hover:border-[#D4AF37] transition-all shadow-sm"
-      >
-        {hidden ? (
-          <>
-            <ChevronDown className="w-3 h-3" />
-            <span>Show Categories</span>
-          </>
-        ) : (
-          <>
-            <ChevronDown className="w-3 h-3 rotate-180" />
-            <span>Hide</span>
-          </>
         )}
-      </button>
+
+      </div>
     </div>
   );
 }
@@ -409,19 +554,10 @@ export default function PharmacyClient({ categories, products }: PharmacyClientP
   const resetPage  = () => setVisibleCount(PER_PAGE);
 
   return (
-    <div className="min-h-screen bg-[#F9F9F9]" style={{ paddingTop: '94px' }}>
-
-      {/* ── Page Header: PAGES > Pharmacy ── */}
-      <div className="bg-white border-b border-gray-100 px-6 md:px-12 py-3">
-        <div className="flex items-center gap-2 text-xs font-sans text-gray-400 uppercase tracking-widest">
-          <span>Pages</span>
-          <span className="text-gray-300">›</span>
-          <span className="text-gray-700 font-semibold">Pharmacy</span>
-        </div>
-      </div>
+    <div className="min-h-screen bg-white" style={{ paddingTop: '94px' }}>
 
       {/* ── Mega Menu Category Bar - Sticky at top, hideable ── */}
-      <div className="hidden md:block sticky top-[94px] z-20">
+      <div className="hidden md:block sticky top-[94px] z-20 overflow-visible">
         <MegaMenuBar
           categories={categories}
           selectedCategory={selectedCategory}
@@ -432,7 +568,7 @@ export default function PharmacyClient({ categories, products }: PharmacyClientP
       <CartDrawer open={cartOpen} onClose={() => setCartOpen(false)} />
 
       {/* Products Area - Full Width */}
-      <div className="w-full px-6 md:px-12 py-4 md:py-6">
+      <div className="w-full px-5 md:px-10 py-4 md:py-6">
         <div className="w-full">
           {/* Toolbar */}
           <div className="flex items-center justify-between mb-4 gap-2 flex-wrap">

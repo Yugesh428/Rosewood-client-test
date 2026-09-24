@@ -118,15 +118,15 @@ export default function PromotionsDynamic() {
   return (
     <section className="w-full relative min-h-screen flex items-center" style={{ backgroundColor: "#FFFFFF" }}>
 
-      {/* Promotions Heading - Top Center */}
-      <div className="absolute top-12 left-1/2 -translate-x-1/2 z-20 text-center">
+      {/* Promotions Heading - Top Left */}
+      <div className="absolute top-12 left-8 md:left-16 z-20">
         <h2
           ref={headingRef}
           className="text-4xl md:text-5xl text-[#1A1A1A]"
           style={{
-            fontFamily: "'Lucida Calligraphy', 'Lucida Handwriting', 'Palatino Linotype', cursive",
-            fontWeight: 400,
-            letterSpacing: "0.02em",
+            fontFamily: "var(--font-montserrat), 'Montserrat', sans-serif",
+            fontWeight: 700,
+            letterSpacing: "-0.01em",
             perspective: "1000px",
           }}
         >Promotions</h2>
@@ -150,7 +150,7 @@ export default function PromotionsDynamic() {
             >
               {/* Eyebrow / brand */}
               {(slide.eyebrow || slide.brand) && (
-                <p className="text-xs tracking-[0.3em] uppercase font-sans text-[#D4AF37] mb-4">
+                <p className="text-xs tracking-[0.3em] uppercase font-sans font-bold text-[#D4AF37] mb-4">
                   {slide.eyebrow}{slide.eyebrow && slide.brand ? " · " : ""}{slide.brand}
                 </p>
               )}
@@ -159,7 +159,7 @@ export default function PromotionsDynamic() {
               {slide.title && (
                 <h3
                   className="text-3xl md:text-4xl lg:text-[2.6rem] font-bold uppercase leading-tight mb-6"
-                  style={{ color: "#1A1A1A", letterSpacing: "0.02em" }}
+                  style={{ color: "#1A1A1A", letterSpacing: "0.02em", fontFamily: "var(--font-sans), 'Inter', sans-serif" }}
                 >
                   {slide.title}
                 </h3>
@@ -167,14 +167,14 @@ export default function PromotionsDynamic() {
 
               {/* Subtitle */}
               {slide.subtitle && (
-                <p className="text-sm md:text-base leading-relaxed mb-4 ml-auto" style={{ color: "#555555", maxWidth: "450px" }}>
+                <p className="text-sm md:text-base leading-relaxed mb-4 ml-auto" style={{ color: "#555555", maxWidth: "450px", fontFamily: "var(--font-sans), 'Inter', sans-serif" }}>
                   {slide.subtitle}
                 </p>
               )}
 
               {/* Description */}
               {slide.description && (
-                <p className="text-xs md:text-sm leading-relaxed mb-6 ml-auto italic" style={{ color: "#888", maxWidth: "450px" }}>
+                <p className="text-xs md:text-sm leading-relaxed mb-6 ml-auto" style={{ color: "#555555", maxWidth: "450px", fontFamily: "var(--font-sans), 'Inter', sans-serif" }}>
                   {slide.description}
                 </p>
               )}

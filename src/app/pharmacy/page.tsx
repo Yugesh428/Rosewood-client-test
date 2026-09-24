@@ -17,7 +17,7 @@ async function getPharmacyData() {
   try {
     // Fetch all active categories (no pagination needed — all at once)
     const catReq = new NextRequest(
-      "http://localhost/api/product-categories?isActive=true&limit=100",
+      "http://localhost/api/product-categories?isActive=true&limit=200",
       { method: "GET" }
     );
     const catRes  = await getAllCategories(catReq);

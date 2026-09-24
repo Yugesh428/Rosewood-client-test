@@ -114,7 +114,7 @@ function ProductCard({ product }: { product: Product }) {
       `}</style>
 
       {/* Image — no overflow-hidden on outer so button isn't clipped */}
-      <div className="relative aspect-square bg-gray-50 overflow-hidden">
+      <div className="relative aspect-square overflow-hidden" style={{ backgroundColor: '#ffffff' }}>
         {hasDiscount && (
           <span className="absolute top-2 left-2 z-10 text-white text-[9px] font-semibold px-2 py-0.5 uppercase tracking-wide bg-[#c0392b]">
             -{product.discount}%
@@ -252,7 +252,7 @@ export default function TopSellingProducts() {
   if (!products.length) return null;
 
   return (
-    <section className="w-full py-12 bg-white">
+    <section className="w-full py-12" style={{ backgroundColor: '#ffffff' }}>
       <div className="w-full px-8 md:px-16">
 
         {/* Header */}
@@ -262,7 +262,7 @@ export default function TopSellingProducts() {
           viewport={{ once: true }}
           className="flex items-end justify-between mb-8"
         >
-          <div className="flex-1 text-center">
+          <div>
             <p className="text-[10px] uppercase tracking-[0.25em] font-sans text-gray-400 mb-1">
               Most Popular
             </p>
@@ -270,9 +270,9 @@ export default function TopSellingProducts() {
               ref={headingRef}
               className="text-3xl md:text-4xl text-[#1A1A1A]"
               style={{
-                fontFamily: "'Lucida Calligraphy', 'Lucida Handwriting', 'Palatino Linotype', cursive",
-                fontWeight: 400,
-                letterSpacing: "0.02em",
+                fontFamily: "var(--font-montserrat), 'Montserrat', sans-serif",
+                fontWeight: 700,
+                letterSpacing: "-0.01em",
                 perspective: "1000px",
               }}
             >
@@ -287,7 +287,7 @@ export default function TopSellingProducts() {
             View All
             <span
               ref={viewAllUnderlineRef}
-              className="absolute bottom-0 left-0 w-full h-[2px] bg-[#1A1A1A] origin-left"
+              className="absolute bottom-0 left-0 w-full h-[2px] bg-[#D4AF37] origin-left"
               style={{ transform: "scaleX(0)" }}
             />
           </Link>
