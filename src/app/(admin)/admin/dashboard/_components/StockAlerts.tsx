@@ -72,10 +72,10 @@ export default function StockAlerts() {
                 </div>
                 <div>
                   <h4 className="text-sm font-medium text-gray-900">
-                    {item.product.productName}
+                    {item.product?.productName || "Unknown Product"}
                   </h4>
                   <p className="text-xs text-gray-500">
-                    {item.product.strength} {item.product.dosageForm}
+                    {item.product?.strength} {item.product?.dosageForm}
                   </p>
                   <p className="text-xs text-red-600 mt-1">
                     Low Stock: Only {item.quantity} units remaining

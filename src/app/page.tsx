@@ -1,6 +1,7 @@
 "use client";
 
 import Navbar from "@/components/Navbar";
+import AnnouncementBar from "@/components/home/AnnouncementBar";
 import HeroSectionDynamic from "@/components/home/HeroSectionDynamic";
 import TopSellingProducts from "@/components/home/TopSellingProducts";
 import PromotionsDynamic from "@/components/home/PromotionsDynamic";
@@ -22,12 +23,15 @@ export default function HomePage() {
   return (
     <div className="min-h-screen w-full" style={{ backgroundColor: bg, margin: 0, padding: 0 }}>
       <Navbar />
-      <HeroSectionDynamic />
-      <TopSellingProducts />
-      <FeaturedDuoDynamic />
-      <PromotionsDynamic />
-      <ProductCollectionDynamic />
-      <ArticlesSection />
+      <AnnouncementBar />
+      <div style={{ paddingTop: "38px" }}>
+        <HeroSectionDynamic />
+        <TopSellingProducts />
+        <FeaturedDuoDynamic />
+        <PromotionsDynamic />
+        <ProductCollectionDynamic />
+        <ArticlesSection />
+      </div>
       <Footer />
     </div>
   );

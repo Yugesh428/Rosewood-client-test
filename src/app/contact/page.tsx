@@ -4,8 +4,8 @@ import { useState } from "react";
 import { motion } from "framer-motion";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/home/Footer";
-import ContactInfoDynamic from "@/components/contact/ContactInfoDynamic";
 import ContactMapDynamic from "@/components/contact/ContactMapDynamic";
+import ContactInfoDynamic from "@/components/contact/ContactInfoDynamic";
 
 const fadeUp = {
   hidden: { opacity: 0, y: 20 },
@@ -176,7 +176,7 @@ export default function ContactPage() {
                 )}
               </motion.div>
 
-              {/* ── Right: Contact Info (Dynamic) ────────────────────────────────── */}
+              {/* ── Right: Contact Information ────────────────────────────────── */}
               <ContactInfoDynamic />
 
             </div>

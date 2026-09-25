@@ -96,6 +96,7 @@ function CategoryNavBar({ categories, activeCategoryId }: {
   const firstBreak = itemsPerLine.length > 0 ? itemsPerLine[0] : allItems.length;
   const line1Items = allItems.slice(0, firstBreak);
   const line2Items = allItems.slice(firstBreak);
+  const hasMore    = line2Items.length > 0;
   const showLine2  = visibleLines > 1;
 
   const isActiveItem = (cat: FlatCategory) => {

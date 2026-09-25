@@ -316,8 +316,45 @@ function SearchOverlay({ onClose }: { onClose: () => void }) {
   const [query,   setQuery]   = useState("");
   const [results, setResults] = useState<SearchResult[]>([]);
   const [loading, setLoading] = useState(false);
+  const [latestArticles, setLatestArticles] = useState<{ id: string; title: string; slug: string; coverImage: string; category: string; }[]>([]);
+  const [recommendedProducts, setRecommendedProducts] = useState<SearchResult[]>([]);
 
-  useEffect(() => { inputRef.current?.focus(); }, []);
+  useEffect(() => { 
+    inputRef.current?.focus(); 
+    
+    // Fetch articles and filter to get one article per category (4 unique categories)
+    fetch("/api/ui/blog?limit=20")
+      .then(r => r.json())
+      .then(json => {
+        if (json.success) {
+          const allArticles = json.data ?? [];
+          const seenCategories = new Set<string>();
+          const uniqueArticles: typeof allArticles = [];
+          
+          // Pick one article per category until we have 4
+          for (const article of allArticles) {
+            if (!seenCategories.has(article.category) && uniqueArticles.length < 4) {
+              seenCategories.add(article.category);
+              uniqueArticles.push(article);
+            }
+            if (uniqueArticles.length === 4) break;
+          }
+          
+          setLatestArticles(uniqueArticles);
+        }
+      })
+      .catch(() => {});
+    
+    // Fetch 3 recommended products
+    fetch("/api/products?isActive=true&limit=3")
+      .then(r => r.json())
+      .then(json => {
+        if (json.success) {
+          setRecommendedProducts(json.data ?? []);
+        }
+      })
+      .catch(() => {});
+  }, []);
 
   const search = useCallback(async (q: string) => {
     if (!q.trim()) { setResults([]); return; }
@@ -367,7 +404,8 @@ function SearchOverlay({ onClose }: { onClose: () => void }) {
         animate={{ x: 0 }}
         exit={{ x: "100%" }}
         transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
-        className="fixed top-0 right-0 bottom-0 z-[9998] w-full md:w-[480px] bg-white shadow-2xl flex flex-col overflow-hidden"
+        className="fixed right-0 bottom-0 z-[9998] w-full md:w-[480px] bg-white shadow-2xl flex flex-col overflow-hidden"
+        style={{ top: "30px" }}
       >
         {/* Search Bar Header */}
         <div className="flex items-center gap-4 px-6 py-5 border-b border-gray-200">
@@ -408,8 +446,67 @@ function SearchOverlay({ onClose }: { onClose: () => void }) {
         {/* Content Area */}
         <div className="flex-1 overflow-y-auto">
           
-          {/* Quick Links Section */}
-          {!query.trim() && (
+          {/* Recommended Products - shown first when empty */}
+          {!query.trim() && recommendedProducts.length > 0 && (
+            <div className="px-6 pt-8 pb-4">
+              <h3 className="text-sm font-semibold text-gray-900 mb-4 font-sans">Recommended Products</h3>
+              <div className="space-y-3">
+                {recommendedProducts.map((product) => (
+                  <button
+                    key={product.id}
+                    onClick={() => { onClose(); router.push(`/pharmacy/${product.id}`); }}
+                    className="w-full flex gap-3 text-left hover:bg-gray-50 rounded-lg transition-colors p-2"
+                  >
+                    <div className="w-16 h-16 rounded-lg bg-gray-100 flex-shrink-0 overflow-hidden">
+                      {product.productImage ? (
+                        <img src={product.productImage} alt={product.productName} className="w-full h-full object-cover" />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center text-[#D4AF37] text-sm font-bold">
+                          {product.productName.charAt(0)}
+                        </div>
+                      )}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm text-gray-900 font-sans line-clamp-2 leading-snug mb-1">{product.productName}</p>
+                      <p className="text-xs text-gray-500 font-sans">{product.category?.categoryName ?? ""}</p>
+                      <span className="text-sm font-semibold font-sans text-[#D4AF37] mt-1 block">
+                        £{Number(product.sellingPrice).toFixed(2)}
+                      </span>
+                    </div>
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Latest Articles - shown second when empty */}
+          {!query.trim() && latestArticles.length > 0 && (
+            <div className="px-6 pb-8 pt-4">
+              <h3 className="text-sm font-semibold text-gray-900 mb-4 font-sans">Latest Articles</h3>
+              <div className="space-y-4">
+                {latestArticles.map((article) => (
+                  <button
+                    key={article.id}
+                    onClick={() => { onClose(); router.push(`/articles/${article.slug}`); }}
+                    className="w-full flex gap-3 text-left hover:bg-gray-50 rounded-lg transition-colors p-2"
+                  >
+                    <div className="w-16 h-16 rounded-lg bg-gray-100 flex-shrink-0 overflow-hidden">
+                      <img src={article.coverImage} alt={article.title} className="w-full h-full object-cover" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <span className="text-[9px] tracking-[0.2em] uppercase font-sans font-semibold text-[#D4AF37] mb-1 block">
+                        {article.category}
+                      </span>
+                      <p className="text-sm text-gray-900 font-sans line-clamp-2 leading-snug">{article.title}</p>
+                    </div>
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Quick Links Section - only if no latest articles and products */}
+          {!query.trim() && latestArticles.length === 0 && recommendedProducts.length === 0 && (
             <div className="px-6 py-8">
               <h3 className="text-sm font-semibold text-gray-900 mb-4 font-sans">Quick links</h3>
               <ul className="space-y-3">
@@ -785,9 +882,9 @@ export default function Navbar() {
               <span
                 className="text-[22px] md:text-[26px]"
                 style={{
-                  color: "var(--color-text-heading)",
+                  color: "#1A1A1A",
                   fontFamily: "'Lucida Calligraphy', 'Lucida Handwriting', 'Palatino Linotype', cursive",
-                  fontWeight: 400,
+                  fontWeight: 700,
                   letterSpacing: "0.02em",
                 }}
               >
@@ -802,7 +899,7 @@ export default function Navbar() {
             </Link>
           </div>
 
-          {/* ── RIGHT: search · account · cart ── */}
+          {/* ── RIGHT: search · wishlist · account · cart ── */}
           <div className="flex items-center justify-end gap-5" style={{ color: "var(--color-text-heading)" }}>
             {/* Search */}
             <button
@@ -812,6 +909,15 @@ export default function Navbar() {
             >
               <SearchIcon />
             </button>
+
+            {/* Wishlist */}
+            <Link
+              href="/account/wishlist"
+              aria-label="Wishlist"
+              className="transition-opacity hover:opacity-60"
+            >
+              <WishlistIcon />
+            </Link>
 
             {/* Account */}
             <AccountDropdown />
@@ -852,8 +958,8 @@ export default function Navbar() {
             <motion.div
               initial={{ x: "-100%" }} animate={{ x: 0 }} exit={{ x: "-100%" }}
               transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
-              className="fixed inset-y-0 left-0 z-50 w-[300px] bg-white flex flex-col pt-20 pb-10"
-              style={{ borderRight: "1px solid rgba(0,0,0,0.12)", overflowY: "auto", scrollbarWidth: "none", msOverflowStyle: "none" }}
+              className="fixed left-0 z-50 w-[300px] bg-white flex flex-col pb-10"
+              style={{ top: "30px", bottom: 0, borderRight: "1px solid rgba(0,0,0,0.12)", overflowY: "auto", scrollbarWidth: "none", msOverflowStyle: "none" }}
             >
               <style>{`.mobile-drawer::-webkit-scrollbar { display: none; }`}</style>
               {/* Close */}
@@ -866,8 +972,7 @@ export default function Navbar() {
               </button>
 
               {/* ── Page Links — above categories ── */}
-              <div className="px-6 pt-4 pb-4 border-b border-black/8">
-                <p className="text-[10px] tracking-[0.25em] uppercase font-sans text-black/35 mb-3">Pages</p>
+              <div className="px-6 pt-16 pb-4 border-b border-black/8">
                 <Link
                   href="/pharmacy"
                   onClick={() => setMobileOpen(false)}

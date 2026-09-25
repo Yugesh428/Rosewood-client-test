@@ -178,8 +178,8 @@ function RelatedCard({ product }: { product: RelatedProduct }) {
 
   return (
     <Link href={`/pharmacy/${product.id}`}
-      className="group flex-shrink-0 w-44 bg-white rounded-lg overflow-hidden border border-[#E8E4DC] shadow-[0_2px_8px_rgba(0,0,0,0.06)] hover:shadow-[0_6px_18px_rgba(0,0,0,0.12)] hover:border-[#C8B98A] transition-all duration-200">
-      <div className="relative aspect-square bg-[#F5F3EF]">
+      className="group flex-shrink-0 w-56 bg-white rounded-lg overflow-hidden border border-[#E8E4DC] shadow-[0_2px_8px_rgba(0,0,0,0.06)] hover:shadow-[0_6px_18px_rgba(0,0,0,0.12)] hover:border-[#C8B98A] transition-all duration-200">
+      <div className="relative aspect-square bg-white">
         {product.discount > 0 && (
           <span className="absolute top-1.5 left-1.5 z-10 text-[9px] font-bold bg-[#C0392B] text-white px-1.5 py-0.5 rounded-sm">
             -{product.discount}%
@@ -187,9 +187,9 @@ function RelatedCard({ product }: { product: RelatedProduct }) {
         )}
         <ProductImage src={product.productImage} alt={product.productName}
           fill className="object-cover group-hover:scale-105 transition-transform duration-400"
-          sizes="176px" />
+          sizes="224px" />
       </div>
-      <div className="p-2.5">
+      <div className="p-3">
         {product.category && (
           <p className="text-[9px] uppercase tracking-wide text-[#9CA3AF] font-sans mb-0.5">
             {product.category.categoryName}
@@ -198,7 +198,7 @@ function RelatedCard({ product }: { product: RelatedProduct }) {
         <p className="text-xs font-semibold text-[#1A1A1A] line-clamp-2 leading-snug mb-1.5 font-sans">
           {product.productName}
         </p>
-        <div className="flex items-baseline gap-1.5">
+        <div className="flex items-baseline gap-1.5 mb-2">
           <span className="text-sm font-bold text-[#1A1A1A] font-sans">£{price.toFixed(2)}</span>
           {original > price && (
             <span className="text-[10px] text-[#9CA3AF] line-through font-sans">£{original.toFixed(2)}</span>
@@ -209,9 +209,9 @@ function RelatedCard({ product }: { product: RelatedProduct }) {
             e.preventDefault();
             addToCart({ id: product.id as unknown as number, name: product.productName, price, image: product.productImage ?? "", category: product.category?.categoryName ?? "" });
           }}
-          className="btn-fill-cart mt-2 w-full py-1.5 text-[11px] font-bold text-white flex items-center justify-center"
+          className="btn-fill-cart mt-2 w-full py-2 text-[10px] font-bold text-white flex items-center justify-center"
         >
-          <ShoppingCart className="w-3.5 h-3.5" />
+          ADD TO CART
         </button>
       </div>
     </Link>
@@ -488,7 +488,7 @@ export default function ProductDetailClient({ product }: { product: Product }) {
                   <button
                     key={idx}
                     onClick={() => setSelectedImageIndex(idx)}
-                    className="relative aspect-square bg-[#F5F3EF] rounded-md overflow-hidden border-2 transition-all duration-200 cursor-pointer hover:scale-105"
+                    className="relative aspect-square bg-white rounded-md overflow-hidden border-2 transition-all duration-200 cursor-pointer hover:scale-105"
                     style={{
                       borderColor: idx === selectedImageIndex ? "#1A1A1A" : "#E8E4DC",
                     }}
@@ -507,7 +507,7 @@ export default function ProductDetailClient({ product }: { product: Product }) {
 
             {/* Large main image viewer */}
             <div className="flex-1 space-y-3">
-              <div className="relative aspect-square bg-[#F5F3EF] rounded-lg overflow-hidden">
+              <div className="relative aspect-square bg-white rounded-lg overflow-hidden">
                 <AnimatePresence mode="wait">
                   <motion.div
                     key={selectedImageIndex}
@@ -539,14 +539,14 @@ export default function ProductDetailClient({ product }: { product: Product }) {
                 <div className="flex justify-center gap-2">
                   <button
                     onClick={() => setSelectedImageIndex((prev) => (prev > 0 ? prev - 1 : allImages.length - 1))}
-                    className="w-10 h-10 rounded-full bg-white border border-[#E8E4DC] flex items-center justify-center hover:bg-[#F5F3EF] transition-colors"
+                    className="w-10 h-10 rounded-full bg-white border border-[#E8E4DC] flex items-center justify-center hover:bg-gray-50 transition-colors"
                     aria-label="Previous image"
                   >
                     <ChevronLeft className="w-5 h-5 text-[#1A1A1A]" />
                   </button>
                   <button
                     onClick={() => setSelectedImageIndex((prev) => (prev < allImages.length - 1 ? prev + 1 : 0))}
-                    className="w-10 h-10 rounded-full bg-white border border-[#E8E4DC] flex items-center justify-center hover:bg-[#F5F3EF] transition-colors"
+                    className="w-10 h-10 rounded-full bg-white border border-[#E8E4DC] flex items-center justify-center hover:bg-gray-50 transition-colors"
                     aria-label="Next image"
                   >
                     <ChRight className="w-5 h-5 text-[#1A1A1A]" />
@@ -639,12 +639,12 @@ export default function ProductDetailClient({ product }: { product: Product }) {
             <div className="flex items-center gap-3 mb-3">
               <div className="flex items-center border border-[#D1D5DB] rounded-md overflow-hidden">
                 <button onClick={() => setQty(q => Math.max(1, q - 1))}
-                  className="w-9 h-10 flex items-center justify-center text-[#374151] hover:bg-[#F5F3EF] transition-colors text-lg font-bold">
+                  className="w-9 h-10 flex items-center justify-center text-[#374151] hover:bg-gray-50 transition-colors text-lg font-bold">
                   −
                 </button>
                 <span className="w-10 text-center text-sm font-semibold text-[#1A1A1A] font-sans">{qty}</span>
                 <button onClick={() => setQty(q => q + 1)}
-                  className="w-9 h-10 flex items-center justify-center text-[#374151] hover:bg-[#F5F3EF] transition-colors text-lg font-bold">
+                  className="w-9 h-10 flex items-center justify-center text-[#374151] hover:bg-gray-50 transition-colors text-lg font-bold">
                   +
                 </button>
               </div>
@@ -762,7 +762,7 @@ export default function ProductDetailClient({ product }: { product: Product }) {
           </div>
 
           {/* Right col — specifications (always shown, merges product fields + custom specs) */}
-          <div className="bg-[#F5F3EF] rounded-lg p-5 border border-[#E8E4DC] h-fit">
+          <div className="bg-white rounded-lg p-5 border border-[#E8E4DC] h-fit">
             <h3 className="text-sm font-bold text-[#1A1A1A] mb-4 font-heading">Specifications</h3>
             <dl className="space-y-0">
               {[
@@ -777,7 +777,7 @@ export default function ProductDetailClient({ product }: { product: Product }) {
                 .filter(s => s.value)
                 .map((spec, i) => (
                   <div key={i} className="flex justify-between gap-4 text-xs font-sans border-b border-[#E8E4DC] py-2.5 last:border-0">
-                    <dt className="text-[#9CA3AF] font-medium flex-shrink-0">{spec.key}</dt>
+                    <dt className="text-[#4B5563] font-medium flex-shrink-0">{spec.key}</dt>
                     <dd className="text-[#1A1A1A] font-semibold text-right">{spec.value}</dd>
                   </div>
                 ))}
@@ -796,7 +796,7 @@ export default function ProductDetailClient({ product }: { product: Product }) {
           <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
 
             {/* Left — aggregate */}
-            <div className="flex flex-col items-center justify-center text-center p-6 bg-[#F5F3EF] rounded-lg border border-[#E8E4DC]">
+            <div className="flex flex-col items-center justify-center text-center p-6 bg-white rounded-lg border border-[#E8E4DC]">
               <span className="text-6xl font-heading font-bold text-[#1A1A1A] leading-none mb-2">
                 {reviewStats.avg > 0 ? reviewStats.avg.toFixed(1) : "—"}
               </span>

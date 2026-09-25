@@ -62,7 +62,7 @@ export default function ArticlesPage() {
     <div className="min-h-screen w-full" style={{ backgroundColor: bg }}>
       <Navbar />
 
-      <div className="pt-32 pb-20">
+      <div className="pt-32 pb-6">
         <div className="max-w-[1400px] mx-auto px-8 md:px-16">
           
           {/* Header */}
@@ -89,9 +89,9 @@ export default function ArticlesPage() {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ delay: idx * 0.1 }}
-                className="group"
+                className="group flex flex-col h-full"
               >
-                <Link href={`/articles/${article.slug}`} className="block">
+                <Link href={`/articles/${article.slug}`} className="block flex flex-col h-full">
                   {/* Image */}
                   <div className="relative aspect-[4/3] overflow-hidden rounded-sm mb-4">
                     <img
@@ -106,30 +106,32 @@ export default function ArticlesPage() {
                     {article.category}
                   </p>
 
-                  {/* Title */}
-                  <h3 className="font-heading text-xl md:text-2xl text-[#1A1A1A] mb-2 group-hover:text-[#D4AF37] transition-colors line-clamp-2">
+                  {/* Title - fixed height */}
+                  <h3 className="font-heading text-xl md:text-2xl text-[#1A1A1A] mb-2 group-hover:text-[#D4AF37] transition-colors line-clamp-2 min-h-[3.5rem]">
                     {article.title}
                   </h3>
 
                   {/* Date */}
                   <p className="text-xs text-black/50 font-sans mb-3">{article.date}</p>
 
-                  {/* Excerpt */}
-                  <p className="text-sm text-black/60 font-sans leading-relaxed mb-5 line-clamp-3">
+                  {/* Excerpt - fixed height */}
+                  <p className="text-sm text-black/60 font-sans leading-relaxed mb-5 line-clamp-3 min-h-[4rem]">
                     {article.excerpt}
                   </p>
 
-                  {/* Read More Button */}
-                  <span className="inline-block px-6 py-2.5 text-[10px] tracking-[0.2em] uppercase font-sans font-bold bg-[#1A1A1A] text-white rounded-sm hover:bg-[#D4AF37] transition-colors">
-                    READ MORE
-                  </span>
+                  {/* Read More Button - pushed to bottom */}
+                  <div className="mt-auto">
+                    <span className="inline-block px-6 py-2.5 text-[10px] tracking-[0.2em] uppercase font-sans font-bold bg-[#1A1A1A] text-white rounded-sm hover:bg-[#D4AF37] transition-colors">
+                      READ MORE
+                    </span>
+                  </div>
                 </Link>
               </motion.article>
             ))}
           </div>
 
           {/* Back Link */}
-          <div className="mt-16 pt-8 text-center">
+          <div className="mt-8 pt-6 text-center">
             <Link
               href="/"
               className="inline-flex items-center gap-2 text-sm font-sans text-[#1A1A1A] hover:text-[#D4AF37] transition-colors"

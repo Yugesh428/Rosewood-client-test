@@ -35,9 +35,9 @@ export default function Footer() {
               <h3
                 className="text-4xl tracking-[-0.01em] mb-0.5"
                 style={{
-                  color: "#D4AF37",
+                  color: "#1A1A1A",
                   fontFamily: "'Lucida Calligraphy', 'Lucida Handwriting', 'Palatino Linotype', cursive",
-                  fontWeight: 400,
+                  fontWeight: 700,
                 }}
               >
                 Rosewood

@@ -42,6 +42,7 @@ const SORT_OPTIONS = [
   { label: "Recommended",       value: "recommended" },
   { label: "Price: Low → High", value: "price_asc"   },
   { label: "Price: High → Low", value: "price_desc"  },
+  { label: "Name: A → Z",       value: "name_asc"    },
 ];
 
 const PER_PAGE = 8;
@@ -285,7 +286,7 @@ function MegaMenuBar({ categories, selectedCategory, onSelect }: {
     const measure = () => {
       const container = containerRef.current;
       if (!container) return;
-      const MORE_BTN_WIDTH = 100; // reserved px for "+ N more" button
+      const MORE_BTN_WIDTH = 140; // increased reserved space for "+ N more" button
       const availableWidth = container.offsetWidth - MORE_BTN_WIDTH;
 
       const temp = document.createElement("div");
@@ -340,7 +341,7 @@ function MegaMenuBar({ categories, selectedCategory, onSelect }: {
       <div className="w-full">
 
         {/* ── Line 1: always single row, no wrap ── */}
-        <div ref={containerRef} className="flex items-center overflow-visible pr-5 md:pr-10">
+        <div ref={containerRef} className="flex items-center overflow-visible pr-2">
           <style>{`
             .cat-btn {
               position: relative;
@@ -431,7 +432,7 @@ function MegaMenuBar({ categories, selectedCategory, onSelect }: {
           {line2Items.length > 0 && (
             <button
               onClick={() => setVisibleLines(v => v > 1 ? 1 : 2)}
-              className="flex-shrink-0 flex items-center gap-1.5 px-3 py-3 text-[12px] font-semibold font-sans transition-colors whitespace-nowrap ml-auto"
+              className="flex-shrink-0 flex items-center gap-1.5 px-3 py-3 text-[12px] font-semibold font-sans transition-colors whitespace-nowrap"
               style={{ color: "#D4AF37" }}
             >
               <span className="w-[18px] h-[18px] rounded-full border-2 border-[#D4AF37] flex items-center justify-center text-[12px] leading-none font-bold">
@@ -546,6 +547,7 @@ export default function PharmacyClient({ categories, products }: PharmacyClientP
     .sort((a, b) => {
       if (sort === "price_asc")  return Number(a.sellingPrice) - Number(b.sellingPrice);
       if (sort === "price_desc") return Number(b.sellingPrice) - Number(a.sellingPrice);
+      if (sort === "name_asc")   return a.productName.localeCompare(b.productName);
       return 0;
     });
 
@@ -583,6 +585,17 @@ export default function PharmacyClient({ categories, products }: PharmacyClientP
               )}
             </p>
             <div className="flex items-center gap-2">
+              <label htmlFor="sort-pharmacy" className="text-sm text-gray-600 font-sans hidden sm:block">Sort:</label>
+              <select
+                id="sort-pharmacy"
+                value={sort}
+                onChange={(e) => { setSort(e.target.value); resetPage(); }}
+                className="text-sm border border-gray-300 rounded-md px-3 py-1.5 font-sans text-gray-700 focus:outline-none focus:border-[#D4AF37] transition-colors"
+              >
+                {SORT_OPTIONS.map(opt => (
+                  <option key={opt.value} value={opt.value}>{opt.label}</option>
+                ))}
+              </select>
             </div>
           </div>
 
