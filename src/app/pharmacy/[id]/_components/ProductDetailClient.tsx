@@ -149,9 +149,9 @@ function Accordion({ title, children, defaultOpen = false }: { title: string; ch
       <button
         type="button"
         onClick={() => setOpen(o => !o)}
-        className="w-full flex items-center justify-between py-4 text-left text-sm font-semibold text-[#1A1A1A] hover:text-[#1A1A1A] transition-colors"
+        className="w-full flex items-center justify-between py-4 text-left hover:text-[#1A1A1A] transition-colors"
       >
-        {title}
+        <span className="font-bold text-[#1A1A1A]" style={{ fontFamily: 'Montserrat, sans-serif', fontSize: '14px' }}>{title}</span>
         {open ? <ChevronUp className="w-4 h-4 text-gray-400 flex-shrink-0" /> : <ChevronDown className="w-4 h-4 text-gray-400 flex-shrink-0" />}
       </button>
       <div
@@ -232,6 +232,7 @@ export default function ProductDetailClient({ product }: { product: Product }) {
   const [related,      setRelated]      = useState<RelatedProduct[]>([]);
   const [relatedIdx,   setRelatedIdx]   = useState(0);
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
+  const [visibleReviews, setVisibleReviews] = useState(3); // Show only 3 reviews initially
 
   // Wishlist state
   const [isInWishlist, setIsInWishlist] = useState(false);
@@ -566,7 +567,7 @@ export default function ProductDetailClient({ product }: { product: Product }) {
             )}
 
             {/* Name */}
-            <h1 className="font-heading text-2xl md:text-3xl text-[#1A1A1A] leading-tight mb-3">
+            <h1 className="font-bold text-2xl md:text-3xl text-[#1A1A1A] leading-tight mb-3" style={{ fontFamily: 'Montserrat, sans-serif' }}>
               {product.productName}
             </h1>
 
@@ -763,7 +764,7 @@ export default function ProductDetailClient({ product }: { product: Product }) {
 
           {/* Right col — specifications (always shown, merges product fields + custom specs) */}
           <div className="bg-white rounded-lg p-5 border border-[#E8E4DC] h-fit">
-            <h3 className="text-sm font-bold text-[#1A1A1A] mb-4 font-heading">Specifications</h3>
+            <h3 className="font-bold text-[#1A1A1A] mb-4" style={{ fontFamily: 'Montserrat, sans-serif', fontSize: '14px' }}>Specifications</h3>
             <dl className="space-y-0">
               {[
                 // Auto-generated from product fields
@@ -792,7 +793,7 @@ export default function ProductDetailClient({ product }: { product: Product }) {
           animate="visible"
           variants={fadeIn}
         >
-          <h2 className="font-heading text-xl text-[#1A1A1A] text-center mb-8">Customer Reviews</h2>
+          <h2 className="text-2xl md:text-3xl text-[#1A1A1A] text-center mb-8 font-bold" style={{ fontFamily: 'Montserrat, sans-serif' }}>Customer Reviews</h2>
           <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
 
             {/* Left — aggregate */}
@@ -805,6 +806,7 @@ export default function ProductDetailClient({ product }: { product: Product }) {
                 Based on {reviewStats.count} review{reviewStats.count !== 1 ? "s" : ""}
               </p>
               <button
+                type="button"
                 onClick={() => {
                   if (!isCustomer) {
                     toast.error("Please sign in as a customer to write a review");
@@ -818,8 +820,8 @@ export default function ProductDetailClient({ product }: { product: Product }) {
                 }}
                 className="w-full px-4 py-2 text-xs font-bold border rounded-sm font-sans transition-colors"
                 style={{ borderColor: "var(--color-text-heading)", color: "var(--color-text-heading)" }}
-                onMouseEnter={e => { const el = e.currentTarget as HTMLButtonElement; el.style.backgroundColor = "var(--color-text-heading)"; el.style.color = "#fff"; }}
-                onMouseLeave={e => { const el = e.currentTarget as HTMLButtonElement; el.style.backgroundColor = ""; el.style.color = "var(--color-text-heading)"; }}>
+                onMouseEnter={e => { const el = e.currentTarget as HTMLButtonElement; el.style.backgroundColor = "#D4AF37"; el.style.borderColor = "#D4AF37"; el.style.color = "#fff"; }}
+                onMouseLeave={e => { const el = e.currentTarget as HTMLButtonElement; el.style.backgroundColor = ""; el.style.borderColor = "var(--color-text-heading)"; el.style.color = "var(--color-text-heading)"; }}>
                 Write a Review
               </button>
             </div>
@@ -831,40 +833,55 @@ export default function ProductDetailClient({ product }: { product: Product }) {
                   <p className="text-sm text-[#9CA3AF] font-sans">No reviews yet. Be the first to review this product.</p>
                 </div>
               ) : (
-                reviews.map(r => (
-                  <div key={r.id} className="bg-white border border-[#E8E4DC] rounded-lg p-5 shadow-[0_1px_4px_rgba(0,0,0,0.06)]">
-                    <div className="flex items-start justify-between gap-4 mb-2">
-                      <div className="flex items-center gap-3">
-                        {/* Avatar circle */}
-                        <div className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold text-white flex-shrink-0"
-                          style={{ backgroundColor: "var(--color-primary)", color: "var(--color-primary-text)" }}>
-                          {(r.customer?.name ?? "A").charAt(0).toUpperCase()}
-                        </div>
-                        <div>
-                          <div className="flex items-center gap-2 mb-0.5">
-                            <span className="text-sm font-semibold text-[#1A1A1A] font-sans">
-                              {r.customer?.name ?? "Anonymous"}
-                            </span>
-                            {r.isVerifiedPurchase && (
-                              <span className="text-[9px] font-bold uppercase tracking-wide px-1.5 py-0.5 rounded-full bg-green-50 text-green-700 border border-green-200">
-                                Verified Purchase
-                              </span>
-                            )}
+                <>
+                  {reviews.slice(0, visibleReviews).map(r => (
+                    <div key={r.id} className="bg-white border border-[#E8E4DC] rounded-lg p-5 shadow-[0_1px_4px_rgba(0,0,0,0.06)]">
+                      <div className="flex items-start justify-between gap-4 mb-2">
+                        <div className="flex items-center gap-3">
+                          {/* Avatar circle */}
+                          <div className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold text-white flex-shrink-0"
+                            style={{ backgroundColor: "var(--color-primary)", color: "var(--color-primary-text)" }}>
+                            {(r.customer?.name ?? "A").charAt(0).toUpperCase()}
                           </div>
-                          <Stars rating={r.rating} size={11} />
+                          <div>
+                            <div className="flex items-center gap-2 mb-0.5">
+                              <span className="text-sm font-semibold text-[#1A1A1A] font-sans">
+                                {r.customer?.name ?? "Anonymous"}
+                              </span>
+                              {r.isVerifiedPurchase && (
+                                <span className="text-[9px] font-bold uppercase tracking-wide px-1.5 py-0.5 rounded-full bg-green-50 text-green-700 border border-green-200">
+                                  Verified Purchase
+                                </span>
+                              )}
+                            </div>
+                            <Stars rating={r.rating} size={11} />
+                          </div>
                         </div>
+                        <time className="text-[10px] text-[#9CA3AF] font-sans flex-shrink-0">
+                          {new Date(r.createdAt).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })}
+                        </time>
                       </div>
-                      <time className="text-[10px] text-[#9CA3AF] font-sans flex-shrink-0">
-                        {new Date(r.createdAt).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })}
-                      </time>
+                      {r.reviewText && (
+                        <p className="text-sm text-[#374151] font-sans leading-relaxed mt-3">
+                          {r.reviewText}
+                        </p>
+                      )}
                     </div>
-                    {r.reviewText && (
-                      <p className="text-sm text-[#374151] font-sans leading-relaxed mt-3">
-                        {r.reviewText}
-                      </p>
-                    )}
-                  </div>
-                ))
+                  ))}
+
+                  {/* Load More Button */}
+                  {reviews.length > visibleReviews && (
+                    <div className="flex justify-center pt-4">
+                      <button
+                        type="button"
+                        onClick={() => setVisibleReviews(prev => prev + 3)}
+                        className="px-6 py-2.5 text-xs font-bold border border-[#1A1A1A] text-[#1A1A1A] rounded-sm font-sans transition-all hover:border-[#D4AF37] hover:bg-[#D4AF37] hover:text-white"
+                      >
+                        Load More Reviews
+                      </button>
+                    </div>
+                  )}
+                </>
               )}
             </div>
           </div>
@@ -878,7 +895,7 @@ export default function ProductDetailClient({ product }: { product: Product }) {
             variants={fadeIn}
           >
             <div className="flex items-center justify-between mb-5">
-              <h2 className="font-heading text-xl text-[#1A1A1A]">You May Also Like</h2>
+              <h2 className="text-xl md:text-2xl text-[#1A1A1A] font-bold" style={{ fontFamily: 'Montserrat, sans-serif' }}>You May Also Like</h2>
               <div className="flex gap-1.5">
                 <button
                   onClick={() => setRelatedIdx(i => Math.max(0, i - 1))}

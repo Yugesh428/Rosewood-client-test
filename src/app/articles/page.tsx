@@ -5,7 +5,6 @@ import { motion } from "framer-motion";
 import Link from "next/link";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/home/Footer";
-import { useTheme } from "@/context/ThemeContext";
 
 interface Blog {
   id: string;
@@ -21,13 +20,6 @@ interface Blog {
 export default function ArticlesPage() {
   const [blogs, setBlogs] = useState<Blog[]>([]);
   const [loading, setLoading] = useState(true);
-  const { homeBg } = useTheme();
-  const bg =
-    homeBg === "white" ? "#ffffff" :
-    homeBg === "soft-blue" ? "#f0f8ff" :
-    homeBg === "near-blue" ? "#cce8f7" :
-    homeBg === "creamy-blue" ? "#e8f4f8" :
-    "#dff0fb";
 
   useEffect(() => {
     async function fetchBlogs() {
@@ -49,7 +41,7 @@ export default function ArticlesPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen w-full flex items-center justify-center" style={{ backgroundColor: bg }}>
+      <div className="min-h-screen w-full flex items-center justify-center" style={{ backgroundColor: "#ffffff" }}>
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#D4AF37] mx-auto mb-4"></div>
           <p className="text-gray-500 font-sans">Loading articles...</p>
@@ -59,7 +51,7 @@ export default function ArticlesPage() {
   }
 
   return (
-    <div className="min-h-screen w-full" style={{ backgroundColor: bg }}>
+    <div className="min-h-screen w-full" style={{ backgroundColor: "#ffffff" }}>
       <Navbar />
 
       <div className="pt-32 pb-6">

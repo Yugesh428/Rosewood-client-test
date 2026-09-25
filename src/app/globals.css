@@ -98,7 +98,7 @@
 
 /* ── Light theme ── */
 :root {
-  --background:           #dff0fb;
+  --background:           #ffffff;
   --foreground:           #1A1A1A;
   --card:                 #FFFFFF;
   --card-foreground:      #1A1A1A;
@@ -148,16 +148,18 @@
     @apply border-border outline-ring/50;
   }
   html, html[data-theme] {
-    background-color: #dff0fb !important;
+    background-color: #ffffff !important;
     background-image: none !important;
     min-height: 100%;
+    overscroll-behavior: none;
   }
   body {
     @apply text-foreground;
     font-family: var(--font-sans), system-ui, sans-serif;
-    background: transparent !important;
-    background-color: transparent !important;
+    background: #ffffff !important;
+    background-color: #ffffff !important;
     min-height: 100vh;
+    overscroll-behavior: none;
   }
   h1, h2, h3, h4, h5, h6 {
     font-family: var(--font-heading), Georgia, serif;
