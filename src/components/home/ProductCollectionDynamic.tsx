@@ -266,86 +266,30 @@ export default function ProductCollectionDynamic() {
             Our Product Collection
           </h2>
           
-          {/* Shop by Category button - fizzy gold hover effect */}
+          {/* Shop by Category - styled like "Shop Now" */}
           <Link
             href="/pharmacy"
-            className="shop-by-cat-btn"
+            className="shop-by-cat-btn flex-shrink-0 relative text-[11px] tracking-[0.18em] uppercase font-sans text-[#1A1A1A] ml-8 pb-1"
           >
             <style>{`
               .shop-by-cat-btn {
-                position: relative;
-                display: inline-flex;
-                align-items: center;
-                gap: 8px;
-                padding: 10px 20px;
-                font-size: 13px;
-                font-family: var(--font-sans), 'Inter', sans-serif;
-                font-weight: 600;
-                letter-spacing: 0.04em;
-                color: #1A1A1A;
-                background: transparent;
-                border: 1.5px solid #d1d5db;
-                border-radius: 8px;
                 text-decoration: none;
-                overflow: hidden;
-                transition: color 0.3s ease, border-color 0.3s ease, background 0.3s ease;
-                z-index: 0;
               }
-              .shop-by-cat-btn::before {
+              .shop-by-cat-btn::after {
                 content: '';
                 position: absolute;
-                inset: 0;
+                bottom: 0;
+                left: 0;
+                width: 0%;
+                height: 1.5px;
                 background: #D4AF37;
-                transform: scaleX(0);
-                transform-origin: left;
-                transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);
-                z-index: -1;
-                border-radius: 6px;
+                transition: width 0.35s cubic-bezier(0.4, 0, 0.2, 1);
               }
-              .shop-by-cat-btn:hover::before {
-                transform: scaleX(1);
-              }
-              .shop-by-cat-btn:hover {
-                color: #ffffff;
-                border-color: #D4AF37;
-              }
-              .shop-by-cat-btn .btn-spot {
-                position: absolute;
-                display: block;
-                width: 6px;
-                height: 6px;
-                border-radius: 50%;
-                background: rgba(255,255,255,0.6);
-                opacity: 0;
-                pointer-events: none;
-              }
-              .shop-by-cat-btn:hover .btn-spot { animation: fizz 0.8s ease-out forwards; }
-              .shop-by-cat-btn:hover .btn-spot:nth-child(1)  { left:10%;  top:80%; animation-delay:0.00s; }
-              .shop-by-cat-btn:hover .btn-spot:nth-child(2)  { left:20%;  top:70%; animation-delay:0.05s; }
-              .shop-by-cat-btn:hover .btn-spot:nth-child(3)  { left:30%;  top:90%; animation-delay:0.10s; }
-              .shop-by-cat-btn:hover .btn-spot:nth-child(4)  { left:40%;  top:75%; animation-delay:0.08s; }
-              .shop-by-cat-btn:hover .btn-spot:nth-child(5)  { left:50%;  top:85%; animation-delay:0.03s; }
-              .shop-by-cat-btn:hover .btn-spot:nth-child(6)  { left:60%;  top:70%; animation-delay:0.12s; }
-              .shop-by-cat-btn:hover .btn-spot:nth-child(7)  { left:70%;  top:90%; animation-delay:0.06s; }
-              .shop-by-cat-btn:hover .btn-spot:nth-child(8)  { left:80%;  top:75%; animation-delay:0.09s; }
-              .shop-by-cat-btn:hover .btn-spot:nth-child(9)  { left:90%;  top:80%; animation-delay:0.02s; }
-              .shop-by-cat-btn:hover .btn-spot:nth-child(10) { left:15%;  top:60%; animation-delay:0.15s; }
-              .shop-by-cat-btn:hover .btn-spot:nth-child(11) { left:45%;  top:65%; animation-delay:0.07s; }
-              .shop-by-cat-btn:hover .btn-spot:nth-child(12) { left:75%;  top:60%; animation-delay:0.11s; }
-              @keyframes fizz {
-                0%   { opacity: 0;   transform: translateY(0)   scale(0.5); }
-                30%  { opacity: 0.8; transform: translateY(-8px) scale(1);   }
-                100% { opacity: 0;   transform: translateY(-20px) scale(0.3); }
+              .shop-by-cat-btn:hover::after {
+                width: 100%;
               }
             `}</style>
-            <svg className="w-4 h-4 relative z-10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-            </svg>
-            <span className="relative z-10">Shop by Category</span>
-            {/* Fizzy spots */}
-            {Array.from({ length: 12 }).map((_, i) => (
-              <span key={i} className="btn-spot" />
-            ))}
+            Shop by Category
           </Link>
         </motion.div>
 

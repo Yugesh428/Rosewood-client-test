@@ -162,7 +162,25 @@ export default function ArticlesSection() {
               >
                 Latest Articles
               </h3>
-              <Link href="/articles" className="text-sm font-sans text-[#1A1A1A] hover:text-[#D4AF37] transition-colors flex items-center gap-1">
+              <Link href="/articles" className="view-all-link flex-shrink-0 relative text-[11px] tracking-[0.18em] uppercase font-sans text-[#1A1A1A] ml-8 pb-1 flex items-center gap-1">
+                <style>{`
+                  .view-all-link {
+                    text-decoration: none;
+                  }
+                  .view-all-link::after {
+                    content: '';
+                    position: absolute;
+                    bottom: 0;
+                    left: 0;
+                    width: 0%;
+                    height: 1.5px;
+                    background: #D4AF37;
+                    transition: width 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+                  }
+                  .view-all-link:hover::after {
+                    width: 100%;
+                  }
+                `}</style>
                 View all
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"/><path d="M12 8l4 4-4 4M8 12h8"/></svg>
               </Link>

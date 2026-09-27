@@ -282,12 +282,12 @@ export default function TopSellingProducts() {
           <Link
             ref={viewAllRef}
             href="/pharmacy"
-            className="text-xs uppercase tracking-widest font-sans font-medium text-gray-500 flex-shrink-0 relative pb-1"
+            className="text-[11px] uppercase tracking-[0.18em] font-sans text-[#1A1A1A] flex-shrink-0 relative pb-1"
           >
             View All
             <span
               ref={viewAllUnderlineRef}
-              className="absolute bottom-0 left-0 w-full h-[2px] bg-[#D4AF37] origin-left"
+              className="absolute bottom-0 left-0 w-full h-[1.5px] bg-[#D4AF37] origin-left"
               style={{ transform: "scaleX(0)" }}
             />
           </Link>
