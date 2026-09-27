@@ -1011,8 +1011,8 @@ export default function Navbar() {
                 <Link
                   href="/pharmacy"
                   onClick={() => setMobileOpen(false)}
-                  className="flex items-center py-2.5 text-[15px] font-sans transition-all duration-200 border-b"
-                  style={{ color: "var(--color-text-heading)", borderColor: "rgba(0,0,0,0.12)", paddingLeft: "24px" }}
+                  className="flex items-center py-2.5 text-[13px] transition-all duration-200 border-b"
+                  style={{ color: "var(--color-text-heading)", borderColor: "rgba(0,0,0,0.12)", paddingLeft: "24px", fontFamily: "var(--font-cinzel), 'Cinzel', serif", fontWeight: 600, letterSpacing: "0.06em" }}
                   onMouseEnter={e => {
                     e.currentTarget.style.backgroundColor = "#fdfbf4";
                     e.currentTarget.style.color = "#D4AF37";
@@ -1032,11 +1032,11 @@ export default function Navbar() {
 
               {/* ── Product Categories ── */}
               <div className="mt-2">
-                <div className="flex items-center justify-between px-6 py-3">
+                <div className="flex flex-col px-6 py-3">
                   {navigationStack.length > 0 && (
                     <button
                       onClick={navigateBack}
-                      className="flex items-center gap-1 text-sm font-sans"
+                      className="flex items-center gap-1 text-sm font-sans mb-2"
                       style={{ color: "var(--color-primary)" }}
                     >
                       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
