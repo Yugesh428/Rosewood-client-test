@@ -8,6 +8,29 @@ import { useCart } from "@/context/CartContext";
 import CartDrawer from "@/components/CartDrawer";
 import ProductImage from "@/components/ui/ProductImage";
 
+// ─── Description Toggle ───────────────────────────────────────────────────────
+function DescriptionToggle({ text }: { text: string }) {
+  const [expanded, setExpanded] = useState(false);
+  const LIMIT = 120;
+  const isLong = text.length > LIMIT;
+  const displayed = expanded || !isLong ? text : text.slice(0, LIMIT) + "…";
+
+  return (
+    <div>
+      <p className="text-xs font-sans font-bold leading-relaxed text-gray-800">{displayed}</p>
+      {isLong && (
+        <button
+          onClick={() => setExpanded(v => !v)}
+          className="mt-1 text-[11px] font-sans font-semibold transition-colors"
+          style={{ color: "#D4AF37" }}
+        >
+          {expanded ? "Hide ↑" : "Read more ↓"}
+        </button>
+      )}
+    </div>
+  );
+}
+
 // ─── Types ────────────────────────────────────────────────────────────────────
 
 interface DBCategory {
@@ -510,9 +533,7 @@ export default function CategoryLandingClient({ category, products, allCategorie
                   {category.categoryName}
                 </h1>
                 {category.categoryDescription && (
-                  <p className="text-xs font-sans font-bold leading-relaxed text-gray-800">
-                    {category.categoryDescription}
-                  </p>
+                  <DescriptionToggle text={category.categoryDescription} />
                 )}
               </div>
 
@@ -585,7 +606,7 @@ export default function CategoryLandingClient({ category, products, allCategorie
 
               {/* Size (packSize) */}
               {uniquePackSizes.length > 0 && (
-                <FilterSection title="Size" defaultOpen={true}>
+                <FilterSection title="Size" defaultOpen={false}>
                   {uniquePackSizes.map((size) => (
                     <label key={size} className="flex items-center gap-2 cursor-pointer group">
                       <input
