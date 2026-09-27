@@ -869,9 +869,9 @@ export default function ProductDetailClient({ product }: { product: Product }) {
                     </div>
                   ))}
 
-                  {/* Load More Button */}
-                  {reviews.length > visibleReviews && (
-                    <div className="flex justify-center pt-4">
+                  {/* Load More / Show Less Buttons */}
+                  <div className="flex justify-center gap-3 pt-4">
+                    {reviews.length > visibleReviews && (
                       <button
                         type="button"
                         onClick={() => setVisibleReviews(prev => prev + 3)}
@@ -879,8 +879,17 @@ export default function ProductDetailClient({ product }: { product: Product }) {
                       >
                         Load More Reviews
                       </button>
-                    </div>
-                  )}
+                    )}
+                    {visibleReviews > 3 && (
+                      <button
+                        type="button"
+                        onClick={() => setVisibleReviews(3)}
+                        className="px-6 py-2.5 text-xs font-bold border border-gray-300 text-gray-500 rounded-sm font-sans transition-all hover:border-[#1A1A1A] hover:text-[#1A1A1A]"
+                      >
+                        Show Less
+                      </button>
+                    )}
+                  </div>
                 </>
               )}
             </div>
