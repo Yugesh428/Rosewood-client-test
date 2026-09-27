@@ -122,9 +122,9 @@ export default function PromotionsDynamic() {
       <div className="absolute top-12 left-8 md:left-16 z-20">
         <h2
           ref={headingRef}
-          className="text-4xl md:text-5xl text-[#1A1A1A]"
+          className="text-3xl md:text-4xl text-[#1A1A1A]"
           style={{
-            fontFamily: "var(--font-montserrat), 'Montserrat', sans-serif",
+            fontFamily: "var(--font-cinzel), 'Cinzel', serif",
             fontWeight: 700,
             letterSpacing: "-0.01em",
             perspective: "1000px",

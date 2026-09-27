@@ -169,15 +169,15 @@ export default function OurProductContent() {
   const openEdit = (p: CollectionProduct) => {
     setEditingProduct(p);
     setForm({
-      title:          p.title,
+      title:          p.title          ?? "",
       subtitle:       p.subtitle       ?? "",
-      categoryId:     p.categoryId,
+      categoryId:     p.categoryId     ?? "",
       videoUrl:       p.videoUrl       ?? "",
       photo1Title:    p.photo1Title    ?? "",
       photo1Subtitle: p.photo1Subtitle ?? "",
       photo2Title:    p.photo2Title    ?? "",
       photo2Subtitle: p.photo2Subtitle ?? "",
-      isActive:       p.isActive,
+      isActive:       p.isActive       ?? true,
     });
     setBgFile(null);  setBgPreview(p.backgroundImage);
     setVideoFile(null); setVideoPreview(p.videoFile); setClearVideoFile(false);
@@ -204,7 +204,7 @@ export default function OurProductContent() {
     const { name, value, type } = e.target;
     setForm((prev) => ({
       ...prev,
-      [name]: type === "checkbox" ? (e.target as HTMLInputElement).checked : value,
+      [name]: type === "checkbox" ? (e.target as HTMLInputElement).checked : (value ?? ""),
     }));
   };
 

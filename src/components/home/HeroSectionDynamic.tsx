@@ -242,15 +242,16 @@ export default function HeroSectionDynamic() {
               style={{
                 fontSize: "clamp(1.8rem, 4vw, 3.2rem)",
                 fontFamily: "var(--font-display), 'Cormorant', 'Playfair Display', Georgia, serif",
-                fontWeight: 600,
+                fontWeight: 800,
                 letterSpacing: "0.01em",
                 whiteSpace: "nowrap",
+                textShadow: "0 2px 12px rgba(0,0,0,0.4)",
               }}
               dangerouslySetInnerHTML={{ __html: titleHtml }}
             />
 
             {/* Subtitle */}
-            <p className="font-sans text-[11px] tracking-[0.22em] uppercase text-white/80 mb-6">
+            <p className="font-sans text-[11px] tracking-[0.22em] uppercase text-white mb-6" style={{ textShadow: "0 1px 6px rgba(0,0,0,0.4)", fontWeight: 700 }}>
               {current.subtitle || "Your Personal Pharmacy"}
             </p>
 

@@ -89,11 +89,11 @@ export default function CollectionCategoriesSection() {
   const openEditModal = (cat: CollectionCategory) => {
     setEditingCategory(cat);
     setFormData({
-      name: cat.name,
-      slug: cat.slug,
-      description: cat.description || "",
-      displayOrder: cat.displayOrder,
-      isActive: cat.isActive,
+      name:         cat.name         ?? "",
+      slug:         cat.slug         ?? "",
+      description:  cat.description  ?? "",
+      displayOrder: cat.displayOrder ?? 0,
+      isActive:     cat.isActive     ?? true,
     });
     setModalOpen(true);
   };

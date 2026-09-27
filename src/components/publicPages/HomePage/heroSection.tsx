@@ -524,26 +524,27 @@ export default function HeroSection() {
                   </button>
                 </div>
 
-                {imageMode === "file" ? (
+                {/* Always render both — hide with CSS to avoid controlled/uncontrolled switch */}
+                <div className={imageMode === "file" ? "block" : "hidden"}>
                   <input
                     type="file"
                     accept="image/jpeg,image/png,image/webp,image/avif"
                     onChange={handleFileChange}
                     className="w-full text-sm text-gray-600 file:mr-3 file:py-1.5 file:px-3 file:rounded-sm file:border-0 file:text-xs file:font-semibold file:text-black file:cursor-pointer hover:file:opacity-90 transition-colors"
-                    style={{ "--file-bg": "linear-gradient(135deg, #D4AF37 0%, #ffe87c 50%, #b8952e 100%)" } as any}
                   />
-                ) : (
+                </div>
+                <div className={imageMode === "url" ? "block" : "hidden"}>
                   <input
-                    type="url"
+                    type="text"
                     placeholder="https://drive.google.com/... or any image URL"
-                    value={imageUrl ?? ""}
+                    value={imageUrl}
                     onChange={(e) => {
                       setImageUrl(e.target.value);
                       setImagePreview(e.target.value || null);
                     }}
                     className={inputCls}
                   />
-                )}
+                </div>
 
                 {/* Preview */}
                 {imagePreview && (

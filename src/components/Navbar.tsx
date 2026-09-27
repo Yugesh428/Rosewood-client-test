@@ -620,8 +620,10 @@ function AccountDropdown() {
         aria-label="Account"
         aria-expanded={open}
         onClick={() => setOpen((v) => !v)}
-        className="transition-opacity hover:opacity-60"
+        className="transition-all duration-200 hover:text-[#D4AF37] hover:scale-110 active:scale-95"
         style={{ color: "var(--color-text-heading)" }}
+        onMouseEnter={e => (e.currentTarget.style.color = "#D4AF37")}
+        onMouseLeave={e => (e.currentTarget.style.color = "var(--color-text-heading)")}
       >
         <UserIcon />
       </button>
@@ -857,7 +859,7 @@ export default function Navbar() {
         className="fixed left-0 right-0 z-50 transition-shadow duration-300"
         style={{
           top: "30px",
-          backgroundColor: "#ffffff",
+          backgroundColor: "#FAF8F5",
           borderBottom: "1px solid rgba(0,0,0,0.10)",
           boxShadow: scrolled ? "0 1px 12px rgba(0,0,0,0.06)" : "none",
         }}
@@ -865,11 +867,11 @@ export default function Navbar() {
         <div className="w-full px-5 md:px-10 h-[64px] grid grid-cols-3 items-center">
 
           {/* ── LEFT: hamburger ── */}
-          <div className="flex items-center">
+          <div className="flex items-center gap-2.5">
             <button
               aria-label="Menu"
               onClick={() => setMobileOpen((v) => !v)}
-              className="transition-opacity hover:opacity-60"
+              className="transition-all duration-200 hover:text-[#D4AF37] hover:scale-110 active:scale-95"
               style={{ color: "var(--color-text-heading)" }}
             >
               {mobileOpen ? <CloseIcon /> : <MenuIcon />}
@@ -878,24 +880,34 @@ export default function Navbar() {
 
           {/* ── CENTER: logo ── */}
           <div className="flex justify-center">
-            <Link href="/" className="flex flex-col items-center leading-none select-none">
-              <span
-                className="text-[22px] md:text-[26px]"
-                style={{
-                  color: "#1A1A1A",
-                  fontFamily: "'Lucida Calligraphy', 'Lucida Handwriting', 'Palatino Linotype', cursive",
-                  fontWeight: 700,
-                  letterSpacing: "0.02em",
-                }}
-              >
-                Rosewood
-              </span>
-              <span
-                className="font-sans text-[9px] tracking-[0.28em] uppercase mt-0.5"
-                style={{ color: "var(--color-text-muted)" }}
-              >
-                Pharmacy
-              </span>
+            <Link href="/" className="flex items-start gap-0 leading-none select-none">
+              {/* Branded gold R from BrandedLogo.png */}
+              <img
+                src="/BrandedLogo.png"
+                alt="R"
+                style={{ height: "64px", width: "auto", objectFit: "contain", display: "block" }}
+              />
+              {/* Brand text stacked */}
+              <div className="flex flex-col justify-start leading-none" style={{ marginTop: "8px", marginLeft: "2px" }}>
+                <span
+                  className="text-[28px] md:text-[32px]"
+                  style={{
+                    fontFamily: "var(--font-cinzel), 'Trajan Pro', Georgia, serif",
+                    fontWeight: 700,
+                    letterSpacing: "0.06em",
+                    lineHeight: 0.95,
+                    color: "#1A1A1A"
+                  }}
+                >
+                  ROSEWOOD
+                </span>
+                <span
+                  className="font-sans text-[9px] tracking-[0.3em] uppercase font-bold text-center w-full"
+                  style={{ color: "#2A2A2A", fontFamily: "var(--font-cinzel), serif", letterSpacing: "0.4em", marginTop: "2px" }}
+                >
+                  PHARMACY
+                </span>
+              </div>
             </Link>
           </div>
 
@@ -905,7 +917,7 @@ export default function Navbar() {
             <button
               aria-label="Search"
               onClick={() => setSearchOpen(true)}
-              className="transition-opacity hover:opacity-60"
+              className="transition-all duration-200 hover:text-[#D4AF37] hover:scale-110 active:scale-95"
             >
               <SearchIcon />
             </button>
@@ -914,7 +926,7 @@ export default function Navbar() {
             <Link
               href="/account/wishlist"
               aria-label="Wishlist"
-              className="transition-opacity hover:opacity-60"
+              className="transition-all duration-200 hover:text-[#D4AF37] hover:scale-110 active:scale-95"
             >
               <WishlistIcon />
             </Link>
@@ -926,7 +938,7 @@ export default function Navbar() {
             <button
               aria-label="Cart"
               onClick={openCart}
-              className="relative transition-opacity hover:opacity-60"
+              className="relative transition-all duration-200 hover:text-[#D4AF37] hover:scale-110 active:scale-95"
             >
               <CartIcon />
               {totalItems > 0 && (
@@ -965,14 +977,37 @@ export default function Navbar() {
               {/* Close */}
               <button
                 onClick={() => setMobileOpen(false)}
-                className="absolute top-5 left-6 transition-opacity hover:opacity-60"
+                className="absolute top-5 right-5 transition-opacity hover:opacity-60"
                 style={{ color: "var(--color-text-heading)" }}
               >
                 <CloseIcon />
               </button>
 
+              {/* Logo */}
+              <div className="flex items-center gap-2.5 px-6 pt-6 pb-4 border-b border-black/8">
+                <img
+                  src="/logo.jpeg"
+                  alt="Rosewood Pharmacy"
+                  className="h-9 w-9 object-contain rounded-sm flex-shrink-0"
+                />
+                <div className="flex flex-col leading-none">
+                  <span style={{
+                    color: "#1A1A1A",
+                    fontFamily: "var(--font-cinzel), 'Cinzel', serif",
+                    fontWeight: 700,
+                    fontSize: "20px",
+                    letterSpacing: "0.06em",
+                  }}>
+                    ROSEWOOD
+                  </span>
+                  <span className="font-sans text-[9px] tracking-[0.28em] uppercase mt-0.5 font-bold" style={{ color: "#2A2A2A", fontFamily: "var(--font-cinzel), 'Cinzel', serif" }}>
+                    PHARMACY
+                  </span>
+                </div>
+              </div>
+
               {/* ── Page Links — above categories ── */}
-              <div className="px-6 pt-16 pb-4 border-b border-black/8">
+              <div className="px-6 pt-4 pb-4 border-b border-black/8">
                 <Link
                   href="/pharmacy"
                   onClick={() => setMobileOpen(false)}
@@ -1010,7 +1045,7 @@ export default function Navbar() {
                       Back
                     </button>
                   )}
-                  <p className="text-[10px] tracking-[0.25em] uppercase font-sans text-black/35">
+                  <p className="text-[13px] tracking-[0.2em] uppercase text-black/80" style={{ fontFamily: "var(--font-cinzel), 'Cinzel', serif", fontWeight: 900 }}>
                     {navigationStack.length === 0 ? "Shop by Category" : getCurrentParentCat()?.categoryName || "Categories"}
                   </p>
                 </div>
@@ -1030,8 +1065,8 @@ export default function Navbar() {
                         <li key={cat.id}>
                           <button
                             type="button"
-                            className="mobile-cat-item w-full flex items-center justify-between px-6 py-4 text-[15px] font-sans border-b text-left transition-all duration-200"
-                            style={{ color: "var(--color-text-heading)", borderColor: "rgba(0,0,0,0.12)" }}
+                            className="mobile-cat-item w-full flex items-center justify-between px-6 py-4 text-[13px] border-b text-left transition-all duration-200"
+                            style={{ color: "var(--color-text-heading)", borderColor: "rgba(0,0,0,0.12)", fontFamily: "var(--font-cinzel), 'Cinzel', serif", fontWeight: 600, letterSpacing: "0.06em" }}
                             onClick={() => navigateIntoCategory(cat.id)}
                             onMouseEnter={e => {
                               e.currentTarget.style.backgroundColor = "#fdfbf4";

@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Libre_Baskerville, Inter, Cormorant, Montserrat, Josefin_Sans } from "next/font/google";
+import { Libre_Baskerville, Inter, Cormorant, Montserrat, Josefin_Sans, Cinzel } from "next/font/google";
 import "./globals.css";
 import Providers from "./providers";
 import { ReactNode } from "react";
@@ -35,6 +35,12 @@ const josefinSans = Josefin_Sans({
   weight: ["300", "400", "600", "700"],
 });
 
+const cinzel = Cinzel({
+  variable: "--font-cinzel",
+  subsets: ["latin"],
+  weight: ["400", "600", "700", "900"],
+});
+
 export const metadata: Metadata = {
   title: "Rosewood",
   description: "Luxury apothecary & wellness",
@@ -44,7 +50,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html
       lang="en"
-      className={`${libreBaskerville.variable} ${inter.variable} ${cormorant.variable} ${montserrat.variable} ${josefinSans.variable} h-full antialiased`}
+      className={`${libreBaskerville.variable} ${inter.variable} ${cormorant.variable} ${montserrat.variable} ${josefinSans.variable} ${cinzel.variable} h-full antialiased`}
       suppressHydrationWarning
     >
       <body className="min-h-full flex flex-col" suppressHydrationWarning>

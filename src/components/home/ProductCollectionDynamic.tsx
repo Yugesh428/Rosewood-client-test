@@ -256,9 +256,9 @@ export default function ProductCollectionDynamic() {
           className="text-left mb-8 flex items-center justify-between"
         >
           <h2
-            className="text-3xl text-[#1A1A1A]"
+            className="text-3xl md:text-4xl text-[#1A1A1A]"
             style={{
-              fontFamily: "var(--font-sans), 'Inter', sans-serif",
+              fontFamily: "var(--font-cinzel), 'Cinzel', serif",
               fontWeight: 700,
               letterSpacing: "-0.01em",
             }}

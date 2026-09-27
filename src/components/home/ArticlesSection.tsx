@@ -153,9 +153,9 @@ export default function ArticlesSection() {
             {/* Header */}
             <div className="flex items-center justify-between mb-8">
               <h3
-                className="text-3xl text-[#1A1A1A]"
+                className="text-3xl md:text-4xl text-[#1A1A1A]"
                 style={{
-                  fontFamily: "var(--font-montserrat), 'Montserrat', sans-serif",
+                  fontFamily: "var(--font-cinzel), 'Cinzel', serif",
                   fontWeight: 700,
                   letterSpacing: "-0.01em",
                 }}

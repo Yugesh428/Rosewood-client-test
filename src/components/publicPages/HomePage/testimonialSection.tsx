@@ -108,14 +108,14 @@ export default function TestimonialsSection() {
   const openEditModal = (t: Testimonial) => {
     setEditingTestimonial(t);
     setFormData({
-      photo: t.photo,
-      photoFile: null,
-      rating: t.rating,
-      quote: t.quote,
-      authorName: t.authorName,
-      authorTitle: t.authorTitle || "",
-      displayOrder: t.displayOrder,
-      isActive: t.isActive,
+      photo:        t.photo        ?? "",
+      photoFile:    null,
+      rating:       t.rating       ?? 5,
+      quote:        t.quote        ?? "",
+      authorName:   t.authorName   ?? "",
+      authorTitle:  t.authorTitle  ?? "",
+      displayOrder: t.displayOrder ?? 0,
+      isActive:     t.isActive     ?? true,
     });
     setModalOpen(true);
   };

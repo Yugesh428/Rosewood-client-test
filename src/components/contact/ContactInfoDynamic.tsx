@@ -60,9 +60,6 @@ export default function ContactInfoDynamic() {
   // Parse address into lines
   const addressLines = data.address.split('\n').filter(line => line.trim());
 
-  // Parse hours into lines
-  const hoursLines = data.hours.split('\n').filter(line => line.trim());
-
   const contactInfo = [
     {
       icon: (
@@ -92,16 +89,6 @@ export default function ContactInfoDynamic() {
       ),
       label: "Email",
       lines: [data.email],
-    },
-    {
-      icon: (
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#D4AF37" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-          <circle cx="12" cy="12" r="10" />
-          <polyline points="12 6 12 12 16 14" />
-        </svg>
-      ),
-      label: "Opening Hours",
-      lines: hoursLines,
     },
   ];
 

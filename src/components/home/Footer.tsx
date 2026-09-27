@@ -36,13 +36,13 @@ export default function Footer() {
                 className="text-4xl tracking-[-0.01em] mb-0.5"
                 style={{
                   color: "#1A1A1A",
-                  fontFamily: "'Lucida Calligraphy', 'Lucida Handwriting', 'Palatino Linotype', cursive",
+                  fontFamily: "var(--font-cinzel), 'Cinzel', serif",
                   fontWeight: 700,
                 }}
               >
                 Rosewood
               </h3>
-              <p className="text-[9px] tracking-[0.35em] uppercase font-sans font-semibold" style={{ color: "#555555" }}>
+              <p className="text-[9px] tracking-[0.35em] uppercase font-bold" style={{ color: "#555555", fontFamily: "var(--font-cinzel), 'Cinzel', serif" }}>
                 Pharmacy & Wellness
               </p>
             </div>
@@ -96,7 +96,7 @@ export default function Footer() {
 
             {/* Quick Links */}
             <div>
-              <h4 className="text-xs font-black uppercase tracking-[0.2em] font-sans mb-6 pb-2 border-b border-gray-200" style={{ color: "#1A1A1A" }}>
+              <h4 className="text-xs font-black uppercase tracking-[0.2em] mb-6 pb-2 border-b border-gray-200" style={{ color: "#1A1A1A", fontFamily: "var(--font-cinzel), 'Cinzel', serif" }}>
                 Quick Links
               </h4>
               <ul className="space-y-3">
@@ -117,7 +117,7 @@ export default function Footer() {
 
             {/* Services */}
             <div>
-              <h4 className="text-xs font-black uppercase tracking-[0.2em] font-sans mb-6 pb-2 border-b border-gray-200" style={{ color: "#1A1A1A" }}>
+              <h4 className="text-xs font-black uppercase tracking-[0.2em] mb-6 pb-2 border-b border-gray-200" style={{ color: "#1A1A1A", fontFamily: "var(--font-cinzel), 'Cinzel', serif" }}>
                 Our Services
               </h4>
               <ul className="space-y-3">
@@ -138,7 +138,7 @@ export default function Footer() {
 
             {/* Support + Legal */}
             <div>
-              <h4 className="text-xs font-black uppercase tracking-[0.2em] font-sans mb-6 pb-2 border-b border-gray-200" style={{ color: "#1A1A1A" }}>
+              <h4 className="text-xs font-black uppercase tracking-[0.2em] mb-6 pb-2 border-b border-gray-200" style={{ color: "#1A1A1A", fontFamily: "var(--font-cinzel), 'Cinzel', serif" }}>
                 Help & Legal
               </h4>
               <ul className="space-y-3 mb-6">
