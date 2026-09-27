@@ -44,14 +44,14 @@ function FlipButton({ href, front, back }: { href: string; front: string; back: 
           top: 0;
           left: 0;
           opacity: 1;
-          color: #D4AF37;
+          color: #1A1A1A;
           display: block;
           padding: 0 32px;
           line-height: 44px;
           transition: 0.45s cubic-bezier(0.23, 1, 0.32, 1);
           position: relative;
-          background: rgba(255,255,255,0.08);
-          border: 1px solid rgba(212,175,55,0.5);
+          background: #D4AF37;
+          border: 1px solid #D4AF37;
           content: attr(data-front);
           transform: translateY(0) rotateX(0);
           border-radius: 999px;
