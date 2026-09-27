@@ -24,7 +24,7 @@ export default function HomePage() {
     <div className="min-h-screen w-full" style={{ backgroundColor: bg, margin: 0, padding: 0 }}>
       <Navbar />
       <AnnouncementBar />
-      <div style={{ paddingTop: "38px" }}>
+      <div style={{ paddingTop: "102px" }}>
         <HeroSectionDynamic />
         <TopSellingProducts />
         <FeaturedDuoDynamic />

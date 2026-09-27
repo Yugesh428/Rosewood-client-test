@@ -48,9 +48,10 @@ export default function AnnouncementBar() {
     <div
       className="fixed left-0 right-0 z-40 flex items-center justify-center overflow-hidden"
       style={{
-        top: "94px",
-        backgroundColor: "#1A1A1A",
+        top: "64px",
+        backgroundColor: "#ffffff",
         height: "38px",
+        borderBottom: "1px solid rgba(0,0,0,0.08)",
       }}
     >
       {/* Animated text */}
@@ -62,7 +63,7 @@ export default function AnnouncementBar() {
           exit={{ opacity: 0, y: -10 }}
           transition={{ duration: 0.4, ease: "easeInOut" }}
           className="flex items-center gap-2 text-[11px] font-sans tracking-[0.12em]"
-          style={{ color: "rgba(255,255,255,0.85)" }}
+          style={{ color: "rgba(0,0,0,0.75)" }}
         >
           <span>{msg.text}</span>
           <Link
@@ -85,7 +86,7 @@ export default function AnnouncementBar() {
             onClick={() => setIndex(i)}
             className="w-1.5 h-1.5 rounded-full transition-all duration-300"
             style={{
-              backgroundColor: i === index ? "#D4AF37" : "rgba(255,255,255,0.3)",
+              backgroundColor: i === index ? "#D4AF37" : "rgba(0,0,0,0.2)",
               transform: i === index ? "scale(1.3)" : "scale(1)",
             }}
             aria-label={`Message ${i + 1}`}
@@ -96,7 +97,7 @@ export default function AnnouncementBar() {
       {/* Close */}
       <button
         onClick={() => setVisible(false)}
-        className="absolute right-4 text-white/50 hover:text-white transition-colors"
+        className="absolute right-4 text-black/40 hover:text-black transition-colors"
         aria-label="Close announcement"
       >
         <X className="w-3.5 h-3.5" />

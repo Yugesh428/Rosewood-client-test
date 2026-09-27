@@ -110,7 +110,7 @@ function MegaMenu({ categories, onClose }: MegaMenuProps) {
       transition={{ duration: 0.22, ease: "easeOut" }}
       className="fixed left-0 right-0 z-[9990] bg-white"
       style={{
-        top: "94px",
+        top: "64px",
         borderTop: "3px solid #D4AF37",
         boxShadow: "0 20px 60px rgba(0,0,0,0.12), 0 4px 16px rgba(0,0,0,0.06)",
       }}
@@ -405,7 +405,7 @@ function SearchOverlay({ onClose }: { onClose: () => void }) {
         exit={{ x: "100%" }}
         transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
         className="fixed right-0 bottom-0 z-[9998] w-full md:w-[480px] bg-white shadow-2xl flex flex-col overflow-hidden"
-        style={{ top: "30px" }}
+        style={{ top: "0px" }}
       >
         {/* Search Bar Header */}
         <div className="flex items-center gap-4 px-6 py-5 border-b border-gray-200">
@@ -621,9 +621,9 @@ function AccountDropdown() {
         aria-expanded={open}
         onClick={() => setOpen((v) => !v)}
         className="transition-all duration-200 hover:text-[#D4AF37] hover:scale-110 active:scale-95"
-        style={{ color: "var(--color-text-heading)" }}
-        onMouseEnter={e => (e.currentTarget.style.color = "#D4AF37")}
-        onMouseLeave={e => (e.currentTarget.style.color = "var(--color-text-heading)")}
+        style={{ color: "#D4AF37" }}
+        onMouseEnter={e => (e.currentTarget.style.color = "#ffffff")}
+        onMouseLeave={e => (e.currentTarget.style.color = "#D4AF37")}
       >
         <UserIcon />
       </button>
@@ -819,38 +819,6 @@ export default function Navbar() {
 
   return (
     <>
-      {/* ── Top contact bar ── */}
-      <div className="w-full bg-[#1A1A1A] text-white text-[11px] font-sans py-1.5 px-6 flex items-center justify-between z-[9999] fixed top-0 left-0 right-0">
-        {/* Left - phone */}
-        <div className="flex items-center gap-4">
-          <a href="tel:+441234567890" className="flex items-center gap-1.5 hover:text-[#D4AF37] transition-colors">
-            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 13.6 19.79 19.79 0 0 1 1.64 5a2 2 0 0 1 1.99-2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 10.9a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 17z"/>
-            </svg>
-            +44 123 456 7890
-          </a>
-          <a href="mailto:info@rosewoodpharmacy.com" className="flex items-center gap-1.5 hover:text-[#D4AF37] transition-colors">
-            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/>
-            </svg>
-            info@rosewoodpharmacy.com
-          </a>
-        </div>
-
-        {/* Center - message */}
-        <p className="hidden md:block tracking-[0.15em] uppercase text-[10px] text-white/60">
-          Free delivery on orders over £50
-        </p>
-
-        {/* Right - opening hours */}
-        <div className="flex items-center gap-1.5 text-white/70">
-          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <circle cx="12" cy="12" r="10"/><polyline points="12,6 12,12 16,14"/>
-          </svg>
-          Mon–Fri: 9am–6pm · Sat: 10am–4pm
-        </div>
-      </div>
-
       {/* ── Main bar ── */}
       <motion.nav
         initial={{ y: -80 }}
@@ -858,10 +826,10 @@ export default function Navbar() {
         transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
         className="fixed left-0 right-0 z-50 transition-shadow duration-300"
         style={{
-          top: "30px",
-          backgroundColor: "#FAF8F5",
-          borderBottom: "1px solid rgba(0,0,0,0.10)",
-          boxShadow: scrolled ? "0 1px 12px rgba(0,0,0,0.06)" : "none",
+          top: "0px",
+          backgroundColor: "#000000",
+          borderBottom: "1px solid rgba(255,255,255,0.08)",
+          boxShadow: scrolled ? "0 1px 12px rgba(0,0,0,0.3)" : "none",
         }}
       >
         <div className="w-full px-5 md:px-10 h-[64px] grid grid-cols-3 items-center">
@@ -872,7 +840,7 @@ export default function Navbar() {
               aria-label="Menu"
               onClick={() => setMobileOpen((v) => !v)}
               className="transition-all duration-200 hover:text-[#D4AF37] hover:scale-110 active:scale-95"
-              style={{ color: "var(--color-text-heading)" }}
+              style={{ color: "#D4AF37" }}
             >
               {mobileOpen ? <CloseIcon /> : <MenuIcon />}
             </button>
@@ -896,14 +864,14 @@ export default function Navbar() {
                     fontWeight: 700,
                     letterSpacing: "0.06em",
                     lineHeight: 0.95,
-                    color: "#1A1A1A"
+                    color: "#D4AF37"
                   }}
                 >
                   ROSEWOOD
                 </span>
                 <span
                   className="font-sans text-[9px] tracking-[0.3em] uppercase font-bold text-center w-full"
-                  style={{ color: "#2A2A2A", fontFamily: "var(--font-cinzel), serif", letterSpacing: "0.4em", marginTop: "2px" }}
+                  style={{ color: "#D4AF37", fontFamily: "var(--font-cinzel), serif", letterSpacing: "0.4em", marginTop: "2px" }}
                 >
                   PHARMACY
                 </span>
@@ -912,7 +880,7 @@ export default function Navbar() {
           </div>
 
           {/* ── RIGHT: search · wishlist · account · cart ── */}
-          <div className="flex items-center justify-end gap-5" style={{ color: "var(--color-text-heading)" }}>
+          <div className="flex items-center justify-end gap-5" style={{ color: "#D4AF37" }}>
             {/* Search */}
             <button
               aria-label="Search"
@@ -971,7 +939,7 @@ export default function Navbar() {
               initial={{ x: "-100%" }} animate={{ x: 0 }} exit={{ x: "-100%" }}
               transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
               className="fixed left-0 z-50 w-[300px] bg-white flex flex-col pb-10"
-              style={{ top: "30px", bottom: 0, borderRight: "1px solid rgba(0,0,0,0.12)", overflowY: "auto", scrollbarWidth: "none", msOverflowStyle: "none" }}
+              style={{ top: "0px", bottom: 0, borderRight: "1px solid rgba(0,0,0,0.12)", overflowY: "auto", scrollbarWidth: "none", msOverflowStyle: "none" }}
             >
               <style>{`.mobile-drawer::-webkit-scrollbar { display: none; }`}</style>
               {/* Close */}

@@ -13,8 +13,8 @@ export default function Footer() {
 
   return (
     <footer
-      className="w-full border-t border-gray-200"
-      style={{ backgroundColor: "#FAF8F5" }}
+      className="w-full border-t border-white/10"
+      style={{ backgroundColor: "#000000" }}
     >
       {/* Gold accent line */}
       <div
@@ -43,7 +43,7 @@ export default function Footer() {
                 <div className="flex flex-col justify-start leading-none" style={{ marginTop: "8px", marginLeft: "2px" }}>
                   <span
                     style={{
-                      color: "#1A1A1A",
+                      color: "#D4AF37",
                       fontFamily: "var(--font-cinzel), 'Cinzel', serif",
                       fontWeight: 700,
                       fontSize: "28px",
@@ -53,14 +53,14 @@ export default function Footer() {
                   >
                     ROSEWOOD
                   </span>
-                  <span className="text-[9px] tracking-[0.4em] uppercase font-bold text-center w-full" style={{ color: "#2A2A2A", fontFamily: "var(--font-cinzel), 'Cinzel', serif", marginTop: "2px" }}>
+                  <span className="text-[9px] tracking-[0.4em] uppercase font-bold text-center w-full" style={{ color: "#D4AF37", fontFamily: "var(--font-cinzel), 'Cinzel', serif", marginTop: "2px" }}>
                     PHARMACY
                   </span>
                 </div>
               </div>
             </div>
 
-            <p className="text-sm font-sans leading-relaxed mb-6" style={{ color: "#1A1A1A" }}>
+            <p className="text-sm font-sans leading-relaxed mb-6" style={{ color: "#ffffff" }}>
               London's trusted destination for premium pharmacy, skincare, and wellness. We bring together the finest healthcare products with expert guidance — delivered to your door with care and discretion.
             </p>
 
@@ -74,7 +74,7 @@ export default function Footer() {
               ].map((item) => (
                 <div key={item.text} className="flex items-start gap-2.5">
                   <span className="text-xs mt-0.5">{item.icon}</span>
-                  <p className="text-xs font-sans font-medium" style={{ color: "#1A1A1A" }}>{item.text}</p>
+                  <p className="text-xs font-sans font-medium" style={{ color: "#ffffff" }}>{item.text}</p>
                 </div>
               ))}
             </div>
@@ -90,12 +90,12 @@ export default function Footer() {
                   key={s.label}
                   href="#"
                   aria-label={s.label}
-                  className="w-9 h-9 rounded-full border border-gray-300 flex items-center justify-center transition-all duration-200 hover:border-[#D4AF37] hover:bg-[#D4AF37] group"
+                  className="w-9 h-9 rounded-full border border-white/20 flex items-center justify-center transition-all duration-200 hover:border-[#D4AF37] hover:bg-[#D4AF37] group"
                 >
                   <svg className="w-4 h-4 transition-colors" fill="currentColor" viewBox="0 0 24 24"
-                    style={{ color: "#1A1A1A" }}
+                    style={{ color: "#ffffff" }}
                     onMouseEnter={e => (e.currentTarget.style.color = "#fff")}
-                    onMouseLeave={e => (e.currentTarget.style.color = "#1A1A1A")}
+                    onMouseLeave={e => (e.currentTarget.style.color = "#ffffff")}
                   >
                     <path d={s.path} />
                   </svg>
@@ -109,7 +109,7 @@ export default function Footer() {
 
             {/* Quick Links */}
             <div>
-              <h4 className="text-xs font-black uppercase tracking-[0.2em] mb-6 pb-2 border-b border-gray-200" style={{ color: "#1A1A1A", fontFamily: "var(--font-cinzel), 'Cinzel', serif" }}>
+              <h4 className="text-xs font-black uppercase tracking-[0.2em] mb-6 pb-2 border-b border-white/10" style={{ color: "#ffffff", fontFamily: "var(--font-cinzel), 'Cinzel', serif" }}>
                 Quick Links
               </h4>
               <ul className="space-y-3">
@@ -118,7 +118,7 @@ export default function Footer() {
                     <Link
                       href={link.href}
                       className="footer-link text-sm font-sans font-medium transition-colors duration-200 flex items-center gap-1.5 group"
-                      style={{ color: "#1A1A1A" }}
+                      style={{ color: "#ffffff" }}
                     >
                       <span className="w-1 h-1 rounded-full bg-[#D4AF37] opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0" />
                       {link.label}
@@ -130,7 +130,7 @@ export default function Footer() {
 
             {/* Services */}
             <div>
-              <h4 className="text-xs font-black uppercase tracking-[0.2em] mb-6 pb-2 border-b border-gray-200" style={{ color: "#1A1A1A", fontFamily: "var(--font-cinzel), 'Cinzel', serif" }}>
+              <h4 className="text-xs font-black uppercase tracking-[0.2em] mb-6 pb-2 border-b border-white/10" style={{ color: "#ffffff", fontFamily: "var(--font-cinzel), 'Cinzel', serif" }}>
                 Our Services
               </h4>
               <ul className="space-y-3">
@@ -139,7 +139,7 @@ export default function Footer() {
                     <Link
                       href="#"
                       className="footer-link text-sm font-sans font-medium transition-colors duration-200 flex items-center gap-1.5 group"
-                      style={{ color: "#1A1A1A" }}
+                      style={{ color: "#ffffff" }}
                     >
                       <span className="w-1 h-1 rounded-full bg-[#D4AF37] opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0" />
                       {item}
@@ -151,7 +151,7 @@ export default function Footer() {
 
             {/* Support + Legal */}
             <div>
-              <h4 className="text-xs font-black uppercase tracking-[0.2em] mb-6 pb-2 border-b border-gray-200" style={{ color: "#1A1A1A", fontFamily: "var(--font-cinzel), 'Cinzel', serif" }}>
+              <h4 className="text-xs font-black uppercase tracking-[0.2em] mb-6 pb-2 border-b border-white/10" style={{ color: "#ffffff", fontFamily: "var(--font-cinzel), 'Cinzel', serif" }}>
                 Help & Legal
               </h4>
               <ul className="space-y-3 mb-6">
@@ -160,7 +160,7 @@ export default function Footer() {
                     <Link
                       href="#"
                       className="footer-link text-sm font-sans font-medium transition-colors duration-200 flex items-center gap-1.5 group"
-                      style={{ color: "#1A1A1A" }}
+                      style={{ color: "#ffffff" }}
                     >
                       <span className="w-1 h-1 rounded-full bg-[#D4AF37] opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0" />
                       {item}
@@ -168,13 +168,13 @@ export default function Footer() {
                   </li>
                 ))}
               </ul>
-              <div className="pt-4 border-t border-gray-200">
+              <div className="pt-4 border-t border-white/10">
                 {legal.map((item) => (
                   <Link
                     key={item}
                     href="#"
                     className="footer-link block text-xs font-sans transition-colors duration-200 mb-2"
-                    style={{ color: "#333333" }}
+                    style={{ color: "rgba(255,255,255,0.6)" }}
                   >
                     {item}
                   </Link>
@@ -188,8 +188,8 @@ export default function Footer() {
 
 
         {/* ── Bottom bar ── */}
-        <div className="mt-10 pt-6 border-t border-gray-200 flex flex-col md:flex-row items-center justify-between gap-4">
-          <p className="text-[11px] font-sans font-medium" style={{ color: "#333333" }}>
+        <div className="mt-10 pt-6 border-t border-white/10 flex flex-col md:flex-row items-center justify-between gap-4">
+          <p className="text-[11px] font-sans font-medium" style={{ color: "rgba(255,255,255,0.6)" }}>
             © {new Date().getFullYear()} Rosewood Pharmacy Ltd. All rights reserved. Registered in England & Wales.
           </p>
 
@@ -215,7 +215,7 @@ export default function Footer() {
             ))}
           </div>
 
-          <p className="text-[11px] font-sans font-medium" style={{ color: "#333333" }}>
+          <p className="text-[11px] font-sans font-medium" style={{ color: "rgba(255,255,255,0.6)" }}>
             GPhC Reg. No. 1234567 ✦ ICO Reg. No. ZA123456
           </p>
         </div>
@@ -229,3 +229,4 @@ export default function Footer() {
     </footer>
   );
 }
+
