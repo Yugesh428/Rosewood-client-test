@@ -67,9 +67,10 @@ export default function ContactPage() {
               <motion.div
                 variants={fadeUp} initial="hidden" whileInView="visible"
                 viewport={{ once: true }} custom={0}
-                className="bg-white border border-[#E5E5E5] rounded-2xl p-8 md:p-10"
+                className="bg-white border border-gray-300 rounded-2xl p-8 md:p-10"
+                style={{ boxShadow: "0 4px 24px rgba(0,0,0,0.10)" }}
               >
-                <h2 className="font-heading text-2xl text-[#1A1A1A] mb-7">
+                <h2 style={{ fontFamily: "var(--font-cinzel), 'Cinzel', serif", fontWeight: 700, letterSpacing: "0.02em" }} className="text-2xl text-[#1A1A1A] mb-7">
                   Send a Message
                 </h2>
 

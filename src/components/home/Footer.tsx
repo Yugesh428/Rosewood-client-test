@@ -32,19 +32,32 @@ export default function Footer() {
           <div className="md:col-span-4">
             {/* Logo */}
             <div className="mb-5">
-              <h3
-                className="text-4xl tracking-[-0.01em] mb-0.5"
-                style={{
-                  color: "#1A1A1A",
-                  fontFamily: "var(--font-cinzel), 'Cinzel', serif",
-                  fontWeight: 700,
-                }}
-              >
-                Rosewood
-              </h3>
-              <p className="text-[9px] tracking-[0.35em] uppercase font-bold" style={{ color: "#555555", fontFamily: "var(--font-cinzel), 'Cinzel', serif" }}>
-                Pharmacy & Wellness
-              </p>
+              <div className="flex items-start gap-0 leading-none">
+                {/* Branded R */}
+                <img
+                  src="/BrandedLogo.png"
+                  alt="R"
+                  style={{ height: "64px", width: "auto", objectFit: "contain", display: "block" }}
+                />
+                {/* Brand text stacked */}
+                <div className="flex flex-col justify-start leading-none" style={{ marginTop: "8px", marginLeft: "2px" }}>
+                  <span
+                    style={{
+                      color: "#1A1A1A",
+                      fontFamily: "var(--font-cinzel), 'Cinzel', serif",
+                      fontWeight: 700,
+                      fontSize: "28px",
+                      letterSpacing: "0.06em",
+                      lineHeight: 0.95,
+                    }}
+                  >
+                    ROSEWOOD
+                  </span>
+                  <span className="text-[9px] tracking-[0.4em] uppercase font-bold text-center w-full" style={{ color: "#2A2A2A", fontFamily: "var(--font-cinzel), 'Cinzel', serif", marginTop: "2px" }}>
+                    PHARMACY
+                  </span>
+                </div>
+              </div>
             </div>
 
             <p className="text-sm font-sans leading-relaxed mb-6" style={{ color: "#1A1A1A" }}>

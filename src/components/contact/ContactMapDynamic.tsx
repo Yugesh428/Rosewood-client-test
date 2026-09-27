@@ -100,12 +100,12 @@ export default function ContactMapDynamic() {
               Visit Us
             </p>
             <h2 style={{
-              fontFamily: "var(--font-heading), Georgia, serif",
+              fontFamily: "var(--font-cinzel), 'Cinzel', serif",
               fontSize: "clamp(24px, 3vw, 34px)",
-              fontWeight: 400,
+              fontWeight: 700,
               color: "#1A1A1A",
               lineHeight: 1.2,
-              letterSpacing: "-0.01em",
+              letterSpacing: "0.02em",
               marginBottom: "36px",
             }}>
               Find Us &amp; Our Hours

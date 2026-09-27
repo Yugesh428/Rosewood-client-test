@@ -102,7 +102,7 @@ export default function ContactInfoDynamic() {
       className="flex flex-col gap-8"
     >
       <div>
-        <h2 className="font-heading text-2xl text-[#1A1A1A] mb-6">
+        <h2 style={{ fontFamily: "var(--font-cinzel), 'Cinzel', serif", fontWeight: 700, letterSpacing: "0.02em" }} className="text-2xl text-[#1A1A1A] mb-6">
           Contact Information
         </h2>
 
