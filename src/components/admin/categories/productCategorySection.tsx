@@ -4,6 +4,7 @@
 import React, { useState, useEffect, useCallback, useMemo } from "react";
 import { toast } from "sonner";
 import { ChevronRight, ChevronDown, Download, Plus, Upload, Search, X } from "lucide-react";
+import CategoryDashboard from "@/components/admin/categories/CategoryDashboard";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -504,27 +505,36 @@ export default function ProductCategoriesSection() {
           <div className="flex items-center gap-2">
             <button
               onClick={() => exportToCSV(allCategories)}
-              className="flex items-center gap-1.5 px-3.5 py-2 rounded border text-sm transition-colors hover:bg-white"
+              className="flex items-center gap-1.5 px-3.5 py-2 rounded border text-sm font-medium transition-all duration-200 active:scale-95"
               style={{ borderColor: "#DDD", color: "#666", fontFamily: FONT_MONTSERRAT, fontWeight: 500 }}
+              onMouseEnter={e => { const el = e.currentTarget as HTMLElement; el.style.borderColor="#999"; el.style.color="#333"; el.style.transform="translateY(-1px)"; el.style.boxShadow="0 4px 12px rgba(0,0,0,0.08)"; }}
+              onMouseLeave={e => { const el = e.currentTarget as HTMLElement; el.style.borderColor="#DDD"; el.style.color="#666"; el.style.transform="translateY(0)"; el.style.boxShadow="none"; }}
             >
               <Download className="w-3.5 h-3.5" /> Export CSV
             </button>
             <button
               onClick={() => { setBulkFile(null); setBulkJson(""); setBulkResult(null); setBulkModalOpen(true); }}
-              className="flex items-center gap-1.5 px-3.5 py-2 rounded border text-sm transition-colors hover:bg-[#D4AF37]/5"
-              style={{ borderColor: "#D4AF37", color: "#D4AF37", fontFamily: FONT_MONTSERRAT, fontWeight: 500 }}
+              className="flex items-center gap-1.5 px-3.5 py-2 rounded border text-sm font-medium transition-all duration-200 active:scale-95"
+              style={{ borderColor: "#D4AF37", color: "#D4AF37", fontFamily: FONT_MONTSERRAT, fontWeight: 500, backgroundColor: "transparent" }}
+              onMouseEnter={e => { const el = e.currentTarget as HTMLElement; el.style.backgroundColor="#D4AF37"; el.style.color="#fff"; el.style.transform="translateY(-1px)"; el.style.boxShadow="0 4px 16px rgba(212,175,55,0.3)"; }}
+              onMouseLeave={e => { const el = e.currentTarget as HTMLElement; el.style.backgroundColor="transparent"; el.style.color="#D4AF37"; el.style.transform="translateY(0)"; el.style.boxShadow="none"; }}
             >
               <Upload className="w-3.5 h-3.5" /> Bulk Import
             </button>
             <button
               onClick={openCreateModal}
-              className="flex items-center gap-1.5 px-4 py-2 rounded text-sm text-white transition-colors hover:bg-[#b8952e]"
-              style={{ backgroundColor: "#D4AF37", fontFamily: FONT_MONTSERRAT, fontWeight: 600 }}
+              className="flex items-center gap-1.5 px-4 py-2 rounded text-sm text-white font-semibold transition-all duration-200 active:scale-95"
+              style={{ backgroundColor: "#D4AF37", fontFamily: FONT_MONTSERRAT, fontWeight: 600, boxShadow: "0 2px 8px rgba(212,175,55,0.35)" }}
+              onMouseEnter={e => { const el = e.currentTarget as HTMLElement; el.style.backgroundColor="#b8952e"; el.style.transform="translateY(-1px)"; el.style.boxShadow="0 4px 16px rgba(212,175,55,0.45)"; }}
+              onMouseLeave={e => { const el = e.currentTarget as HTMLElement; el.style.backgroundColor="#D4AF37"; el.style.transform="translateY(0)"; el.style.boxShadow="0 2px 8px rgba(212,175,55,0.35)"; }}
             >
               <Plus className="w-3.5 h-3.5" /> Add Category
             </button>
           </div>
         </div>
+
+        {/* ── Category Dashboard ────────────────────────────────────────── */}
+        <CategoryDashboard />
 
         {/* ── Filters bar ───────────────────────────────────────────────── */}
         <div className="flex flex-wrap items-center gap-3 mb-5">
