@@ -1,10 +1,20 @@
 "use client";
 
+import React from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import { useState, useEffect, useRef } from "react";
 import gsap from "gsap";
+
+type VideoItem = {
+  id: string;
+  url: string;
+  brand: string | null;
+  title: string | null;
+  link: string | null;
+  sortOrder: number;
+};
 
 type FeaturedDuoData = {
   id: number;
@@ -15,28 +25,37 @@ type FeaturedDuoData = {
   leftBrand: string | null;
   leftTitle: string | null;
   leftLink: string | null;
-  rightImage: string | null; // used as video URL
-  rightBrand: string | null;
-  rightTitle: string | null;
-  rightLink: string | null;
   isActive: boolean;
 };
 
-// ── TikTok-style Video Player ─────────────────────────────────────────────────
-function TikTokPlayer({ src, title, brand }: { src: string; title?: string | null; brand?: string | null }) {
+// ── TikTok-style Video Player with Auto-Cycling ──────────────────────────────
+function TikTokPlayer({ videos }: { videos: VideoItem[] }) {
+  const [currentIndex, setCurrentIndex] = useState(0);
   const videoRef = useRef<HTMLVideoElement>(null);
   const [playing, setPlaying] = useState(false);
   const [muted, setMuted] = useState(true);
-  const [liked, setLiked] = useState(false);
-  const [likeCount, setLikeCount] = useState(284);
   const [progress, setProgress] = useState(0);
+
+  const currentVideo = videos[currentIndex] || null;
+
+  // Auto-advance to next video when current one ends
+  const handleVideoEnded = () => {
+    if (videos.length > 1) {
+      setCurrentIndex((prev) => (prev + 1) % videos.length);
+      setProgress(0);
+    } else {
+      const v = videoRef.current;
+      if (v) { v.currentTime = 0; v.play(); }
+    }
+  };
 
   useEffect(() => {
     const v = videoRef.current;
-    if (!v) return;
+    if (!v || !currentVideo) return;
     v.muted = true;
+    v.currentTime = 0;
     v.play().then(() => setPlaying(true)).catch(() => {});
-  }, [src]);
+  }, [currentIndex, currentVideo]);
 
   const togglePlay = () => {
     const v = videoRef.current;
@@ -53,12 +72,6 @@ function TikTokPlayer({ src, title, brand }: { src: string; title?: string | nul
     setMuted(v.muted);
   };
 
-  const toggleLike = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    setLiked(v => !v);
-    setLikeCount(c => liked ? c - 1 : c + 1);
-  };
-
   const onTimeUpdate = () => {
     const v = videoRef.current;
     if (!v || !v.duration) return;
@@ -72,6 +85,12 @@ function TikTokPlayer({ src, title, brand }: { src: string; title?: string | nul
     const rect = e.currentTarget.getBoundingClientRect();
     v.currentTime = ((e.clientX - rect.left) / rect.width) * v.duration;
   };
+
+  if (!currentVideo) return null;
+
+  const src = currentVideo.url;
+  const title = currentVideo.title;
+  const brand = currentVideo.brand;
 
   // Check if src is a video or image
   const isVideo = src && (src.includes("youtube") || src.includes("youtu.be") || src.match(/\.(mp4|webm|ogg|mov)(\?|$)/i));
@@ -107,10 +126,10 @@ function TikTokPlayer({ src, title, brand }: { src: string; title?: string | nul
           <video
             ref={videoRef}
             src={src}
-            loop
             playsInline
             muted={muted}
             onTimeUpdate={onTimeUpdate}
+            onEnded={handleVideoEnded}
             className="absolute inset-0 w-full h-full object-cover"
           />
         ) : (
@@ -136,36 +155,6 @@ function TikTokPlayer({ src, title, brand }: { src: string; title?: string | nul
 
         {/* Right side TikTok actions */}
         <div className="absolute right-3 bottom-20 flex flex-col items-center gap-5 z-10">
-          {/* Like */}
-          <button onClick={toggleLike} className="flex flex-col items-center gap-1" style={{ pointerEvents: "auto" }}>
-            <div className={`w-10 h-10 rounded-full flex items-center justify-center transition-all ${liked ? "bg-red-500/20" : "bg-white/10"}`}>
-              <svg width="20" height="20" viewBox="0 0 24 24" fill={liked ? "#ff2d55" : "none"} stroke={liked ? "#ff2d55" : "white"} strokeWidth="2">
-                <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
-              </svg>
-            </div>
-            <span className="text-white text-[10px] font-sans">{likeCount}</span>
-          </button>
-
-          {/* Comment */}
-          <button className="flex flex-col items-center gap-1" style={{ pointerEvents: "auto" }}>
-            <div className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2">
-                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
-              </svg>
-            </div>
-            <span className="text-white text-[10px] font-sans">47</span>
-          </button>
-
-          {/* Share */}
-          <button className="flex flex-col items-center gap-1" style={{ pointerEvents: "auto" }}>
-            <div className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2">
-                <line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/>
-              </svg>
-            </div>
-            <span className="text-white text-[10px] font-sans">Share</span>
-          </button>
-
           {/* Shop */}
           <button className="flex flex-col items-center gap-1" style={{ pointerEvents: "auto" }}>
             <div className="w-10 h-10 rounded-full bg-[#D4AF37] flex items-center justify-center">
@@ -231,16 +220,20 @@ function TikTokPlayer({ src, title, brand }: { src: string; title?: string | nul
 // ── Main Component ────────────────────────────────────────────────────────────
 export default function FeaturedDuoDynamic() {
   const [data, setData] = useState<FeaturedDuoData | null>(null);
+  const [videos, setVideos] = useState<VideoItem[]>([]);
   const [loading, setLoading] = useState(true);
   const shopNowRef = useRef<HTMLAnchorElement>(null);
   const underlineRef = useRef<HTMLSpanElement>(null);
   const headingRef = useRef<HTMLHeadingElement>(null);
 
   useEffect(() => {
-    fetch("/api/ui/featured-duo")
-      .then((r) => r.json())
-      .then((json) => {
-        if (json.success && json.data && json.data.isActive) setData(json.data);
+    Promise.all([
+      fetch("/api/ui/featured-duo").then(r => r.json()),
+      fetch("/api/ui/featured-duo/videos").then(r => r.json()),
+    ])
+      .then(([duoJson, videosJson]) => {
+        if (duoJson.success && duoJson.data && duoJson.data.isActive) setData(duoJson.data);
+        if (videosJson.success && Array.isArray(videosJson.data)) setVideos(videosJson.data);
       })
       .catch(() => {})
       .finally(() => setLoading(false));
@@ -273,7 +266,7 @@ export default function FeaturedDuoDynamic() {
   }, [data]);
 
   if (loading || !data || !data.isActive) return null;
-  if (!data.leftImage && !data.rightImage) return null;
+  if (!data.leftImage && videos.length === 0) return null;
 
   return (
     <section className="py-6 bg-white">
@@ -349,7 +342,7 @@ export default function FeaturedDuoDynamic() {
           )}
 
           {/* Right — TikTok video */}
-          {data.rightImage && (
+          {videos.length > 0 && (
             <motion.div
               initial={{ opacity: 0, x: 20 }}
               whileInView={{ opacity: 1, x: 0 }}
@@ -358,9 +351,7 @@ export default function FeaturedDuoDynamic() {
               className="h-full flex items-center justify-center"
             >
               <TikTokPlayer
-                src={data.rightImage}
-                title={data.rightTitle}
-                brand={data.rightBrand}
+                videos={videos}
               />
             </motion.div>
           )}

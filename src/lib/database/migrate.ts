@@ -59,13 +59,32 @@ async function migrate() {
       await sequelize.query(`ALTER TABLE "categories" ADD COLUMN "slug" VARCHAR(150) UNIQUE DEFAULT NULL;`);
       console.log("✅ categories.slug added.");
       
-      // Generate slugs for existing categories
+      // Generate slugs for existing categories with duplicate handling
       console.log("🔄 Generating slugs for existing categories...");
-      await sequelize.query(`
-        UPDATE "categories"
-        SET "slug" = LOWER(REGEXP_REPLACE("categoryName", '[^a-zA-Z0-9]+', '-', 'g'))
-        WHERE "slug" IS NULL;
-      `);
+      const categories = await sequelize.query(`SELECT "id", "categoryName" FROM "categories" WHERE "slug" IS NULL;`, { type: "SELECT" }) as Array<{ id: string; categoryName: string }>;
+      
+      for (const cat of categories) {
+        let baseSlug = cat.categoryName.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+        let slug = baseSlug;
+        let counter = 1;
+        
+        // Check if slug exists, if so add counter
+        while (true) {
+          const [existing] = await sequelize.query(
+            `SELECT "id" FROM "categories" WHERE "slug" = :slug LIMIT 1;`,
+            { replacements: { slug }, type: "SELECT" }
+          ) as any[];
+          
+          if (!existing) break;
+          slug = `${baseSlug}-${counter}`;
+          counter++;
+        }
+        
+        await sequelize.query(
+          `UPDATE "categories" SET "slug" = :slug WHERE "id" = :id;`,
+          { replacements: { slug, id: cat.id } }
+        );
+      }
       console.log("✅ Slugs generated for existing categories.");
     } else {
       console.log("ℹ️  categories.slug already exists.");
@@ -677,8 +696,107 @@ async function migrate() {
       console.log("ℹ️  ui_discover_section already exists.");
     }
 
+    // ── 14. Migrate ui_featured_duo — add video columns, drop old right* cols ──
+    const duoCols = await q.describeTable("ui_featured_duo").catch(() => null);
+    if (duoCols) {
+      if (!duoCols["videoUrl"]) {
+        console.log("➕ Adding videoUrl to ui_featured_duo...");
+        await sequelize.query(`ALTER TABLE "ui_featured_duo" ADD COLUMN "videoUrl" VARCHAR(1000) DEFAULT NULL;`);
+        // Migrate existing rightImage → videoUrl
+        await sequelize.query(`UPDATE "ui_featured_duo" SET "videoUrl" = "rightImage" WHERE "rightImage" IS NOT NULL;`);
+        console.log("✅ ui_featured_duo.videoUrl added (migrated from rightImage).");
+      } else {
+        console.log("ℹ️  ui_featured_duo.videoUrl already exists.");
+      }
+      if (!duoCols["videoBrand"]) {
+        console.log("➕ Adding videoBrand to ui_featured_duo...");
+        await sequelize.query(`ALTER TABLE "ui_featured_duo" ADD COLUMN "videoBrand" VARCHAR(120) DEFAULT NULL;`);
+        await sequelize.query(`UPDATE "ui_featured_duo" SET "videoBrand" = "rightBrand" WHERE "rightBrand" IS NOT NULL;`);
+        console.log("✅ ui_featured_duo.videoBrand added.");
+      } else {
+        console.log("ℹ️  ui_featured_duo.videoBrand already exists.");
+      }
+      if (!duoCols["videoTitle"]) {
+        console.log("➕ Adding videoTitle to ui_featured_duo...");
+        await sequelize.query(`ALTER TABLE "ui_featured_duo" ADD COLUMN "videoTitle" VARCHAR(255) DEFAULT NULL;`);
+        await sequelize.query(`UPDATE "ui_featured_duo" SET "videoTitle" = "rightTitle" WHERE "rightTitle" IS NOT NULL;`);
+        console.log("✅ ui_featured_duo.videoTitle added.");
+      } else {
+        console.log("ℹ️  ui_featured_duo.videoTitle already exists.");
+      }
+      if (!duoCols["videoLink"]) {
+        console.log("➕ Adding videoLink to ui_featured_duo...");
+        await sequelize.query(`ALTER TABLE "ui_featured_duo" ADD COLUMN "videoLink" VARCHAR(500) DEFAULT '/pharmacy';`);
+        await sequelize.query(`UPDATE "ui_featured_duo" SET "videoLink" = "rightLink" WHERE "rightLink" IS NOT NULL;`);
+        console.log("✅ ui_featured_duo.videoLink added.");
+      } else {
+        console.log("ℹ️  ui_featured_duo.videoLink already exists.");
+      }
+      if (!duoCols["videos"]) {
+        console.log("➕ Adding videos array to ui_featured_duo...");
+        await sequelize.query(`ALTER TABLE "ui_featured_duo" ADD COLUMN "videos" JSONB NOT NULL DEFAULT '[]';`);
+        console.log("✅ ui_featured_duo.videos added.");
+      } else {
+        console.log("ℹ️  ui_featured_duo.videos already exists.");
+      }
+    }
+
+    // ── 15. Create ui_featured_duo_videos table if missing ───────────────────
+    const duoVideosExists = await q.describeTable("ui_featured_duo_videos").catch(() => null);
+    if (!duoVideosExists) {
+      console.log("➕ Creating ui_featured_duo_videos table...");
+      await sequelize.query(`
+        CREATE TABLE IF NOT EXISTS "ui_featured_duo_videos" (
+          "id"        UUID          NOT NULL DEFAULT gen_random_uuid(),
+          "url"       VARCHAR(1000) NOT NULL,
+          "brand"     VARCHAR(120)  DEFAULT NULL,
+          "title"     VARCHAR(255)  DEFAULT NULL,
+          "link"      VARCHAR(500)  DEFAULT '/pharmacy',
+          "sortOrder" INTEGER       NOT NULL DEFAULT 0,
+          "isActive"  BOOLEAN       NOT NULL DEFAULT TRUE,
+          "createdAt" TIMESTAMPTZ   NOT NULL DEFAULT NOW(),
+          "updatedAt" TIMESTAMPTZ   NOT NULL DEFAULT NOW(),
+          PRIMARY KEY ("id")
+        );
+      `);
+      console.log("✅ ui_featured_duo_videos table created.");
+    } else {
+      console.log("ℹ️  ui_featured_duo_videos already exists.");
+    }
+
+    // ── 16. Create ui_announcement_messages table if missing ─────────────────
+    const announcementExists = await q.describeTable("ui_announcement_messages").catch(() => null);
+    if (!announcementExists) {
+      console.log("➕ Creating ui_announcement_messages table...");
+      await sequelize.query(`
+        CREATE TABLE IF NOT EXISTS "ui_announcement_messages" (
+          "id"        UUID          NOT NULL DEFAULT gen_random_uuid(),
+          "text"      VARCHAR(500)  NOT NULL,
+          "cta"       VARCHAR(100)  DEFAULT NULL,
+          "link"      VARCHAR(500)  DEFAULT '/pharmacy',
+          "isActive"  BOOLEAN       NOT NULL DEFAULT TRUE,
+          "sortOrder" INTEGER       NOT NULL DEFAULT 0,
+          "createdAt" TIMESTAMPTZ   NOT NULL DEFAULT NOW(),
+          "updatedAt" TIMESTAMPTZ   NOT NULL DEFAULT NOW(),
+          PRIMARY KEY ("id")
+        );
+      `);
+      // Seed the 4 default messages
+      await sequelize.query(`
+        INSERT INTO "ui_announcement_messages" ("id","text","cta","link","isActive","sortOrder","createdAt","updatedAt") VALUES
+          (gen_random_uuid(), 'Seasonal reductions: shop up to 60% off.',           'Shop now',   '/pharmacy', true, 0, NOW(), NOW()),
+          (gen_random_uuid(), 'Free next-day UK delivery on orders over £50.',       'Shop now',   '/pharmacy', true, 1, NOW(), NOW()),
+          (gen_random_uuid(), 'New arrivals: premium skincare collections just landed.', 'Explore', '/pharmacy', true, 2, NOW(), NOW()),
+          (gen_random_uuid(), 'Earn loyalty points on every purchase.',              'Learn more', '/pharmacy', true, 3, NOW(), NOW());
+      `);
+      console.log("✅ ui_announcement_messages table created and seeded.");
+    } else {
+      console.log("ℹ️  ui_announcement_messages already exists.");
+    }
+
     console.log("\n🎉 Migration complete.");
-  } catch (error) {    console.error("❌ Migration failed:", error);
+  } catch (error) {
+    console.error("❌ Migration failed:", error);
     process.exit(1);
   } finally {
     await sequelize.close();

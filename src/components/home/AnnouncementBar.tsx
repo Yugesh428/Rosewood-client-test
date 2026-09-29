@@ -5,42 +5,54 @@ import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import { X } from "lucide-react";
 
-const messages = [
-  {
-    text: "Seasonal reductions: shop up to 60% off.",
-    cta: "Shop now",
-    link: "/pharmacy",
-  },
-  {
-    text: "Free next-day UK delivery on orders over £50.",
-    cta: "Shop now",
-    link: "/pharmacy",
-  },
-  {
-    text: "New arrivals: premium skincare collections just landed.",
-    cta: "Explore",
-    link: "/pharmacy",
-  },
-  {
-    text: "Earn loyalty points on every purchase.",
-    cta: "Learn more",
-    link: "/pharmacy",
-  },
-];
+type Message = {
+  id: string;
+  text: string;
+  cta: string | null;
+  link: string | null;
+};
 
-export default function AnnouncementBar() {
-  const [index, setIndex] = useState(0);
-  const [visible, setVisible] = useState(true);
+type Props = {
+  onVisibilityChange?: (visible: boolean) => void;
+};
 
+export default function AnnouncementBar({ onVisibilityChange }: Props) {
+  const [messages, setMessages] = useState<Message[]>([]);
+  const [index,    setIndex]    = useState(0);
+  const [visible,  setVisible]  = useState(false); // start false — show only when data loads
+
+  // Fetch active messages from API
   useEffect(() => {
-    if (!visible) return;
+    fetch("/api/ui/announcement")
+      .then(r => r.json())
+      .then(json => {
+        if (json.success && Array.isArray(json.data) && json.data.length > 0) {
+          setMessages(json.data);
+          setVisible(true);
+          onVisibilityChange?.(true);
+        } else {
+          onVisibilityChange?.(false);
+        }
+      })
+      .catch(() => { onVisibilityChange?.(false); });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Auto-cycle
+  useEffect(() => {
+    if (!visible || messages.length === 0) return;
     const timer = setInterval(() => {
-      setIndex((i) => (i + 1) % messages.length);
+      setIndex(i => (i + 1) % messages.length);
     }, 4000);
     return () => clearInterval(timer);
-  }, [visible]);
+  }, [visible, messages.length]);
 
-  if (!visible) return null;
+  const handleClose = () => {
+    setVisible(false);
+    onVisibilityChange?.(false);
+  };
+
+  if (!visible || messages.length === 0) return null;
 
   const msg = messages[index];
 
@@ -57,7 +69,7 @@ export default function AnnouncementBar() {
       {/* Animated text */}
       <AnimatePresence mode="wait">
         <motion.div
-          key={index}
+          key={msg.id + index}
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: -10 }}
@@ -66,37 +78,41 @@ export default function AnnouncementBar() {
           style={{ color: "rgba(0,0,0,0.75)" }}
         >
           <span>{msg.text}</span>
-          <Link
-            href={msg.link}
-            className="font-bold underline underline-offset-2 transition-colors duration-200"
-            style={{ color: "#D4AF37" }}
-            onMouseEnter={e => (e.currentTarget.style.color = "#ffffff")}
-            onMouseLeave={e => (e.currentTarget.style.color = "#D4AF37")}
-          >
-            {msg.cta}
-          </Link>
+          {msg.cta && msg.link && (
+            <Link
+              href={msg.link}
+              className="font-bold underline underline-offset-2 transition-colors duration-200"
+              style={{ color: "#D4AF37" }}
+              onMouseEnter={e => (e.currentTarget.style.color = "#b8952e")}
+              onMouseLeave={e => (e.currentTarget.style.color = "#D4AF37")}
+            >
+              {msg.cta}
+            </Link>
+          )}
         </motion.div>
       </AnimatePresence>
 
       {/* Dot indicators */}
-      <div className="absolute right-10 flex items-center gap-1.5">
-        {messages.map((_, i) => (
-          <button
-            key={i}
-            onClick={() => setIndex(i)}
-            className="w-1.5 h-1.5 rounded-full transition-all duration-300"
-            style={{
-              backgroundColor: i === index ? "#D4AF37" : "rgba(0,0,0,0.2)",
-              transform: i === index ? "scale(1.3)" : "scale(1)",
-            }}
-            aria-label={`Message ${i + 1}`}
-          />
-        ))}
-      </div>
+      {messages.length > 1 && (
+        <div className="absolute right-10 flex items-center gap-1.5">
+          {messages.map((_, i) => (
+            <button
+              key={i}
+              onClick={() => setIndex(i)}
+              className="w-1.5 h-1.5 rounded-full transition-all duration-300"
+              style={{
+                backgroundColor: i === index ? "#D4AF37" : "rgba(0,0,0,0.2)",
+                transform: i === index ? "scale(1.3)" : "scale(1)",
+              }}
+              aria-label={`Message ${i + 1}`}
+            />
+          ))}
+        </div>
+      )}
 
       {/* Close */}
       <button
-        onClick={() => setVisible(false)}
+        onClick={handleClose}
         className="absolute right-4 text-black/40 hover:text-black transition-colors"
         aria-label="Close announcement"
       >

@@ -36,6 +36,8 @@ import ContactInfo      from "../../features/Ui/contact/contactInfo/contactInfoM
 import ContactForm      from "../../features/Ui/contact/contactForm/contactFormModel";
 import SiteTheme, { CustomTheme } from "../../features/siteTheme/siteThemeModel";
 import FeaturedDuo from "../../features/Ui/featuredDuo/featuredDuoModel";
+import FeaturedDuoVideo from "../../features/Ui/featuredDuo/featuredDuoVideoModel";
+import AnnouncementMessage from "../../features/Ui/announcementBar/announcementBarModel";
 import PromotionSlide from "../../features/Ui/promotions/promotionsModel";
 import DiscoverSection from "../../features/Ui/discoverSection/discoverModel";
 import Blog from "../../features/Ui/blog/blogModel";
@@ -73,6 +75,8 @@ async function sync() {
     await CustomTheme.sync(OPTS);
     await SiteTheme.sync(OPTS);
     await FeaturedDuo.sync(OPTS);
+    await FeaturedDuoVideo.sync(OPTS);
+    await AnnouncementMessage.sync(OPTS);
     await PromotionSlide.sync(OPTS);
     await DiscoverSection.sync(OPTS);
     await Blog.sync(OPTS);

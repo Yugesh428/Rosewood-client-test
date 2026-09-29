@@ -167,7 +167,7 @@ export default function TopSellingProducts() {
   const viewAllUnderlineRef = useRef<HTMLSpanElement>(null);
 
   useEffect(() => {
-    fetch("/api/products?isActive=true&limit=4&sort=discount")
+    fetch("/api/products/top-selling?limit=4")
       .then((r) => r.json())
       .then((json) => {
         if (json.success && json.data) {

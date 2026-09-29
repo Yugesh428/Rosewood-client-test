@@ -16,6 +16,7 @@ import OurProductCollection from "@/components/publicPages/HomePage/ourProductCo
 import OurProductContent    from "@/components/publicPages/HomePage/ourProductContent";
 import TestimonialsSection  from "@/components/publicPages/HomePage/testimonialSection";
 import FeaturedDuoSection   from "@/components/publicPages/HomePage/featuredDuoSection";
+import AnnouncementSection  from "@/components/publicPages/HomePage/announcementSection";
 import PromotionsSection    from "@/components/publicPages/HomePage/promotionsSection";
 import DiscoverSectionAdmin from "@/components/publicPages/HomePage/discoverSection";
 import AboutSection         from "@/components/publicPages/aboutPage/aboutSection";
@@ -139,6 +140,11 @@ export default function SiteContentClient() {
       ══════════════════════════════════════════════════════════════════════ */}
       {activeTab === "home" && (
         <div className="space-y-4">
+
+          {/* Announcement Bar ---------------------------------------------- */}
+          <Section title="Announcement Bar" icon={Home} badge="Top Banner">
+            <AnnouncementSection />
+          </Section>
 
           {/* Hero Slides ---------------------------------------------------- */}
           <Section title="Hero Slides" icon={Home} badge="Carousel" defaultOpen>
