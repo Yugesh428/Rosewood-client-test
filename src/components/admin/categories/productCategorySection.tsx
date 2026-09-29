@@ -29,6 +29,7 @@ type ApiResponse<T> = {
 };
 
 const API_BASE = "/api/product-categories";
+const PAGE_SIZE = 15; // root nodes per page
 
 // ─── Font helpers ─────────────────────────────────────────────────────────────
 const FONT_HEADING    = "var(--font-heading), 'Libre Baskerville', serif";
@@ -308,6 +309,7 @@ export default function ProductCategoriesSection() {
   const [activeFilter,  setActiveFilter]  = useState<boolean | undefined>(undefined);
   const [copiedId,      setCopiedId]      = useState<string | null>(null);
   const [allOpen,       setAllOpen]       = useState(false);
+  const [currentPage,   setCurrentPage]   = useState(1);
 
   const [modalOpen,        setModalOpen]        = useState(false);
   const [editingCategory,  setEditingCategory]  = useState<Category | null>(null);
@@ -360,6 +362,13 @@ export default function ProductCategoriesSection() {
     });
     return buildTree(allCategories.filter(c => withAncestors.has(c.id)));
   }, [allCategories, filtered, search, activeFilter]);
+
+  // Paginate root-level nodes only — children always expand inline
+  const totalPages  = Math.ceil(treeData.length / PAGE_SIZE);
+  const pagedTree   = useMemo(
+    () => treeData.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE),
+    [treeData, currentPage]
+  );
 
   const stats = useMemo(() => ({
     total:  allCategories.length,
@@ -526,7 +535,7 @@ export default function ProductCategoriesSection() {
               type="text"
               placeholder="Search categories…"
               value={search}
-              onChange={e => setSearch(e.target.value)}
+              onChange={e => { setSearch(e.target.value); setCurrentPage(1); }}
               className="w-full pl-8 pr-8 py-2 rounded border bg-white text-sm outline-none transition-all focus:ring-1 focus:ring-[#D4AF37] focus:border-[#D4AF37]"
               style={{ borderColor: "#E5E5E5", fontFamily: FONT_MONTSERRAT, color: "#333" }}
             />
@@ -540,7 +549,7 @@ export default function ProductCategoriesSection() {
           {/* Status filter */}
           <select
             value={activeFilter === undefined ? "" : String(activeFilter)}
-            onChange={e => { const v = e.target.value; setActiveFilter(v === "" ? undefined : v === "true"); }}
+            onChange={e => { const v = e.target.value; setActiveFilter(v === "" ? undefined : v === "true"); setCurrentPage(1); }}
             className="rounded border bg-white px-3 py-2 text-sm outline-none transition-all focus:ring-1 focus:ring-[#D4AF37] cursor-pointer"
             style={{ borderColor: "#E5E5E5", fontFamily: FONT_MONTSERRAT, color: "#555" }}
           >
@@ -600,7 +609,7 @@ export default function ProductCategoriesSection() {
                       No categories found
                     </td>
                   </tr>
-                ) : treeData.map(root => (
+                ) : pagedTree.map(root => (
                   <TreeRow
                     key={root.id} node={root} depth={0}
                     defaultOpen={allOpen} copiedId={copiedId}
@@ -609,6 +618,41 @@ export default function ProductCategoriesSection() {
                 ))}
               </tbody>
             </table>
+          </div>
+        )}
+
+        {/* ── Pagination ────────────────────────────────────────────── */}
+        {totalPages > 1 && (
+          <div className="flex justify-between items-center mt-4 py-3">
+            <span style={{ fontFamily: FONT_MONTSERRAT, fontSize: "12px", color: "#666" }}>
+              Showing roots&nbsp;
+              <strong style={{ color: "#222" }}>{(currentPage - 1) * PAGE_SIZE + 1}</strong>
+              &nbsp;–&nbsp;
+              <strong style={{ color: "#222" }}>{Math.min(currentPage * PAGE_SIZE, treeData.length)}</strong>
+              &nbsp;of&nbsp;
+              <strong style={{ color: "#222" }}>{treeData.length}</strong>
+            </span>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                disabled={currentPage === 1}
+                className="px-4 py-1.5 rounded border text-sm transition-colors hover:bg-white disabled:opacity-40"
+                style={{ borderColor: "#E5E5E5", color: "#555", fontFamily: FONT_MONTSERRAT }}
+              >
+                ← Previous
+              </button>
+              <span style={{ fontFamily: FONT_MONTSERRAT, fontSize: "12px", color: "#888" }}>
+                Page {currentPage} of {totalPages}
+              </span>
+              <button
+                onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                disabled={currentPage === totalPages}
+                className="px-4 py-1.5 rounded border text-sm transition-colors hover:bg-white disabled:opacity-40"
+                style={{ borderColor: "#E5E5E5", color: "#555", fontFamily: FONT_MONTSERRAT }}
+              >
+                Next →
+              </button>
+            </div>
           </div>
         )}
       </div>

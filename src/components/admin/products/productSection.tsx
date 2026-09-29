@@ -2,8 +2,13 @@
 "use client";
 
 import React, { useState, useEffect, useCallback } from "react";
+import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import ProductImage from "@/components/ui/ProductImage";
+import ProductDashboard from "@/components/admin/products/ProductDashboard";
+
+const FONT_HEADING    = "var(--font-heading), 'Libre Baskerville', serif";
+const FONT_MONTSERRAT = "var(--font-montserrat), 'Montserrat', sans-serif";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -92,6 +97,7 @@ const BLANK_FORM = {
 // ─── Component ────────────────────────────────────────────────────────────────
 
 export default function ProductSection() {
+  const router = useRouter();
   // List state
   const [products, setProducts]             = useState<Product[]>([]);
   const [pagination, setPagination]         = useState<Pagination | null>(null);
@@ -390,199 +396,247 @@ export default function ProductSection() {
   // ─── Render ──────────────────────────────────────────────────────────────────
 
   return (
-    <div className="p-6 bg-[#F9F9F9] min-h-screen text-[#1A1A1A]">
-      <div className="max-w-7xl mx-auto">
+    <div className="min-h-screen" style={{ backgroundColor: "#F7F6F3", fontFamily: FONT_MONTSERRAT }}>
+      <div className="px-6 pt-8 pb-6">
 
         {/* Header */}
-        <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
-          <h1 className="text-3xl font-heading">Products</h1>
-          <div className="flex flex-wrap gap-3">
+        <div className="flex flex-wrap items-start justify-between gap-4 mb-6">
+          <div>
+            <p className="text-[10px] uppercase tracking-[0.25em] mb-1.5" style={{ color: "#D4AF37", fontFamily: FONT_MONTSERRAT, fontWeight: 600 }}>
+              Catalogue Management
+            </p>
+            <h1 style={{ fontFamily: FONT_HEADING, fontSize: "28px", fontWeight: 700, color: "#111", letterSpacing: "-0.01em" }}>
+              Products
+            </h1>
+            {pagination && (
+              <p className="text-sm mt-1" style={{ color: "#666", fontFamily: FONT_MONTSERRAT }}>
+                <span style={{ fontWeight: 700, color: "#222" }}>{pagination.total}</span> products total
+              </p>
+            )}
+          </div>
+          <div className="flex flex-wrap gap-2">
             <button onClick={openCreate}
-              className="px-4 py-2 rounded-md bg-[#D4AF37] text-white text-sm font-medium hover:bg-[#b8952e] transition-colors">
+              className="flex items-center gap-1.5 px-4 py-2 rounded text-sm text-white font-semibold transition-all duration-200 active:scale-95"
+              style={{ backgroundColor: "#D4AF37", fontFamily: FONT_MONTSERRAT, fontWeight: 600, boxShadow: "0 2px 8px rgba(212,175,55,0.35)" }}
+              onMouseEnter={e => { (e.currentTarget as HTMLElement).style.backgroundColor = "#b8952e"; (e.currentTarget as HTMLElement).style.boxShadow = "0 4px 16px rgba(212,175,55,0.45)"; (e.currentTarget as HTMLElement).style.transform = "translateY(-1px)"; }}
+              onMouseLeave={e => { (e.currentTarget as HTMLElement).style.backgroundColor = "#D4AF37"; (e.currentTarget as HTMLElement).style.boxShadow = "0 2px 8px rgba(212,175,55,0.35)"; (e.currentTarget as HTMLElement).style.transform = "translateY(0)"; }}>
               + Add Product
             </button>
             <button onClick={() => { setBulkFile(null); setBulkJson(""); setBulkResult(null); setBulkOpen(true); }}
-              className="px-4 py-2 rounded-md border border-[#D4AF37] text-[#D4AF37] text-sm font-medium hover:bg-[#D4AF37]/10 transition-colors">
+              className="flex items-center gap-1.5 px-4 py-2 rounded border text-sm font-medium transition-all duration-200 active:scale-95"
+              style={{ borderColor: "#D4AF37", color: "#D4AF37", fontFamily: FONT_MONTSERRAT, fontWeight: 500, backgroundColor: "transparent" }}
+              onMouseEnter={e => { (e.currentTarget as HTMLElement).style.backgroundColor = "#D4AF37"; (e.currentTarget as HTMLElement).style.color = "#fff"; (e.currentTarget as HTMLElement).style.transform = "translateY(-1px)"; (e.currentTarget as HTMLElement).style.boxShadow = "0 4px 16px rgba(212,175,55,0.3)"; }}
+              onMouseLeave={e => { (e.currentTarget as HTMLElement).style.backgroundColor = "transparent"; (e.currentTarget as HTMLElement).style.color = "#D4AF37"; (e.currentTarget as HTMLElement).style.transform = "translateY(0)"; (e.currentTarget as HTMLElement).style.boxShadow = "none"; }}>
               Bulk Import
             </button>
           </div>
         </div>
 
+        {/* Dashboard */}
+        <ProductDashboard />
+
         {/* Filters */}
-        <div className="flex flex-wrap items-center gap-3 mb-4">
-          <input type="text" placeholder="Search by name..."
+        <div className="flex flex-wrap items-center gap-3 mb-4 flex-shrink-0">
+          <input type="text" placeholder="Search by name…"
             value={search}
             onChange={(e) => { setSearch(e.target.value); setCurrentPage(1); }}
-            className="flex-1 min-w-[180px] rounded-md border border-[#E5E5E5] px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#D4AF37]"
+            className="flex-1 min-w-[200px] rounded border bg-white px-3 py-2 text-sm outline-none transition-all focus:ring-1 focus:ring-[#D4AF37] focus:border-[#D4AF37]"
+            style={{ borderColor: "#E5E5E5", fontFamily: FONT_MONTSERRAT, color: "#333" }}
           />
           <select value={activeFilter} onChange={(e) => { setActiveFilter(e.target.value); setCurrentPage(1); }}
-            className="rounded-md border border-[#E5E5E5] px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#D4AF37]">
+            className="rounded border bg-white px-3 py-2 text-sm outline-none focus:ring-1 focus:ring-[#D4AF37] cursor-pointer"
+            style={{ borderColor: "#E5E5E5", fontFamily: FONT_MONTSERRAT, color: "#555" }}>
             <option value="">All status</option>
-            <option value="true">Active</option>
-            <option value="false">Inactive</option>
+            <option value="true">Active only</option>
+            <option value="false">Inactive only</option>
           </select>
           <select value={categoryFilter} onChange={(e) => { setCategoryFilter(e.target.value); setCurrentPage(1); }}
-            className="rounded-md border border-[#E5E5E5] px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#D4AF37]">
+            className="rounded border bg-white px-3 py-2 text-sm outline-none focus:ring-1 focus:ring-[#D4AF37] cursor-pointer"
+            style={{ borderColor: "#E5E5E5", fontFamily: FONT_MONTSERRAT, color: "#555" }}>
             <option value="">All categories</option>
             {allCategories.map((c) => <option key={c.id} value={c.id}>{c.categoryName}</option>)}
           </select>
-          <button onClick={() => { setSearch(""); setActiveFilter(""); setCategoryFilter(""); setCurrentPage(1); }}
-            className="text-sm text-[#6B6B6B] hover:text-[#1A1A1A]">
-            Clear
-          </button>
+          {(search || activeFilter || categoryFilter) && (
+            <button onClick={() => { setSearch(""); setActiveFilter(""); setCategoryFilter(""); setCurrentPage(1); }}
+              className="text-xs transition-colors hover:text-[#D4AF37]"
+              style={{ color: "#888", fontFamily: FONT_MONTSERRAT }}>
+              ✕ Clear
+            </button>
+          )}
         </div>
 
-        {/* Table */}
+        {/* Table — flex-1 fills remaining height, scrolls both axes */}
         {loading ? (
-          <div className="flex justify-center py-16">
-            <div className="w-8 h-8 border-4 border-[#D4AF37] border-t-transparent rounded-full animate-spin" />
+          <div className="flex flex-col items-center justify-center flex-1 gap-3">
+            <div className="w-8 h-8 border-2 border-[#D4AF37] border-t-transparent rounded-full animate-spin" />
+            <span style={{ fontFamily: FONT_MONTSERRAT, fontSize: "12px", color: "#AAA" }}>Loading products…</span>
           </div>
         ) : (
-          <>
-            <div className="bg-white rounded-lg shadow-sm border border-[#E5E5E5] overflow-x-auto scrollbar-thin scrollbar-thumb-[#D4AF37]/40 scrollbar-track-transparent" style={{ maxHeight: "calc(100vh - 220px)", overflowY: "auto" }}>
-              <table className="text-sm" style={{ minWidth: "1200px", width: "100%" }}>
-                <thead className="bg-[#F9F9F9] border-b border-[#E5E5E5] sticky top-0 z-10">
+          <div className="rounded-lg mb-6" style={{ border: "1px solid rgba(0,0,0,0.07)", boxShadow: "0 1px 4px rgba(0,0,0,0.04)", backgroundColor: "#fff", overflowX: "auto" }}>
+            <style>{`
+              .products-scroll::-webkit-scrollbar { height: 7px; }
+              .products-scroll::-webkit-scrollbar-track { background: #F7F6F3; border-radius: 999px; }
+              .products-scroll::-webkit-scrollbar-thumb { background: rgba(212,175,55,0.45); border-radius: 999px; }
+              .products-scroll::-webkit-scrollbar-thumb:hover { background: rgba(212,175,55,0.75); }
+            `}</style>
+            <div className="products-scroll" style={{ overflowX: "auto" }}>
+              <table className="text-sm" style={{ minWidth: "1400px", width: "100%" }}>
+                <thead style={{ backgroundColor: "#FAFAF8", borderBottom: "1px solid rgba(0,0,0,0.07)" }}>
                   <tr>
-                    <th className="px-3 py-3 text-left font-medium text-[#6B6B6B] whitespace-nowrap w-14">Image</th>
-                    <th className="px-3 py-3 text-left font-medium text-[#1A1A1A] whitespace-nowrap">Product Name</th>
-                    <th className="px-3 py-3 text-left font-medium text-[#1A1A1A] whitespace-nowrap">Category</th>
-                    <th className="px-3 py-3 text-left font-medium text-[#1A1A1A] whitespace-nowrap">Dosage Form</th>
-                    <th className="px-3 py-3 text-left font-medium text-[#1A1A1A] whitespace-nowrap">Strength</th>
-                    <th className="px-3 py-3 text-left font-medium text-[#1A1A1A] whitespace-nowrap">Pack Size</th>
-                    <th className="px-3 py-3 text-left font-medium text-[#1A1A1A] whitespace-nowrap">Unit Type</th>
-                    <th className="px-3 py-3 text-right font-medium text-[#1A1A1A] whitespace-nowrap">Selling £</th>
-                    <th className="px-3 py-3 text-right font-medium text-[#1A1A1A] whitespace-nowrap">Original £</th>
-                    <th className="px-3 py-3 text-right font-medium text-[#1A1A1A] whitespace-nowrap">Tax %</th>
-                    <th className="px-3 py-3 text-right font-medium text-[#1A1A1A] whitespace-nowrap">Discount %</th>
-                    <th className="px-3 py-3 text-center font-medium text-[#1A1A1A] whitespace-nowrap">Ingredients</th>
-                    <th className="px-3 py-3 text-center font-medium text-[#1A1A1A] whitespace-nowrap">Descriptions</th>
-                    <th className="px-3 py-3 text-center font-medium text-[#1A1A1A] whitespace-nowrap">Suitable For</th>
-                    <th className="px-3 py-3 text-center font-medium text-[#1A1A1A] whitespace-nowrap">Status</th>
-                    <th className="px-3 py-3 text-left font-medium text-[#1A1A1A] whitespace-nowrap">Created At</th>
-                    <th className="px-3 py-3 text-left font-medium text-[#1A1A1A] whitespace-nowrap">Updated At</th>
-                    <th className="px-3 py-3 text-right font-medium text-[#1A1A1A] whitespace-nowrap">Actions</th>
+                    {["Image","Product Name","Category","Dosage Form","Strength","Pack Size","Unit Type","Selling £","Original £","Tax %","Discount %","Ingredients","Descriptions","Suitable For","Status","Created","Updated","Actions"].map((h, i) => (
+                      <th key={h}
+                        className={`px-3 py-3 whitespace-nowrap ${[7,8,9,10,11,12,13].includes(i) ? "text-center" : i === 17 ? "text-right" : "text-left"}`}
+                        style={{ fontFamily: FONT_MONTSERRAT, fontSize: "10px", fontWeight: 700, color: "#555", letterSpacing: "0.08em", textTransform: "uppercase" }}>
+                        {h}
+                      </th>
+                    ))}
                   </tr>
                 </thead>
                 <tbody>
                   {products.length === 0 ? (
                     <tr>
-                      <td colSpan={18} className="px-4 py-10 text-center text-[#6B6B6B]">
-                        No products found.
+                      <td colSpan={18} className="py-16 text-center" style={{ fontFamily: FONT_MONTSERRAT, fontSize: "13px", color: "#BBB" }}>
+                        No products found
                       </td>
                     </tr>
                   ) : products.map((p) => (
-                    <tr key={p.id} className="border-b border-[#E5E5E5] hover:bg-[#F9F9F9]/60 transition-colors">
+                    <tr key={p.id} className="border-b transition-colors"
+                      style={{ borderColor: "rgba(0,0,0,0.05)" }}
+                      onMouseEnter={e => (e.currentTarget.style.backgroundColor = "rgba(212,175,55,0.03)")}
+                      onMouseLeave={e => (e.currentTarget.style.backgroundColor = "")}>
                       {/* Image */}
-                      <td className="px-3 py-3">
-                        <ProductImage 
-                          src={p.productImage} 
-                          alt={p.productName}
-                          width={44} 
-                          height={44}
-                          className="w-11 h-11 object-cover rounded border border-[#E5E5E5]" 
-                        />
+                      <td className="px-3 py-2.5">
+                        <ProductImage src={p.productImage} alt={p.productName} width={44} height={44}
+                          className="w-11 h-11 object-cover rounded border" style={{ borderColor: "rgba(0,0,0,0.08)" }} />
                       </td>
                       {/* Name */}
-                      <td className="px-3 py-3 font-medium max-w-[160px]">
-                        <p className="truncate">{p.productName}</p>
+                      <td className="px-3 py-2.5 max-w-[160px]">
+                        <p className="truncate" style={{ fontFamily: FONT_MONTSERRAT, fontWeight: 600, fontSize: "13px", color: "#111" }}>{p.productName}</p>
                       </td>
                       {/* Category */}
-                      <td className="px-3 py-3 text-[#6B6B6B] whitespace-nowrap">
+                      <td className="px-3 py-2.5 whitespace-nowrap" style={{ fontFamily: FONT_MONTSERRAT, fontSize: "12px", color: "#444" }}>
                         {p.category?.categoryName || "—"}
                       </td>
                       {/* Dosage Form */}
-                      <td className="px-3 py-3 text-[#6B6B6B] whitespace-nowrap">
-                        {p.dosageForm}
-                      </td>
+                      <td className="px-3 py-2.5 whitespace-nowrap" style={{ fontFamily: FONT_MONTSERRAT, fontSize: "12px", color: "#444" }}>{p.dosageForm}</td>
                       {/* Strength */}
-                      <td className="px-3 py-3 text-[#6B6B6B] whitespace-nowrap">
-                        {p.strength}
-                      </td>
+                      <td className="px-3 py-2.5 whitespace-nowrap" style={{ fontFamily: FONT_MONTSERRAT, fontSize: "12px", color: "#444" }}>{p.strength}</td>
                       {/* Pack Size */}
-                      <td className="px-3 py-3 text-[#6B6B6B] whitespace-nowrap">
-                        {p.packSize}
-                      </td>
+                      <td className="px-3 py-2.5 whitespace-nowrap" style={{ fontFamily: FONT_MONTSERRAT, fontSize: "12px", color: "#444" }}>{p.packSize}</td>
                       {/* Unit Type */}
-                      <td className="px-3 py-3 text-[#6B6B6B] whitespace-nowrap">
-                        {p.unitType}
-                      </td>
+                      <td className="px-3 py-2.5 whitespace-nowrap" style={{ fontFamily: FONT_MONTSERRAT, fontSize: "12px", color: "#444" }}>{p.unitType}</td>
                       {/* Selling Price */}
-                      <td className="px-3 py-3 text-right font-medium text-[#1A1A1A] whitespace-nowrap">
+                      <td className="px-3 py-2.5 text-center whitespace-nowrap" style={{ fontFamily: FONT_MONTSERRAT, fontWeight: 600, fontSize: "13px", color: "#111" }}>
                         £{Number(p.sellingPrice).toFixed(2)}
                       </td>
                       {/* Original Price */}
-                      <td className="px-3 py-3 text-right text-[#6B6B6B] whitespace-nowrap">
+                      <td className="px-3 py-2.5 text-center whitespace-nowrap" style={{ fontFamily: FONT_MONTSERRAT, fontSize: "12px", color: "#666" }}>
                         £{Number(p.originalPrice).toFixed(2)}
                       </td>
                       {/* Tax */}
-                      <td className="px-3 py-3 text-right text-[#6B6B6B]">
-                        {Number(p.tax) > 0 ? `${p.tax}%` : "—"}
+                      <td className="px-3 py-2.5 text-center" style={{ fontFamily: FONT_MONTSERRAT, fontSize: "12px", color: "#666" }}>
+                        {Number(p.tax) > 0 ? `${p.tax}%` : <span style={{ color: "#CCC" }}>—</span>}
                       </td>
                       {/* Discount */}
-                      <td className="px-3 py-3 text-right">
+                      <td className="px-3 py-2.5 text-center">
                         {Number(p.discount) > 0 ? (
-                          <span className="text-green-600 font-medium">{p.discount}%</span>
-                        ) : "—"}
+                          <span style={{ fontFamily: FONT_MONTSERRAT, fontSize: "12px", fontWeight: 600, color: "#16a34a" }}>{p.discount}%</span>
+                        ) : <span style={{ color: "#CCC" }}>—</span>}
                       </td>
-                      {/* Ingredients count */}
-                      <td className="px-3 py-3 text-center">
+                      {/* Ingredients */}
+                      <td className="px-3 py-2.5 text-center">
                         {p.ingredients && p.ingredients.length > 0 ? (
-                          <span className="inline-block px-2 py-0.5 bg-blue-50 text-blue-700 text-xs rounded-full">
+                          <span className="inline-block px-2 py-0.5 rounded-full text-[10px] font-semibold"
+                            style={{ fontFamily: FONT_MONTSERRAT, backgroundColor: "rgba(108,142,191,0.10)", color: "#3a5f8a" }}>
                             {p.ingredients.length}
                           </span>
-                        ) : (
-                          <span className="text-[#6B6B6B]">—</span>
-                        )}
+                        ) : <span style={{ color: "#CCC" }}>—</span>}
                       </td>
-                      {/* Descriptions count */}
-                      <td className="px-3 py-3 text-center">
+                      {/* Descriptions */}
+                      <td className="px-3 py-2.5 text-center">
                         {p.productDescriptions && p.productDescriptions.length > 0 ? (
-                          <span className="inline-block px-2 py-0.5 bg-purple-50 text-purple-700 text-xs rounded-full">
+                          <span className="inline-block px-2 py-0.5 rounded-full text-[10px] font-semibold"
+                            style={{ fontFamily: FONT_MONTSERRAT, backgroundColor: "rgba(155,127,199,0.10)", color: "#5c3d8f" }}>
                             {p.productDescriptions.length}
                           </span>
-                        ) : (
-                          <span className="text-[#6B6B6B]">—</span>
-                        )}
+                        ) : <span style={{ color: "#CCC" }}>—</span>}
                       </td>
                       {/* Suitable For */}
-                      <td className="px-3 py-3 text-center">
+                      <td className="px-3 py-2.5 text-center">
                         {p.suitableFor?.length > 0 ? (
-                          <span className="inline-block px-2 py-0.5 bg-[#D4AF37]/10 text-[#D4AF37] text-xs rounded-full">
+                          <span className="inline-block px-2 py-0.5 rounded-full text-[10px] font-semibold"
+                            style={{ fontFamily: FONT_MONTSERRAT, backgroundColor: "rgba(212,175,55,0.10)", color: "#9a7a1a" }}>
                             {p.suitableFor.length} tags
                           </span>
-                        ) : (
-                          <span className="text-[#6B6B6B]">—</span>
-                        )}
+                        ) : <span style={{ color: "#CCC" }}>—</span>}
                       </td>
                       {/* Status */}
-                      <td className="px-3 py-3 text-center whitespace-nowrap">
-                        <span className={`inline-block px-2 py-0.5 text-xs rounded-full ${
-                          p.isActive ? "bg-green-100 text-green-800" : "bg-gray-100 text-gray-500"
-                        }`}>
+                      <td className="px-3 py-2.5 text-center whitespace-nowrap">
+                        <span className="inline-block px-2.5 py-0.5 rounded-full text-[10px] font-semibold uppercase tracking-wider"
+                          style={{
+                            fontFamily: FONT_MONTSERRAT,
+                            backgroundColor: p.isActive ? "rgba(34,197,94,0.10)" : "rgba(0,0,0,0.06)",
+                            color: p.isActive ? "#166534" : "#6B7280",
+                          }}>
                           {p.isActive ? "Active" : "Inactive"}
                         </span>
                       </td>
-                      {/* Created At */}
-                      <td className="px-3 py-3 text-[#6B6B6B] whitespace-nowrap text-xs">
-                        {p.createdAt ? new Date(p.createdAt).toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" }) : "—"}
+                      {/* Created */}
+                      <td className="px-3 py-2.5 whitespace-nowrap" style={{ fontFamily: FONT_MONTSERRAT, fontSize: "11px", color: "#666" }}>
+                        {p.createdAt ? new Date(p.createdAt).toLocaleDateString("en-GB", { day:"2-digit", month:"short", year:"numeric" }) : "—"}
                       </td>
-                      {/* Updated At */}
-                      <td className="px-3 py-3 text-[#6B6B6B] whitespace-nowrap text-xs">
-                        {p.updatedAt ? new Date(p.updatedAt).toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" }) : "—"}
+                      {/* Updated */}
+                      <td className="px-3 py-2.5 whitespace-nowrap" style={{ fontFamily: FONT_MONTSERRAT, fontSize: "11px", color: "#666" }}>
+                        {p.updatedAt ? new Date(p.updatedAt).toLocaleDateString("en-GB", { day:"2-digit", month:"short", year:"numeric" }) : "—"}
                       </td>
                       {/* Actions */}
-                      <td className="px-3 py-3 text-right">
-                        <div className="flex justify-end items-center gap-1">
-                          <button onClick={() => openDetail(p)} title="View"
-                            className="p-1.5 rounded hover:bg-[#F0F0F0] text-[#6B6B6B] text-sm">👁</button>
-                          <button onClick={() => openEdit(p)} title="Edit"
-                            className="p-1.5 rounded hover:bg-[#F0F0F0] text-[#1A1A1A] text-sm">✎</button>
+                      <td className="px-3 py-2.5">
+                        <div className="flex items-center justify-end gap-1">
+                          {/* View — navigates to dedicated detail page */}
+                          <button onClick={() => router.push(`/admin/products/${p.id}`)}
+                            className="flex items-center gap-1 px-2.5 py-1 rounded text-[11px] font-semibold transition-colors"
+                            style={{ fontFamily: FONT_MONTSERRAT, backgroundColor: "rgba(108,142,191,0.08)", color: "#3a5f8a", border: "1px solid rgba(108,142,191,0.2)" }}>
+                            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                              <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>
+                            </svg>
+                            View
+                          </button>
+                          {/* Edit */}
+                          <button onClick={() => openEdit(p)}
+                            className="flex items-center gap-1 px-2.5 py-1 rounded text-[11px] font-semibold transition-colors"
+                            style={{ fontFamily: FONT_MONTSERRAT, backgroundColor: "rgba(212,175,55,0.08)", color: "#b8952e", border: "1px solid rgba(212,175,55,0.25)" }}>
+                            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                              <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                              <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                            </svg>
+                            Edit
+                          </button>
+                          {/* Hide / Show */}
                           <button onClick={() => handleToggle(p.id)}
-                            title={p.isActive ? "Deactivate" : "Activate"}
-                            className={`p-1.5 rounded hover:bg-[#F0F0F0] text-sm ${
-                              p.isActive ? "text-[#D4AF37]" : "text-[#6B6B6B]"
-                            }`}>
-                            {p.isActive ? "✓" : "✕"}
+                            className="flex items-center gap-1 px-2.5 py-1 rounded text-[11px] font-semibold transition-colors"
+                            style={{
+                              fontFamily: FONT_MONTSERRAT,
+                              backgroundColor: p.isActive ? "rgba(239,68,68,0.08)" : "rgba(34,197,94,0.08)",
+                              color: p.isActive ? "#dc2626" : "#16a34a",
+                              border: `1px solid ${p.isActive ? "rgba(239,68,68,0.2)" : "rgba(34,197,94,0.2)"}`,
+                            }}>
+                            {p.isActive ? (
+                              <>
+                                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                                  <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"/>
+                                  <path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/>
+                                  <line x1="1" y1="1" x2="23" y2="23"/>
+                                </svg>
+                                Hide
+                              </>
+                            ) : (
+                              <>
+                                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                                  <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>
+                                </svg>
+                                Show
+                              </>
+                            )}
                           </button>
                         </div>
                       </td>
@@ -591,43 +645,57 @@ export default function ProductSection() {
                 </tbody>
               </table>
             </div>
+          </div>
+        )}
 
-            {/* Pagination */}
-            {pagination && pagination.pages > 1 && (
-              <div className="flex justify-between items-center mt-4 text-sm text-[#6B6B6B]">
-                <span>
-                  Showing {(pagination.page - 1) * pagination.limit + 1}–
-                  {Math.min(pagination.page * pagination.limit, pagination.total)} of {pagination.total}
-                </span>
-                <div className="flex gap-2">
-                  <button onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-                    disabled={!pagination.hasPrev}
-                    className="px-3 py-1 rounded border border-[#E5E5E5] disabled:opacity-40 hover:bg-[#F9F9F9]">
-                    Previous
-                  </button>
-                  <button onClick={() => setCurrentPage((p) => Math.min(pagination.pages, p + 1))}
-                    disabled={!pagination.hasNext}
-                    className="px-3 py-1 rounded border border-[#E5E5E5] disabled:opacity-40 hover:bg-[#F9F9F9]">
-                    Next
-                  </button>
-                </div>
-              </div>
-            )}
-          </>
+        {/* Pagination */}
+        {pagination && pagination.pages > 1 && (
+          <div className="flex justify-between items-center py-3">
+            <span style={{ fontFamily: FONT_MONTSERRAT, fontSize: "12px", color: "#666" }}>
+              Showing&nbsp;
+              <strong style={{ color: "#222" }}>{(pagination.page - 1) * pagination.limit + 1}</strong>
+              &nbsp;–&nbsp;
+              <strong style={{ color: "#222" }}>{Math.min(pagination.page * pagination.limit, pagination.total)}</strong>
+              &nbsp;of&nbsp;
+              <strong style={{ color: "#222" }}>{pagination.total}</strong>
+            </span>
+            <div className="flex items-center gap-2">
+              <button onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                disabled={!pagination.hasPrev}
+                className="px-4 py-1.5 rounded border text-sm transition-colors hover:bg-white disabled:opacity-40"
+                style={{ borderColor: "#E5E5E5", color: "#555", fontFamily: FONT_MONTSERRAT }}>
+                ← Previous
+              </button>
+              <span style={{ fontFamily: FONT_MONTSERRAT, fontSize: "12px", color: "#888" }}>
+                Page {pagination.page} of {pagination.pages}
+              </span>
+              <button onClick={() => setCurrentPage((p) => Math.min(pagination.pages, p + 1))}
+                disabled={!pagination.hasNext}
+                className="px-4 py-1.5 rounded border text-sm transition-colors hover:bg-white disabled:opacity-40"
+                style={{ borderColor: "#E5E5E5", color: "#555", fontFamily: FONT_MONTSERRAT }}>
+                Next →
+              </button>
+            </div>
+          </div>
         )}
       </div>
 
       {/* ════════════════════ CREATE / EDIT MODAL ═══════════════════════════ */}
       {modalOpen && (
-        <div className="fixed inset-0 bg-black/50 flex items-start justify-center z-50 p-4 overflow-y-auto">
-          <div className="bg-white rounded-lg shadow-xl w-full max-w-3xl my-8">
+        <div className="fixed inset-0 flex items-start justify-center z-50 p-4 overflow-y-auto" style={{ backgroundColor: "rgba(0,0,0,0.4)", backdropFilter: "blur(4px)" }}>
+          <div className="bg-white rounded-lg w-full max-w-3xl my-8" style={{ boxShadow: "0 24px 60px rgba(0,0,0,0.15)" }}>
 
             {/* Modal header */}
-            <div className="flex items-center justify-between px-6 py-4 border-b border-[#E5E5E5]">
-              <h2 className="text-xl font-heading">
-                {editingProduct ? "Edit Product" : "Add New Product"}
-              </h2>
-              <button onClick={() => setModalOpen(false)} className="text-[#6B6B6B] hover:text-[#1A1A1A] text-xl leading-none">✕</button>
+            <div className="flex items-center justify-between px-6 py-4 border-b" style={{ borderColor: "rgba(0,0,0,0.07)" }}>
+              <div>
+                <p className="text-[10px] uppercase tracking-widest mb-0.5" style={{ color: "#D4AF37", fontFamily: FONT_MONTSERRAT, fontWeight: 600 }}>
+                  {editingProduct ? "Edit" : "New"}
+                </p>
+                <h2 style={{ fontFamily: FONT_HEADING, fontSize: "18px", fontWeight: 700, color: "#111" }}>
+                  {editingProduct ? "Edit Product" : "Add New Product"}
+                </h2>
+              </div>
+              <button onClick={() => setModalOpen(false)} className="w-8 h-8 rounded-full flex items-center justify-center hover:bg-black/5 transition-colors text-xl leading-none" style={{ color: "#888" }}>✕</button>
             </div>
 
             {/* Tabs */}
@@ -1070,11 +1138,14 @@ export default function ProductSection() {
 
       {/* ════════════════════ DETAIL MODAL ══════════════════════════════════ */}
       {detailOpen && detailProduct && (
-        <div className="fixed inset-0 bg-black/50 flex items-start justify-center z-50 p-4 overflow-y-auto">
-          <div className="bg-white rounded-lg shadow-xl w-full max-w-2xl my-8">
-            <div className="flex items-center justify-between px-6 py-4 border-b border-[#E5E5E5]">
-              <h2 className="text-xl font-heading truncate">{detailProduct.productName}</h2>
-              <button onClick={() => setDetailOpen(false)} className="text-[#6B6B6B] hover:text-[#1A1A1A] text-xl shrink-0 ml-4">✕</button>
+        <div className="fixed inset-0 flex items-start justify-center z-50 p-4 overflow-y-auto" style={{ backgroundColor: "rgba(0,0,0,0.4)", backdropFilter: "blur(4px)" }}>
+          <div className="bg-white rounded-lg w-full max-w-2xl my-8" style={{ boxShadow: "0 24px 60px rgba(0,0,0,0.15)" }}>
+            <div className="flex items-center justify-between px-6 py-4 border-b" style={{ borderColor: "rgba(0,0,0,0.07)" }}>
+              <div>
+                <p className="text-[10px] uppercase tracking-widest mb-0.5" style={{ color: "#D4AF37", fontFamily: FONT_MONTSERRAT, fontWeight: 600 }}>Product Detail</p>
+                <h2 style={{ fontFamily: FONT_HEADING, fontSize: "18px", fontWeight: 700, color: "#111" }} className="truncate">{detailProduct.productName}</h2>
+              </div>
+              <button onClick={() => setDetailOpen(false)} className="w-8 h-8 rounded-full flex items-center justify-center hover:bg-black/5 transition-colors shrink-0 ml-4" style={{ color: "#888" }}>✕</button>
             </div>
             <div className="px-6 py-5 space-y-6 max-h-[72vh] overflow-y-auto">
 
