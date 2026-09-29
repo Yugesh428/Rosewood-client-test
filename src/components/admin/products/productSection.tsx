@@ -396,7 +396,7 @@ export default function ProductSection() {
   // ─── Render ──────────────────────────────────────────────────────────────────
 
   return (
-    <div className="min-h-screen" style={{ backgroundColor: "#F7F6F3", fontFamily: FONT_MONTSERRAT }}>
+    <div className="min-h-screen" style={{ backgroundColor: "#ffffff", fontFamily: FONT_MONTSERRAT }}>
       <div className="px-6 pt-8 pb-6">
 
         {/* Header */}
@@ -475,7 +475,7 @@ export default function ProductSection() {
           <div className="rounded-lg mb-6" style={{ border: "1px solid rgba(0,0,0,0.07)", boxShadow: "0 1px 4px rgba(0,0,0,0.04)", backgroundColor: "#fff", overflowX: "auto" }}>
             <style>{`
               .products-scroll::-webkit-scrollbar { height: 7px; }
-              .products-scroll::-webkit-scrollbar-track { background: #F7F6F3; border-radius: 999px; }
+              .products-scroll::-webkit-scrollbar-track { background: #FAFAFA; border-radius: 999px; }
               .products-scroll::-webkit-scrollbar-thumb { background: rgba(212,175,55,0.45); border-radius: 999px; }
               .products-scroll::-webkit-scrollbar-thumb:hover { background: rgba(212,175,55,0.75); }
             `}</style>
@@ -1123,7 +1123,7 @@ export default function ProductSection() {
               {/* Modal footer */}
               <div className="flex justify-end gap-3 px-6 py-4 border-t border-[#E5E5E5]">
                 <button type="button" onClick={() => setModalOpen(false)}
-                  className="px-4 py-2 rounded border border-[#E5E5E5] text-sm font-medium hover:bg-[#F9F9F9]">
+                  className="px-4 py-2 rounded border border-[#E5E5E5] text-sm font-medium hover:bg-[#FAFAFA]">
                   Cancel
                 </button>
                 <button type="submit" disabled={submitting}
@@ -1200,7 +1200,7 @@ export default function ProductSection() {
                   </p>
                   <div className="rounded border border-[#E5E5E5] overflow-hidden">
                     <table className="w-full text-sm">
-                      <thead className="bg-[#F9F9F9]">
+                      <thead className="bg-[#FAFAFA]">
                         <tr>
                           <th className="px-3 py-2 text-left text-xs font-medium text-[#6B6B6B]">#</th>
                           <th className="px-3 py-2 text-left text-xs font-medium text-[#6B6B6B]">Name</th>
@@ -1258,7 +1258,7 @@ export default function ProductSection() {
                 Edit Product
               </button>
               <button onClick={() => setDetailOpen(false)}
-                className="px-4 py-2 rounded border border-[#E5E5E5] text-sm font-medium hover:bg-[#F9F9F9]">
+                className="px-4 py-2 rounded border border-[#E5E5E5] text-sm font-medium hover:bg-[#FAFAFA]">
                 Close
               </button>
             </div>
@@ -1311,7 +1311,7 @@ export default function ProductSection() {
               )}
               <div className="flex justify-end gap-3">
                 <button type="button" onClick={() => setBulkOpen(false)}
-                  className="px-4 py-2 rounded border border-[#E5E5E5] text-sm font-medium hover:bg-[#F9F9F9]">
+                  className="px-4 py-2 rounded border border-[#E5E5E5] text-sm font-medium hover:bg-[#FAFAFA]">
                   Close
                 </button>
                 <button type="submit" disabled={bulkSubmitting}
@@ -1326,3 +1326,8 @@ export default function ProductSection() {
     </div>
   );
 }
+
+
+
+
+

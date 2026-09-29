@@ -121,7 +121,7 @@ export default function ProductDetailPage({ id }: { id: string }) {
   };
 
   if (loading) return (
-    <div className="flex flex-col items-center justify-center min-h-screen gap-3" style={{ backgroundColor: "#F7F6F3" }}>
+    <div className="flex flex-col items-center justify-center min-h-screen gap-3" style={{ backgroundColor: "#ffffff" }}>
       <div className="w-8 h-8 border-2 border-[#D4AF37] border-t-transparent rounded-full animate-spin" />
       <span style={{ fontFamily: FONT_MONTSERRAT, fontSize: "12px", color: "#AAA" }}>Loading product…</span>
     </div>
@@ -135,7 +135,7 @@ export default function ProductDetailPage({ id }: { id: string }) {
   const original  = Number(product.originalPrice);
 
   return (
-    <div className="min-h-screen px-6 pt-8 pb-12" style={{ backgroundColor: "#F7F6F3", fontFamily: FONT_MONTSERRAT }}>
+    <div className="min-h-screen px-6 pt-8 pb-12" style={{ backgroundColor: "#ffffff", fontFamily: FONT_MONTSERRAT }}>
       <div className="max-w-6xl mx-auto">
 
         {/* ── Breadcrumb + actions ─────────────────────────────────────── */}
@@ -403,3 +403,8 @@ export default function ProductDetailPage({ id }: { id: string }) {
     </div>
   );
 }
+
+
+
+
+

@@ -473,7 +473,7 @@ export default function ProductCategoriesSection() {
   const inputCls = "w-full rounded border px-3 py-2 text-sm outline-none transition-all focus:ring-1 focus:ring-[#D4AF37] focus:border-[#D4AF37]";
 
   return (
-    <div className="min-h-screen" style={{ backgroundColor: "#F7F6F3", fontFamily: FONT_MONTSERRAT }}>
+    <div className="min-h-screen" style={{ backgroundColor: "#ffffff", fontFamily: FONT_MONTSERRAT }}>
       <div className="max-w-7xl mx-auto px-6 py-8">
 
         {/* ── Page header ───────────────────────────────────────────────── */}
@@ -851,3 +851,8 @@ export default function ProductCategoriesSection() {
     </div>
   );
 }
+
+
+
+
+

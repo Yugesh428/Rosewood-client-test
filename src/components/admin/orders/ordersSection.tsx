@@ -1,239 +1,137 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-/* eslint-disable react-hooks/set-state-in-effect */
 "use client";
 
 import React, { useState, useEffect, useCallback } from "react";
 import { toast } from "sonner";
+import OrdersDashboard from "./OrdersDashboard";
+
+const FM = "var(--font-montserrat), 'Montserrat', sans-serif";
+const FH = "var(--font-heading), 'Libre Baskerville', serif";
 
 // ─── Types ─────────────────────────────────────────────────────────────────────
 
-type OrderStatus =
-  | "pending"
-  | "confirmed"
-  | "processing"
-  | "shipped"
-  | "delivered"
-  | "cancelled";
-
+type OrderStatus = "pending" | "confirmed" | "processing" | "shipped" | "delivered" | "cancelled";
 type PaymentStatus = "unpaid" | "paid" | "refunded";
 type PaymentMethod = "cash" | "card" | "online" | "upi";
 
 type OrderItem = {
-  id: string;
-  productId: string;
-  orderId: string;
-  inventoryId: string;
-  quantity: number;
-  unitPrice: number;
-  taxRate: number;
-  discountRate: number;
-  taxAmount: number;
-  discountAmount: number;
-  lineTotal: number;
-  productName: string;
-  batchNumber: string;
-  product?: {
-    id: string;
-    productName: string;
-    productImage: string | null;
-    dosageForm?: string;
-    strength?: string;
-  };
+  id: string; productId: string; orderId: string; inventoryId: string;
+  quantity: number; unitPrice: number; taxRate: number; discountRate: number;
+  taxAmount: number; discountAmount: number; lineTotal: number;
+  productName: string; batchNumber: string;
 };
 
-type Customer = {
-  id: string;
-  name: string;
-  email: string;
-};
+type Customer = { id: string; name: string; email: string };
 
 type Order = {
-  id: string;
-  customerId: string | null;
-  isGuest: boolean;
-  guestName: string | null;
-  guestEmail: string | null;
-  guestPhone: string | null;
-  orderStatus: OrderStatus;
-  paymentStatus: PaymentStatus;
-  paymentMethod: PaymentMethod;
-  subtotal: number;
-  taxAmount: number;
-  discountAmount: number;
-  totalAmount: number;
-  deliveryAddress: string;
-  deliveryNotes: string | null;
-  confirmedAt: string | null;
-  shippedAt: string | null;
-  deliveredAt: string | null;
-  cancelledAt: string | null;
+  id: string; customerId: string | null; isGuest: boolean;
+  guestName: string | null; guestEmail: string | null; guestPhone: string | null;
+  orderStatus: OrderStatus; paymentStatus: PaymentStatus; paymentMethod: PaymentMethod;
+  subtotal: number; taxAmount: number; discountAmount: number; totalAmount: number;
+  deliveryAddress: string; deliveryNotes: string | null;
+  confirmedAt: string | null; shippedAt: string | null;
+  deliveredAt: string | null; cancelledAt: string | null;
   cancellationReason: string | null;
-  createdAt: string;
-  updatedAt: string;
-  customer?: Customer | null;
-  items?: OrderItem[];
+  createdAt: string; updatedAt: string;
+  customer?: Customer | null; items?: OrderItem[];
 };
 
 type ApiResponse<T> = {
-  success: boolean;
-  data?: T;
-  message?: string;
-  pagination?: {
-    total: number;
-    page: number;
-    limit: number;
-    pages: number;
-    hasNext: boolean;
-    hasPrev: boolean;
-  };
+  success: boolean; data?: T; message?: string;
+  pagination?: { total: number; page: number; limit: number; pages: number; hasNext: boolean; hasPrev: boolean };
 };
 
-type StatsResponse = {
-  success: boolean;
-  data: {
-    total: number;
-    byStatus: Record<OrderStatus, number>;
-    revenue: {
-      total: number;
-      avgOrder: number;
-    };
-  };
+type StockStatusFilter = OrderStatus | "";
+
+const API_BASE   = "/api/orders";
+const PAGE_SIZE  = 10;
+const ORDER_STATUSES: OrderStatus[]    = ["pending","confirmed","processing","shipped","delivered","cancelled"];
+const PAYMENT_STATUSES: PaymentStatus[] = ["unpaid","paid","refunded"];
+
+const inputCls = "rounded border border-[#E5E5E5] bg-white px-3 py-2 text-sm outline-none focus:ring-1 focus:ring-[#D4AF37] focus:border-[#D4AF37]";
+
+// ─── Status styling ───────────────────────────────────────────────────────────
+
+const ORDER_STATUS_STYLE: Record<OrderStatus, { bg: string; color: string }> = {
+  pending:    { bg: "rgba(212,175,55,0.12)",  color: "#9a7a1a" },
+  confirmed:  { bg: "rgba(108,142,191,0.12)", color: "#3a5f8a" },
+  processing: { bg: "rgba(155,127,199,0.12)", color: "#5c3d8f" },
+  shipped:    { bg: "rgba(93,171,142,0.12)",  color: "#2d7a5a" },
+  delivered:  { bg: "rgba(34,197,94,0.12)",   color: "#166534" },
+  cancelled:  { bg: "rgba(239,68,68,0.12)",   color: "#b91c1c" },
 };
 
-const API_BASE = "/api/orders";
-const PAGE_SIZE = 10;
-
-const ORDER_STATUSES: OrderStatus[] = [
-  "pending",
-  "confirmed",
-  "processing",
-  "shipped",
-  "delivered",
-  "cancelled",
-];
-
-const PAYMENT_STATUSES: PaymentStatus[] = ["unpaid", "paid", "refunded"];
-
-const STATUS_COLORS: Record<OrderStatus, string> = {
-  pending: "bg-yellow-100 text-yellow-800",
-  confirmed: "bg-blue-100 text-blue-800",
-  processing: "bg-purple-100 text-purple-800",
-  shipped: "bg-indigo-100 text-indigo-800",
-  delivered: "bg-green-100 text-green-800",
-  cancelled: "bg-red-100 text-red-800",
-};
-
-const PAYMENT_COLORS: Record<PaymentStatus, string> = {
-  unpaid: "bg-gray-100 text-gray-600",
-  paid: "bg-green-100 text-green-800",
-  refunded: "bg-orange-100 text-orange-800",
+const PAYMENT_STYLE: Record<PaymentStatus, { bg: string; color: string }> = {
+  unpaid:   { bg: "rgba(0,0,0,0.06)",         color: "#555" },
+  paid:     { bg: "rgba(34,197,94,0.12)",      color: "#166534" },
+  refunded: { bg: "rgba(249,115,22,0.12)",     color: "#c2410c" },
 };
 
 // ─── Component ────────────────────────────────────────────────────────────────
 
 export default function OrdersSection() {
-  const [orders, setOrders] = useState<Order[]>([]);
-  const [pagination, setPagination] =
-    useState<ApiResponse<any>["pagination"]>(undefined);
-  const [loading, setLoading] = useState(true);
+  const [orders,     setOrders]     = useState<Order[]>([]);
+  const [pagination, setPagination] = useState<ApiResponse<any>["pagination"]>(undefined);
+  const [loading,    setLoading]    = useState(true);
 
-  // Filters
-  const [search, setSearch] = useState("");
-  const [statusFilter, setStatusFilter] = useState<OrderStatus | "">("");
+  const [search,        setSearch]        = useState("");
+  const [statusFilter,  setStatusFilter]  = useState<StockStatusFilter>("");
   const [paymentFilter, setPaymentFilter] = useState<PaymentStatus | "">("");
-  const [dateFrom, setDateFrom] = useState("");
-  const [dateTo, setDateTo] = useState("");
-  const [currentPage, setCurrentPage] = useState(1);
+  const [dateFrom,      setDateFrom]      = useState("");
+  const [dateTo,        setDateTo]        = useState("");
+  const [currentPage,   setCurrentPage]   = useState(1);
 
-  // Stats
-  const [stats, setStats] = useState<StatsResponse["data"] | null>(null);
-
-  // Modal states
   const [detailModalOpen, setDetailModalOpen] = useState(false);
-  const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
-
-  // Status update modal
+  const [selectedOrder,   setSelectedOrder]   = useState<Order | null>(null);
   const [statusModalOpen, setStatusModalOpen] = useState(false);
-  const [statusTarget, setStatusTarget] = useState<Order | null>(null);
-  const [newStatus, setNewStatus] = useState<OrderStatus>("pending");
+  const [statusTarget,    setStatusTarget]    = useState<Order | null>(null);
+  const [newStatus,       setNewStatus]       = useState<OrderStatus>("pending");
   const [cancellationReason, setCancellationReason] = useState("");
   const [statusSubmitting, setStatusSubmitting] = useState(false);
-
-  // Payment update modal
-  const [paymentModalOpen, setPaymentModalOpen] = useState(false);
-  const [paymentTarget, setPaymentTarget] = useState<Order | null>(null);
-  const [newPaymentStatus, setNewPaymentStatus] =
-    useState<PaymentStatus>("unpaid");
+  const [paymentModalOpen,  setPaymentModalOpen]  = useState(false);
+  const [paymentTarget,     setPaymentTarget]     = useState<Order | null>(null);
+  const [newPaymentStatus,  setNewPaymentStatus]  = useState<PaymentStatus>("unpaid");
   const [paymentSubmitting, setPaymentSubmitting] = useState(false);
 
-  // ─── Fetch orders ─────────────────────────────────────────────────────────────
+  // ─── Fetch ──────────────────────────────────────────────────────────────────
 
   const fetchOrders = useCallback(async () => {
     setLoading(true);
     try {
-      const params = new URLSearchParams();
-      params.set("page", String(currentPage));
-      params.set("limit", String(PAGE_SIZE));
-      if (search) params.set("search", search);
-      if (statusFilter) params.set("orderStatus", statusFilter);
-      if (paymentFilter) params.set("paymentStatus", paymentFilter);
-      if (dateFrom) params.set("dateFrom", dateFrom);
-      if (dateTo) params.set("dateTo", dateTo);
-
-      const res = await fetch(`${API_BASE}?${params.toString()}`);
+      const p = new URLSearchParams();
+      p.set("page",  String(currentPage));
+      p.set("limit", String(PAGE_SIZE));
+      if (search)        p.set("search",        search);
+      if (statusFilter)  p.set("orderStatus",   statusFilter);
+      if (paymentFilter) p.set("paymentStatus", paymentFilter);
+      if (dateFrom)      p.set("dateFrom",       dateFrom);
+      if (dateTo)        p.set("dateTo",         dateTo);
+      const res  = await fetch(`${API_BASE}?${p}`);
       const json: ApiResponse<Order[]> = await res.json();
-      if (!res.ok || !json.success)
-        throw new Error(json.message || "Failed to fetch orders");
+      if (!res.ok || !json.success) throw new Error(json.message || "Failed");
       setOrders(json.data || []);
       setPagination(json.pagination ?? undefined);
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Failed to load orders");
-    } finally {
-      setLoading(false);
-    }
+    } finally { setLoading(false); }
   }, [currentPage, search, statusFilter, paymentFilter, dateFrom, dateTo]);
 
-  // ─── Fetch stats ─────────────────────────────────────────────────────────────
+  useEffect(() => { fetchOrders(); }, [fetchOrders]);
 
-  const fetchStats = useCallback(async () => {
-    try {
-      const params = new URLSearchParams();
-      if (dateFrom) params.set("dateFrom", dateFrom);
-      if (dateTo) params.set("dateTo", dateTo);
-      const res = await fetch(`${API_BASE}/stats?${params.toString()}`);
-      const json: StatsResponse = await res.json();
-      if (json.success) setStats(json.data);
-    } catch (err) {
-      // non-critical
-    }
-  }, [dateFrom, dateTo]);
-
-  useEffect(() => {
-    fetchOrders();
-    fetchStats();
-  }, [fetchOrders, fetchStats]);
-
-  // ─── View order details ─────────────────────────────────────────────────────
+  // ─── Detail ──────────────────────────────────────────────────────────────────
 
   const openDetailModal = async (order: Order) => {
-    // Fetch full details with items
     try {
-      const res = await fetch(`${API_BASE}/${order.id}`);
+      const res  = await fetch(`${API_BASE}/${order.id}`);
       const json: ApiResponse<Order> = await res.json();
-      if (json.success) {
-        setSelectedOrder(json.data || null);
-        setDetailModalOpen(true);
-      }
-    } catch (err) {
-      toast.error("Failed to load order details");
-    }
+      if (json.success) { setSelectedOrder(json.data || null); setDetailModalOpen(true); }
+    } catch { toast.error("Failed to load details"); }
   };
 
-  // ─── Update order status ────────────────────────────────────────────────────
+  // ─── Status update ───────────────────────────────────────────────────────────
 
   const openStatusModal = (order: Order) => {
-    setStatusTarget(order);
-    setNewStatus(order.orderStatus);
+    setStatusTarget(order); setNewStatus(order.orderStatus);
     setCancellationReason(order.cancellationReason || "");
     setStatusModalOpen(true);
   };
@@ -241,409 +139,240 @@ export default function OrdersSection() {
   const handleStatusUpdate = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!statusTarget) return;
-    if (newStatus === statusTarget.orderStatus) {
-      toast.info("No change in status");
-      setStatusModalOpen(false);
-      return;
-    }
-
+    if (newStatus === statusTarget.orderStatus) { toast.info("No change"); setStatusModalOpen(false); return; }
     setStatusSubmitting(true);
     try {
-      const payload: { status: OrderStatus; cancellationReason?: string } = {
-        status: newStatus,
-      };
-      if (newStatus === "cancelled" && cancellationReason.trim()) {
-        payload.cancellationReason = cancellationReason.trim();
-      }
-
-      const res = await fetch(`${API_BASE}/${statusTarget.id}/status`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      });
+      const payload: any = { status: newStatus };
+      if (newStatus === "cancelled" && cancellationReason.trim()) payload.cancellationReason = cancellationReason.trim();
+      const res  = await fetch(`${API_BASE}/${statusTarget.id}/status`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) });
       const json = await res.json();
-      if (!res.ok || !json.success)
-        throw new Error(json.message || "Status update failed");
-
-      toast.success(json.message || `Order status updated to "${newStatus}"`);
+      if (!res.ok || !json.success) throw new Error(json.message || "Failed");
+      toast.success(`Status → ${newStatus}`);
       setStatusModalOpen(false);
       await fetchOrders();
-      await fetchStats();
-    } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Status update failed");
-    } finally {
-      setStatusSubmitting(false);
-    }
+    } catch (err) { toast.error(err instanceof Error ? err.message : "Failed"); }
+    finally { setStatusSubmitting(false); }
   };
 
-  // ─── Update payment status ──────────────────────────────────────────────────
+  // ─── Payment update ──────────────────────────────────────────────────────────
 
   const openPaymentModal = (order: Order) => {
-    setPaymentTarget(order);
-    setNewPaymentStatus(order.paymentStatus);
-    setPaymentModalOpen(true);
+    setPaymentTarget(order); setNewPaymentStatus(order.paymentStatus); setPaymentModalOpen(true);
   };
 
   const handlePaymentUpdate = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!paymentTarget) return;
-    if (newPaymentStatus === paymentTarget.paymentStatus) {
-      toast.info("No change in payment status");
-      setPaymentModalOpen(false);
-      return;
-    }
-
+    if (newPaymentStatus === paymentTarget.paymentStatus) { toast.info("No change"); setPaymentModalOpen(false); return; }
     setPaymentSubmitting(true);
     try {
-      const res = await fetch(`${API_BASE}/${paymentTarget.id}/payment`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ paymentStatus: newPaymentStatus }),
-      });
+      const res  = await fetch(`${API_BASE}/${paymentTarget.id}/payment`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ paymentStatus: newPaymentStatus }) });
       const json = await res.json();
-      if (!res.ok || !json.success)
-        throw new Error(json.message || "Payment update failed");
-
-      toast.success(
-        json.message || `Payment status updated to "${newPaymentStatus}"`,
-      );
+      if (!res.ok || !json.success) throw new Error(json.message || "Failed");
+      toast.success(`Payment → ${newPaymentStatus}`);
       setPaymentModalOpen(false);
       await fetchOrders();
-      await fetchStats();
-    } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Payment update failed");
-    } finally {
-      setPaymentSubmitting(false);
-    }
+    } catch (err) { toast.error(err instanceof Error ? err.message : "Failed"); }
+    finally { setPaymentSubmitting(false); }
   };
 
-  // ─── Helpers ──────────────────────────────────────────────────────────────────
+  // ─── Helpers ─────────────────────────────────────────────────────────────────
 
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat("en-US", {
-      style: "currency",
-      currency: "USD",
-    }).format(amount);
-  };
+  const formatCurrency = (n: number) => `£${Number(n).toFixed(2)}`;
+  const formatDate     = (d: string) => new Date(d).toLocaleDateString("en-GB", { day:"2-digit", month:"short", year:"numeric" });
+  const formatDateTime = (d: string) => new Date(d).toLocaleDateString("en-GB", { day:"2-digit", month:"short", year:"numeric", hour:"2-digit", minute:"2-digit" });
+  const customerDisplay = (o: Order) => o.isGuest ? `${o.guestName || "Guest"}` : (o.customer?.name || "Unknown");
+  const customerEmail   = (o: Order) => o.isGuest ? (o.guestEmail || "—") : (o.customer?.email || "—");
 
-  const formatDate = (dateStr: string) => {
-    const d = new Date(dateStr);
-    return d.toLocaleDateString(undefined, {
-      year: "numeric",
-      month: "short",
-      day: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
-    });
-  };
-
-  const getCustomerDisplay = (order: Order) => {
-    if (order.isGuest) {
-      return `${order.guestName || "Guest"} (Guest)`;
-    }
-    return order.customer?.name || "Unknown";
-  };
-
-  const getCustomerEmail = (order: Order) => {
-    if (order.isGuest) return order.guestEmail || "—";
-    return order.customer?.email || "—";
-  };
-
-  const canTransition = (order: Order, status: OrderStatus) => {
-    const allowed: Record<OrderStatus, OrderStatus[]> = {
-      pending: ["confirmed", "cancelled"],
-      confirmed: ["processing", "cancelled"],
-      processing: ["shipped", "cancelled"],
-      shipped: ["delivered", "cancelled"],
-      delivered: [],
-      cancelled: [],
-    };
-    return allowed[order.orderStatus]?.includes(status) ?? false;
-  };
-
-  const getAvailableStatuses = (order: Order) => {
-    return ORDER_STATUSES.filter((s) => canTransition(order, s));
-  };
+  const cap = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
 
   // ─── Render ──────────────────────────────────────────────────────────────────
 
   return (
-    <div className="p-6 bg-[#F9F9F9] min-h-screen text-[#1A1A1A]">
-      <div className="max-w-full mx-auto">
+    <div className="min-h-screen" style={{ backgroundColor: "#ffffff", fontFamily: FM }}>
+      <div className="px-6 pt-8 pb-6">
+
         {/* Header */}
-        <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
-          <h1 className="text-3xl font-heading text-[#1A1A1A]">Orders</h1>
+        <div className="flex flex-wrap items-start justify-between gap-4 mb-6">
+          <div>
+            <p style={{ fontFamily: FM, fontSize: "10px", color: "#D4AF37", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.25em", marginBottom: "4px" }}>
+              Order Management
+            </p>
+            <h1 style={{ fontFamily: FH, fontSize: "28px", fontWeight: 700, color: "#111", letterSpacing: "-0.01em" }}>Orders</h1>
+            {pagination && (
+              <p style={{ fontFamily: FM, fontSize: "13px", color: "#666", marginTop: "4px" }}>
+                <strong style={{ color: "#222" }}>{pagination.total}</strong> orders total
+              </p>
+            )}
+          </div>
         </div>
 
-        {/* Stats Cards */}
-        {stats && (
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 mb-6">
-            <StatCard label="Total" value={stats.total} />
-            <StatCard
-              label="Pending"
-              value={stats.byStatus.pending}
-              color="bg-yellow-100 text-yellow-800"
-            />
-            <StatCard
-              label="Confirmed"
-              value={stats.byStatus.confirmed}
-              color="bg-blue-100 text-blue-800"
-            />
-            <StatCard
-              label="Processing"
-              value={stats.byStatus.processing}
-              color="bg-purple-100 text-purple-800"
-            />
-            <StatCard
-              label="Shipped"
-              value={stats.byStatus.shipped}
-              color="bg-indigo-100 text-indigo-800"
-            />
-            <StatCard
-              label="Delivered"
-              value={stats.byStatus.delivered}
-              color="bg-green-100 text-green-800"
-            />
-          </div>
-        )}
+        {/* Dashboard */}
+        <OrdersDashboard />
 
-        {/* Revenue Stats */}
-        {stats && (
-          <div className="grid grid-cols-2 gap-3 mb-6">
-            <div className="bg-white rounded-lg shadow-sm border border-[#E5E5E5] p-4">
-              <p className="text-xs text-[#6B6B6B] uppercase tracking-wider">
-                Total Revenue
-              </p>
-              <p className="text-2xl font-heading text-[#1A1A1A]">
-                {formatCurrency(stats.revenue.total)}
-              </p>
-            </div>
-            <div className="bg-white rounded-lg shadow-sm border border-[#E5E5E5] p-4">
-              <p className="text-xs text-[#6B6B6B] uppercase tracking-wider">
-                Average Order Value
-              </p>
-              <p className="text-2xl font-heading text-[#1A1A1A]">
-                {formatCurrency(stats.revenue.avgOrder)}
-              </p>
-            </div>
-          </div>
-        )}
-
-        {/* Search / filter bar */}
+        {/* Filters */}
         <div className="flex flex-wrap items-center gap-3 mb-4">
-          <div className="flex-1 min-w-[180px]">
-            <input
-              type="text"
-              placeholder="Search by customer name or email..."
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className="w-full rounded-md border border-[#E5E5E5] px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#D4AF37] focus:border-transparent"
-            />
-          </div>
-          <select
-            value={statusFilter}
-            onChange={(e) =>
-              setStatusFilter(e.target.value as OrderStatus | "")
-            }
-            className="rounded-md border border-[#E5E5E5] px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#D4AF37]"
-          >
+          <input type="text" placeholder="Search customer name or email…"
+            value={search} onChange={e => { setSearch(e.target.value); setCurrentPage(1); }}
+            className={`flex-1 min-w-[220px] ${inputCls}`}
+            style={{ fontFamily: FM, color: "#333" }}
+          />
+          <select value={statusFilter} onChange={e => { setStatusFilter(e.target.value as StockStatusFilter); setCurrentPage(1); }}
+            className={inputCls} style={{ fontFamily: FM, color: "#555" }}>
             <option value="">All status</option>
-            {ORDER_STATUSES.map((s) => (
-              <option key={s} value={s}>
-                {s.charAt(0).toUpperCase() + s.slice(1)}
-              </option>
-            ))}
+            {ORDER_STATUSES.map(s => <option key={s} value={s}>{cap(s)}</option>)}
           </select>
-          <select
-            value={paymentFilter}
-            onChange={(e) =>
-              setPaymentFilter(e.target.value as PaymentStatus | "")
-            }
-            className="rounded-md border border-[#E5E5E5] px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#D4AF37]"
-          >
+          <select value={paymentFilter} onChange={e => { setPaymentFilter(e.target.value as PaymentStatus | ""); setCurrentPage(1); }}
+            className={inputCls} style={{ fontFamily: FM, color: "#555" }}>
             <option value="">All payment</option>
-            {PAYMENT_STATUSES.map((s) => (
-              <option key={s} value={s}>
-                {s.charAt(0).toUpperCase() + s.slice(1)}
-              </option>
-            ))}
+            {PAYMENT_STATUSES.map(s => <option key={s} value={s}>{cap(s)}</option>)}
           </select>
-          <input
-            type="date"
-            value={dateFrom}
-            onChange={(e) => setDateFrom(e.target.value)}
-            className="rounded-md border border-[#E5E5E5] px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#D4AF37]"
-          />
-          <span className="text-[#6B6B6B]">to</span>
-          <input
-            type="date"
-            value={dateTo}
-            onChange={(e) => setDateTo(e.target.value)}
-            className="rounded-md border border-[#E5E5E5] px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#D4AF37]"
-          />
-          <button
-            onClick={() => {
-              setSearch("");
-              setStatusFilter("");
-              setPaymentFilter("");
-              setDateFrom("");
-              setDateTo("");
-              setCurrentPage(1);
-            }}
-            className="text-sm text-[#6B6B6B] hover:text-[#1A1A1A]"
-          >
-            Clear filters
-          </button>
+          <input type="date" value={dateFrom} onChange={e => { setDateFrom(e.target.value); setCurrentPage(1); }}
+            className={inputCls} style={{ fontFamily: FM, color: "#555" }} />
+          <span style={{ color: "#AAA", fontFamily: FM, fontSize: "12px" }}>to</span>
+          <input type="date" value={dateTo} onChange={e => { setDateTo(e.target.value); setCurrentPage(1); }}
+            className={inputCls} style={{ fontFamily: FM, color: "#555" }} />
+          {(search || statusFilter || paymentFilter || dateFrom || dateTo) && (
+            <button onClick={() => { setSearch(""); setStatusFilter(""); setPaymentFilter(""); setDateFrom(""); setDateTo(""); setCurrentPage(1); }}
+              className="text-xs hover:text-[#D4AF37] transition-colors"
+              style={{ color: "#888", fontFamily: FM }}>✕ Clear</button>
+          )}
         </div>
 
-        {/* Loading / Table */}
+        {/* Table */}
         {loading ? (
-          <div className="flex justify-center py-12">
-            <div className="w-8 h-8 border-4 border-[#D4AF37] border-t-transparent rounded-full animate-spin" />
+          <div className="flex flex-col items-center justify-center py-20 gap-3">
+            <div className="w-8 h-8 border-2 border-[#D4AF37] border-t-transparent rounded-full animate-spin" />
+            <span style={{ fontFamily: FM, fontSize: "12px", color: "#AAA" }}>Loading orders…</span>
           </div>
         ) : (
           <>
-            <div className="bg-white rounded-lg shadow-sm border border-[#E5E5E5] overflow-x-auto">
-              <table className="w-full text-sm min-w-[1000px]">
-                <thead className="bg-[#F9F9F9] border-b border-[#E5E5E5]">
+            <div className="bg-white rounded-lg overflow-x-auto mb-4"
+              style={{ border: "1px solid rgba(0,0,0,0.07)", boxShadow: "0 1px 4px rgba(0,0,0,0.04)" }}>
+              <table className="w-full text-sm" style={{ minWidth: "900px" }}>
+                <thead style={{ backgroundColor: "#FAFAF8", borderBottom: "1px solid rgba(0,0,0,0.07)" }}>
                   <tr>
-                    <th className="px-4 py-3 text-left font-medium text-[#1A1A1A] whitespace-nowrap">
-                      Order #
-                    </th>
-                    <th className="px-4 py-3 text-left font-medium text-[#1A1A1A] whitespace-nowrap">
-                      Customer
-                    </th>
-                    <th className="px-4 py-3 text-left font-medium text-[#1A1A1A] whitespace-nowrap hidden md:table-cell">
-                      Date
-                    </th>
-                    <th className="px-4 py-3 text-left font-medium text-[#1A1A1A] whitespace-nowrap">
-                      Status
-                    </th>
-                    <th className="px-4 py-3 text-left font-medium text-[#1A1A1A] whitespace-nowrap hidden lg:table-cell">
-                      Payment
-                    </th>
-                    <th className="px-4 py-3 text-right font-medium text-[#1A1A1A] whitespace-nowrap">
-                      Total
-                    </th>
-                    <th className="px-4 py-3 text-center font-medium text-[#1A1A1A] whitespace-nowrap">
-                      Actions
-                    </th>
+                    {["Order #","Customer","Date","Order Status","Payment","Total","Actions"].map((h, i) => (
+                      <th key={h} className={`px-4 py-3 whitespace-nowrap ${i === 6 ? "text-right" : "text-left"}`}
+                        style={{ fontFamily: FM, fontSize: "10px", fontWeight: 700, color: "#555", letterSpacing: "0.08em", textTransform: "uppercase" }}>
+                        {h}
+                      </th>
+                    ))}
                   </tr>
                 </thead>
                 <tbody>
                   {orders.length === 0 ? (
                     <tr>
-                      <td
-                        colSpan={7}
-                        className="px-4 py-8 text-center text-[#6B6B6B]"
-                      >
-                        No orders found.
-                      </td>
+                      <td colSpan={7} className="py-16 text-center"
+                        style={{ fontFamily: FM, fontSize: "13px", color: "#BBB" }}>No orders found</td>
                     </tr>
-                  ) : (
-                    orders.map((order) => (
-                      <tr
-                        key={order.id}
-                        className="border-b border-[#E5E5E5] hover:bg-[#F9F9F9]/50"
-                      >
-                        <td className="px-4 py-3 font-medium whitespace-nowrap">
-                          #{order.id.slice(0, 8)}
+                  ) : orders.map(order => {
+                    const os = ORDER_STATUS_STYLE[order.orderStatus];
+                    const ps = PAYMENT_STYLE[order.paymentStatus];
+                    return (
+                      <tr key={order.id} className="border-b transition-colors"
+                        style={{ borderColor: "rgba(0,0,0,0.05)" }}
+                        onMouseEnter={e => (e.currentTarget.style.backgroundColor = "rgba(212,175,55,0.03)")}
+                        onMouseLeave={e => (e.currentTarget.style.backgroundColor = "")}>
+
+                        {/* Order # */}
+                        <td className="px-4 py-2.5">
+                          <span className="font-mono" style={{ fontFamily: FM, fontWeight: 600, fontSize: "12px", color: "#333" }}>
+                            #{order.id.slice(0, 8)}
+                          </span>
                         </td>
-                        <td className="px-4 py-3 whitespace-nowrap">
-                          <div className="font-medium">
-                            {getCustomerDisplay(order)}
-                          </div>
-                          <div className="text-xs text-[#6B6B6B]">
-                            {getCustomerEmail(order)}
-                          </div>
+
+                        {/* Customer */}
+                        <td className="px-4 py-2.5">
+                          <p style={{ fontFamily: FM, fontWeight: 600, fontSize: "13px", color: "#111" }}>{customerDisplay(order)}</p>
+                          <p style={{ fontFamily: FM, fontSize: "10px", color: "#AAA" }}>{customerEmail(order)}</p>
                           {order.isGuest && (
-                            <span className="text-xs text-[#D4AF37]">
-                              Guest
+                            <span className="text-[9px] px-1.5 py-0.5 rounded"
+                              style={{ backgroundColor: "rgba(212,175,55,0.10)", color: "#9a7a1a", fontFamily: FM, fontWeight: 600 }}>
+                              GUEST
                             </span>
                           )}
                         </td>
-                        <td className="px-4 py-3 text-[#6B6B6B] hidden md:table-cell whitespace-nowrap">
+
+                        {/* Date */}
+                        <td className="px-4 py-2.5 whitespace-nowrap" style={{ fontFamily: FM, fontSize: "11px", color: "#666" }}>
                           {formatDate(order.createdAt)}
                         </td>
-                        <td className="px-4 py-3 whitespace-nowrap">
-                          <span
-                            className={`inline-block px-2 py-1 text-xs rounded-full ${STATUS_COLORS[order.orderStatus]}`}
-                          >
-                            {order.orderStatus.charAt(0).toUpperCase() +
-                              order.orderStatus.slice(1)}
+
+                        {/* Order Status */}
+                        <td className="px-4 py-2.5">
+                          <span className="px-2.5 py-0.5 rounded-full text-[10px] font-semibold uppercase tracking-wider"
+                            style={{ backgroundColor: os.bg, color: os.color, fontFamily: FM }}>
+                            {cap(order.orderStatus)}
                           </span>
                         </td>
-                        <td className="px-4 py-3 hidden lg:table-cell whitespace-nowrap">
-                          <span
-                            className={`inline-block px-2 py-1 text-xs rounded-full ${PAYMENT_COLORS[order.paymentStatus]}`}
-                          >
-                            {order.paymentStatus.charAt(0).toUpperCase() +
-                              order.paymentStatus.slice(1)}
+
+                        {/* Payment */}
+                        <td className="px-4 py-2.5">
+                          <span className="px-2.5 py-0.5 rounded-full text-[10px] font-semibold uppercase tracking-wider"
+                            style={{ backgroundColor: ps.bg, color: ps.color, fontFamily: FM }}>
+                            {cap(order.paymentStatus)}
                           </span>
                         </td>
-                        <td className="px-4 py-3 text-right font-medium whitespace-nowrap">
-                          {formatCurrency(order.totalAmount)}
+
+                        {/* Total */}
+                        <td className="px-4 py-2.5 whitespace-nowrap">
+                          <span style={{ fontFamily: FM, fontWeight: 700, fontSize: "13px", color: "#111" }}>
+                            {formatCurrency(order.totalAmount)}
+                          </span>
                         </td>
-                        <td className="px-4 py-3 text-center whitespace-nowrap">
-                          <div className="flex justify-center items-center gap-1">
-                            <button
-                              onClick={() => openDetailModal(order)}
-                              className="p-1 rounded hover:bg-[#F9F9F9] text-[#1A1A1A]"
-                              title="View details"
-                            >
-                              👁
+
+                        {/* Actions */}
+                        <td className="px-4 py-2.5">
+                          <div className="flex items-center justify-end gap-1">
+                            <button onClick={() => openDetailModal(order)}
+                              className="flex items-center gap-1 px-2.5 py-1 rounded text-[11px] font-semibold transition-colors whitespace-nowrap"
+                              style={{ fontFamily: FM, backgroundColor: "rgba(108,142,191,0.08)", color: "#3a5f8a", border: "1px solid rgba(108,142,191,0.2)" }}>
+                              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>
+                              </svg>
+                              View
                             </button>
-                            <button
-                              onClick={() => openStatusModal(order)}
-                              className="p-1 rounded hover:bg-[#F9F9F9] text-blue-600"
-                              title="Update status"
-                            >
-                              ⚡
+                            <button onClick={() => openStatusModal(order)}
+                              className="flex items-center gap-1 px-2.5 py-1 rounded text-[11px] font-semibold transition-colors whitespace-nowrap"
+                              style={{ fontFamily: FM, backgroundColor: "rgba(155,127,199,0.08)", color: "#5c3d8f", border: "1px solid rgba(155,127,199,0.2)" }}>
+                              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                                <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
+                              </svg>
+                              Status
                             </button>
-                            <button
-                              onClick={() => openPaymentModal(order)}
-                              className="p-1 rounded hover:bg-[#F9F9F9] text-green-600"
-                              title="Update payment"
-                            >
-                              💳
+                            <button onClick={() => openPaymentModal(order)}
+                              className="flex items-center gap-1 px-2.5 py-1 rounded text-[11px] font-semibold transition-colors whitespace-nowrap"
+                              style={{ fontFamily: FM, backgroundColor: "rgba(93,171,142,0.08)", color: "#2d7a5a", border: "1px solid rgba(93,171,142,0.2)" }}>
+                              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                                <rect x="1" y="4" width="22" height="16" rx="2" ry="2"/>
+                                <line x1="1" y1="10" x2="23" y2="10"/>
+                              </svg>
+                              Pay
                             </button>
                           </div>
                         </td>
                       </tr>
-                    ))
-                  )}
+                    );
+                  })}
                 </tbody>
               </table>
             </div>
 
             {/* Pagination */}
             {pagination && pagination.pages > 1 && (
-              <div className="flex justify-between items-center mt-4 text-sm text-[#6B6B6B]">
-                <span>
-                  Showing {(pagination.page - 1) * pagination.limit + 1}–
-                  {Math.min(
-                    pagination.page * pagination.limit,
-                    pagination.total,
-                  )}{" "}
-                  of {pagination.total}
+              <div className="flex justify-between items-center py-2">
+                <span style={{ fontFamily: FM, fontSize: "12px", color: "#666" }}>
+                  Showing <strong style={{ color: "#222" }}>{(pagination.page - 1) * pagination.limit + 1}</strong>–<strong style={{ color: "#222" }}>{Math.min(pagination.page * pagination.limit, pagination.total)}</strong> of <strong style={{ color: "#222" }}>{pagination.total}</strong>
                 </span>
-                <div className="flex gap-2">
-                  <button
-                    onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-                    disabled={!pagination.hasPrev}
-                    className="px-3 py-1 rounded border border-[#E5E5E5] disabled:opacity-50 disabled:cursor-not-allowed hover:bg-[#F9F9F9]"
-                  >
-                    Previous
-                  </button>
-                  <button
-                    onClick={() =>
-                      setCurrentPage((p) => Math.min(pagination.pages, p + 1))
-                    }
-                    disabled={!pagination.hasNext}
-                    className="px-3 py-1 rounded border border-[#E5E5E5] disabled:opacity-50 disabled:cursor-not-allowed hover:bg-[#F9F9F9]"
-                  >
-                    Next
-                  </button>
+                <div className="flex items-center gap-2">
+                  <button onClick={() => setCurrentPage(p => Math.max(1, p - 1))} disabled={!pagination.hasPrev}
+                    className="px-4 py-1.5 rounded border text-sm transition-colors hover:bg-white disabled:opacity-40"
+                    style={{ borderColor: "#E5E5E5", color: "#555", fontFamily: FM }}>← Previous</button>
+                  <span style={{ fontFamily: FM, fontSize: "12px", color: "#888" }}>Page {pagination.page} of {pagination.pages}</span>
+                  <button onClick={() => setCurrentPage(p => Math.min(pagination.pages, p + 1))} disabled={!pagination.hasNext}
+                    className="px-4 py-1.5 rounded border text-sm transition-colors hover:bg-white disabled:opacity-40"
+                    style={{ borderColor: "#E5E5E5", color: "#555", fontFamily: FM }}>Next →</button>
                 </div>
               </div>
             )}
@@ -651,276 +380,157 @@ export default function OrdersSection() {
         )}
       </div>
 
-      {/* ─── Order Detail Modal ────────────────────────────────────────────── */}
+      {/* ─── Detail Modal ─────────────────────────────────────────────────────── */}
       {detailModalOpen && selectedOrder && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-lg shadow-xl max-w-3xl w-full p-6 max-h-[90vh] overflow-y-auto">
-            <div className="flex justify-between items-start mb-4">
-              <h2 className="text-xl font-heading text-[#1A1A1A]">
-                Order #{selectedOrder.id.slice(0, 8)}
-              </h2>
-              <button
-                onClick={() => setDetailModalOpen(false)}
-                className="text-[#6B6B6B] hover:text-[#1A1A1A] text-xl"
-              >
-                ×
-              </button>
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ backgroundColor: "rgba(0,0,0,0.4)", backdropFilter: "blur(4px)" }}>
+          <div className="bg-white rounded-lg w-full max-w-3xl max-h-[90vh] overflow-y-auto" style={{ boxShadow: "0 24px 60px rgba(0,0,0,0.15)" }}>
+            <div className="flex items-center justify-between px-6 py-4 border-b" style={{ borderColor: "rgba(0,0,0,0.07)" }}>
+              <div>
+                <p style={{ fontFamily: FM, fontSize: "10px", color: "#D4AF37", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: "2px" }}>Order Detail</p>
+                <h2 style={{ fontFamily: FH, fontSize: "18px", fontWeight: 700, color: "#111" }}>#{selectedOrder.id.slice(0, 8)}</h2>
+              </div>
+              <button onClick={() => setDetailModalOpen(false)} className="w-8 h-8 rounded-full flex items-center justify-center hover:bg-black/5 text-xl" style={{ color: "#888" }}>✕</button>
             </div>
 
-            {/* Customer Info */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4 p-4 bg-[#F9F9F9] rounded-md">
-              <div>
-                <p className="text-xs text-[#6B6B6B] uppercase tracking-wider">
-                  Customer
-                </p>
-                <p className="font-medium">
-                  {getCustomerDisplay(selectedOrder)}
-                </p>
-                <p className="text-sm text-[#6B6B6B]">
-                  {getCustomerEmail(selectedOrder)}
-                </p>
-                {selectedOrder.isGuest && selectedOrder.guestPhone && (
-                  <p className="text-sm text-[#6B6B6B]">
-                    {selectedOrder.guestPhone}
-                  </p>
+            <div className="px-6 py-5 space-y-5">
+              {/* Customer + order status */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="px-4 py-3 rounded-md" style={{ backgroundColor: "#FAFAF8", border: "1px solid rgba(0,0,0,0.05)" }}>
+                  <p style={{ fontFamily: FM, fontSize: "10px", color: "#AAA", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: "6px" }}>Customer</p>
+                  <p style={{ fontFamily: FM, fontWeight: 600, color: "#111" }}>{customerDisplay(selectedOrder)}</p>
+                  <p style={{ fontFamily: FM, fontSize: "12px", color: "#666" }}>{customerEmail(selectedOrder)}</p>
+                  {selectedOrder.isGuest && selectedOrder.guestPhone && (
+                    <p style={{ fontFamily: FM, fontSize: "12px", color: "#666" }}>{selectedOrder.guestPhone}</p>
+                  )}
+                </div>
+                <div className="px-4 py-3 rounded-md" style={{ backgroundColor: "#FAFAF8", border: "1px solid rgba(0,0,0,0.05)" }}>
+                  <p style={{ fontFamily: FM, fontSize: "10px", color: "#AAA", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: "6px" }}>Status</p>
+                  <div className="flex flex-wrap gap-2">
+                    {(() => { const os = ORDER_STATUS_STYLE[selectedOrder.orderStatus]; return (
+                      <span className="px-2.5 py-0.5 rounded-full text-[10px] font-semibold uppercase tracking-wider"
+                        style={{ backgroundColor: os.bg, color: os.color, fontFamily: FM }}>{cap(selectedOrder.orderStatus)}</span>
+                    ); })()}
+                    {(() => { const ps = PAYMENT_STYLE[selectedOrder.paymentStatus]; return (
+                      <span className="px-2.5 py-0.5 rounded-full text-[10px] font-semibold uppercase tracking-wider"
+                        style={{ backgroundColor: ps.bg, color: ps.color, fontFamily: FM }}>{cap(selectedOrder.paymentStatus)}</span>
+                    ); })()}
+                    <span className="px-2.5 py-0.5 rounded-full text-[10px] uppercase tracking-wider"
+                      style={{ backgroundColor: "rgba(0,0,0,0.05)", color: "#666", fontFamily: FM }}>{cap(selectedOrder.paymentMethod)}</span>
+                  </div>
+                  <p style={{ fontFamily: FM, fontSize: "11px", color: "#AAA", marginTop: "6px" }}>{formatDateTime(selectedOrder.createdAt)}</p>
+                </div>
+              </div>
+
+              {/* Delivery */}
+              <div className="px-4 py-3 rounded-md" style={{ backgroundColor: "#FAFAF8", border: "1px solid rgba(0,0,0,0.05)" }}>
+                <p style={{ fontFamily: FM, fontSize: "10px", color: "#AAA", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: "6px" }}>Delivery Address</p>
+                <p style={{ fontFamily: FM, fontSize: "13px", color: "#333", whiteSpace: "pre-wrap" }}>{selectedOrder.deliveryAddress}</p>
+                {selectedOrder.deliveryNotes && (
+                  <p style={{ fontFamily: FM, fontSize: "12px", color: "#888", marginTop: "4px" }}>Notes: {selectedOrder.deliveryNotes}</p>
                 )}
               </div>
+
+              {/* Items table */}
               <div>
-                <p className="text-xs text-[#6B6B6B] uppercase tracking-wider">
-                  Order Details
-                </p>
-                <p className="text-sm">
-                  Status:{" "}
-                  <span
-                    className={`inline-block px-2 py-0.5 text-xs rounded-full ${STATUS_COLORS[selectedOrder.orderStatus]}`}
-                  >
-                    {selectedOrder.orderStatus.charAt(0).toUpperCase() +
-                      selectedOrder.orderStatus.slice(1)}
-                  </span>
-                </p>
-                <p className="text-sm">
-                  Payment:{" "}
-                  <span
-                    className={`inline-block px-2 py-0.5 text-xs rounded-full ${PAYMENT_COLORS[selectedOrder.paymentStatus]}`}
-                  >
-                    {selectedOrder.paymentStatus.charAt(0).toUpperCase() +
-                      selectedOrder.paymentStatus.slice(1)}
-                  </span>
-                </p>
-                <p className="text-sm text-[#6B6B6B]">
-                  Method: {selectedOrder.paymentMethod}
-                </p>
-              </div>
-            </div>
-
-            {/* Delivery Address */}
-            <div className="mb-4 p-4 bg-[#F9F9F9] rounded-md">
-              <p className="text-xs text-[#6B6B6B] uppercase tracking-wider">
-                Delivery Address
-              </p>
-              <p className="text-sm whitespace-pre-wrap">
-                {selectedOrder.deliveryAddress}
-              </p>
-              {selectedOrder.deliveryNotes && (
-                <p className="text-sm text-[#6B6B6B] mt-1">
-                  Notes: {selectedOrder.deliveryNotes}
-                </p>
-              )}
-            </div>
-
-            {/* Items */}
-            <div className="mb-4">
-              <p className="text-xs text-[#6B6B6B] uppercase tracking-wider mb-2">
-                Items
-              </p>
-              <div className="border border-[#E5E5E5] rounded-md overflow-hidden">
-                <table className="w-full text-sm">
-                  <thead className="bg-[#F9F9F9]">
-                    <tr>
-                      <th className="px-3 py-2 text-left font-medium text-[#1A1A1A]">
-                        Product
-                      </th>
-                      <th className="px-3 py-2 text-center font-medium text-[#1A1A1A]">
-                        Qty
-                      </th>
-                      <th className="px-3 py-2 text-right font-medium text-[#1A1A1A]">
-                        Price
-                      </th>
-                      <th className="px-3 py-2 text-right font-medium text-[#1A1A1A]">
-                        Total
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {(selectedOrder.items || []).map((item) => (
-                      <tr key={item.id} className="border-t border-[#E5E5E5]">
-                        <td className="px-3 py-2">
-                          <div className="font-medium">{item.productName}</div>
-                          <div className="text-xs text-[#6B6B6B]">
-                            Batch: {item.batchNumber}
-                          </div>
-                        </td>
-                        <td className="px-3 py-2 text-center">
-                          {item.quantity}
-                        </td>
-                        <td className="px-3 py-2 text-right">
-                          {formatCurrency(item.unitPrice)}
-                        </td>
-                        <td className="px-3 py-2 text-right font-medium">
-                          {formatCurrency(item.lineTotal)}
-                        </td>
+                <p style={{ fontFamily: FM, fontSize: "10px", color: "#AAA", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: "8px" }}>Items</p>
+                <div className="rounded-lg overflow-hidden" style={{ border: "1px solid rgba(0,0,0,0.07)" }}>
+                  <table className="w-full text-sm">
+                    <thead style={{ backgroundColor: "#FAFAF8", borderBottom: "1px solid rgba(0,0,0,0.07)" }}>
+                      <tr>
+                        {["Product","Batch","Qty","Unit Price","Total"].map((h, i) => (
+                          <th key={h} className={`px-3 py-2 ${i >= 2 ? "text-right" : "text-left"} whitespace-nowrap`}
+                            style={{ fontFamily: FM, fontSize: "10px", fontWeight: 700, color: "#888", textTransform: "uppercase", letterSpacing: "0.06em" }}>{h}</th>
+                        ))}
                       </tr>
-                    ))}
-                  </tbody>
-                  <tfoot className="bg-[#F9F9F9] border-t border-[#E5E5E5]">
-                    <tr>
-                      <td
-                        colSpan={3}
-                        className="px-3 py-2 text-right font-medium"
-                      >
-                        Subtotal
-                      </td>
-                      <td className="px-3 py-2 text-right">
-                        {formatCurrency(selectedOrder.subtotal)}
-                      </td>
-                    </tr>
-                    <tr>
-                      <td
-                        colSpan={3}
-                        className="px-3 py-2 text-right text-sm text-[#6B6B6B]"
-                      >
-                        Tax
-                      </td>
-                      <td className="px-3 py-2 text-right text-sm text-[#6B6B6B]">
-                        {formatCurrency(selectedOrder.taxAmount)}
-                      </td>
-                    </tr>
-                    <tr>
-                      <td
-                        colSpan={3}
-                        className="px-3 py-2 text-right text-sm text-[#6B6B6B]"
-                      >
-                        Discount
-                      </td>
-                      <td className="px-3 py-2 text-right text-sm text-[#6B6B6B]">
-                        -{formatCurrency(selectedOrder.discountAmount)}
-                      </td>
-                    </tr>
-                    <tr>
-                      <td
-                        colSpan={3}
-                        className="px-3 py-2 text-right font-bold"
-                      >
-                        Total
-                      </td>
-                      <td className="px-3 py-2 text-right font-bold">
-                        {formatCurrency(selectedOrder.totalAmount)}
-                      </td>
-                    </tr>
-                  </tfoot>
-                </table>
+                    </thead>
+                    <tbody>
+                      {(selectedOrder.items || []).map(item => (
+                        <tr key={item.id} style={{ borderTop: "1px solid rgba(0,0,0,0.05)" }}>
+                          <td className="px-3 py-2.5">
+                            <p style={{ fontFamily: FM, fontWeight: 600, fontSize: "12px", color: "#111" }}>{item.productName}</p>
+                          </td>
+                          <td className="px-3 py-2.5" style={{ fontFamily: FM, fontSize: "11px", color: "#888" }}>{item.batchNumber}</td>
+                          <td className="px-3 py-2.5 text-right" style={{ fontFamily: FM, fontWeight: 600, color: "#333" }}>{item.quantity}</td>
+                          <td className="px-3 py-2.5 text-right" style={{ fontFamily: FM, fontSize: "12px", color: "#555" }}>{formatCurrency(item.unitPrice)}</td>
+                          <td className="px-3 py-2.5 text-right" style={{ fontFamily: FM, fontWeight: 700, color: "#111" }}>{formatCurrency(item.lineTotal)}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                    <tfoot style={{ borderTop: "1px solid rgba(0,0,0,0.07)", backgroundColor: "#FAFAF8" }}>
+                      {[["Subtotal", formatCurrency(selectedOrder.subtotal)],["Tax", formatCurrency(selectedOrder.taxAmount)],["Discount", `-${formatCurrency(selectedOrder.discountAmount)}`]].map(([l, v]) => (
+                        <tr key={l}>
+                          <td colSpan={4} className="px-3 py-1.5 text-right" style={{ fontFamily: FM, fontSize: "12px", color: "#888" }}>{l}</td>
+                          <td className="px-3 py-1.5 text-right" style={{ fontFamily: FM, fontSize: "12px", color: "#666" }}>{v}</td>
+                        </tr>
+                      ))}
+                      <tr>
+                        <td colSpan={4} className="px-3 py-2 text-right" style={{ fontFamily: FM, fontWeight: 700, fontSize: "13px", color: "#111" }}>Total</td>
+                        <td className="px-3 py-2 text-right" style={{ fontFamily: FM, fontWeight: 700, fontSize: "14px", color: "#D4AF37" }}>{formatCurrency(selectedOrder.totalAmount)}</td>
+                      </tr>
+                    </tfoot>
+                  </table>
+                </div>
               </div>
+
+              {/* Timestamps */}
+              <div className="flex flex-wrap gap-3 text-xs" style={{ color: "#AAA" }}>
+                {[["Created", selectedOrder.createdAt], ["Confirmed", selectedOrder.confirmedAt], ["Shipped", selectedOrder.shippedAt], ["Delivered", selectedOrder.deliveredAt], ["Cancelled", selectedOrder.cancelledAt]].map(([l, v]) =>
+                  v ? <span key={l} style={{ fontFamily: FM }}><strong style={{ color: "#888" }}>{l}:</strong> {formatDateTime(v)}</span> : null
+                )}
+              </div>
+              {selectedOrder.cancellationReason && (
+                <p style={{ fontFamily: FM, fontSize: "12px", color: "#dc2626" }}>Reason: {selectedOrder.cancellationReason}</p>
+              )}
             </div>
 
-            {/* Timestamps */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-2 text-xs text-[#6B6B6B]">
-              <div>Created: {formatDate(selectedOrder.createdAt)}</div>
-              {selectedOrder.confirmedAt && (
-                <div>Confirmed: {formatDate(selectedOrder.confirmedAt)}</div>
-              )}
-              {selectedOrder.shippedAt && (
-                <div>Shipped: {formatDate(selectedOrder.shippedAt)}</div>
-              )}
-              {selectedOrder.deliveredAt && (
-                <div>Delivered: {formatDate(selectedOrder.deliveredAt)}</div>
-              )}
-              {selectedOrder.cancelledAt && (
-                <div>Cancelled: {formatDate(selectedOrder.cancelledAt)}</div>
-              )}
-            </div>
-            {selectedOrder.cancellationReason && (
-              <div className="mt-2 text-sm text-red-600">
-                Reason: {selectedOrder.cancellationReason}
-              </div>
-            )}
-
-            <div className="flex justify-end gap-3 mt-4 pt-2">
-              <button
-                onClick={() => setDetailModalOpen(false)}
-                className="px-4 py-2 rounded-md border border-[#E5E5E5] text-sm font-medium text-[#1A1A1A] hover:bg-[#F9F9F9]"
-              >
-                Close
-              </button>
+            <div className="flex justify-end px-6 py-4 border-t" style={{ borderColor: "rgba(0,0,0,0.06)" }}>
+              <button onClick={() => setDetailModalOpen(false)}
+                className="px-4 py-2 rounded border text-sm transition-colors hover:bg-black/3"
+                style={{ borderColor: "#E5E5E5", color: "#666", fontFamily: FM }}>Close</button>
             </div>
           </div>
         </div>
       )}
 
-      {/* ─── Status Update Modal ───────────────────────────────────────────── */}
+      {/* ─── Status Modal ─────────────────────────────────────────────────────── */}
       {statusModalOpen && statusTarget && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-lg shadow-xl max-w-md w-full p-6">
-            <h2 className="text-xl font-heading mb-2">Update Order Status</h2>
-            <p className="text-sm text-[#6B6B6B] mb-4">
-              Order #{statusTarget.id.slice(0, 8)} &nbsp;|&nbsp; Current:{" "}
-              <span
-                className={`inline-block px-2 py-0.5 text-xs rounded-full ${STATUS_COLORS[statusTarget.orderStatus]}`}
-              >
-                {statusTarget.orderStatus.charAt(0).toUpperCase() +
-                  statusTarget.orderStatus.slice(1)}
-              </span>
-            </p>
-
-            <form onSubmit={handleStatusUpdate} className="space-y-4">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ backgroundColor: "rgba(0,0,0,0.4)", backdropFilter: "blur(4px)" }}>
+          <div className="bg-white rounded-lg w-full max-w-md" style={{ boxShadow: "0 24px 60px rgba(0,0,0,0.15)" }}>
+            <div className="flex items-center justify-between px-6 py-4 border-b" style={{ borderColor: "rgba(0,0,0,0.07)" }}>
               <div>
-                <label className="block text-sm font-medium text-[#1A1A1A] mb-1">
-                  New Status <span className="text-red-500">*</span>
-                </label>
-                <select
-                  value={newStatus}
-                  onChange={(e) => setNewStatus(e.target.value as OrderStatus)}
-                  className="w-full rounded-md border border-[#E5E5E5] px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#D4AF37]"
-                >
-                  {ORDER_STATUSES.map((s) => (
-                    <option key={s} value={s}>
-                      {s.charAt(0).toUpperCase() + s.slice(1)}
-                      {s === statusTarget.orderStatus ? " (current)" : ""}
-                    </option>
+                <p style={{ fontFamily: FM, fontSize: "10px", color: "#D4AF37", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: "2px" }}>Update</p>
+                <h2 style={{ fontFamily: FH, fontSize: "18px", fontWeight: 700, color: "#111" }}>Order Status</h2>
+              </div>
+              <button onClick={() => setStatusModalOpen(false)} className="w-8 h-8 rounded-full flex items-center justify-center hover:bg-black/5 text-xl" style={{ color: "#888" }}>✕</button>
+            </div>
+            <form onSubmit={handleStatusUpdate} className="px-6 py-5 space-y-4">
+              <div>
+                <label className="block text-xs font-semibold mb-1.5 uppercase tracking-wider" style={{ color: "#666", fontFamily: FM }}>New Status</label>
+                <select value={newStatus} onChange={e => setNewStatus(e.target.value as OrderStatus)}
+                  className="w-full rounded border border-[#E5E5E5] px-3 py-2 text-sm outline-none focus:ring-1 focus:ring-[#D4AF37]"
+                  style={{ fontFamily: FM }}>
+                  {ORDER_STATUSES.map(s => (
+                    <option key={s} value={s}>{cap(s)}{s === statusTarget.orderStatus ? " (current)" : ""}</option>
                   ))}
                 </select>
               </div>
-
               {newStatus === "cancelled" && (
                 <div>
-                  <label className="block text-sm font-medium text-[#1A1A1A] mb-1">
-                    Cancellation Reason
-                  </label>
-                  <textarea
-                    rows={3}
-                    value={cancellationReason}
-                    onChange={(e) => setCancellationReason(e.target.value)}
-                    className="w-full rounded-md border border-[#E5E5E5] px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#D4AF37]"
-                    placeholder="Why is this order being cancelled?"
-                  />
+                  <label className="block text-xs font-semibold mb-1.5 uppercase tracking-wider" style={{ color: "#666", fontFamily: FM }}>Cancellation Reason</label>
+                  <textarea rows={3} value={cancellationReason} onChange={e => setCancellationReason(e.target.value)}
+                    placeholder="Why is this being cancelled?"
+                    className="w-full rounded border border-[#E5E5E5] px-3 py-2 text-sm resize-none outline-none focus:ring-1 focus:ring-[#D4AF37]"
+                    style={{ fontFamily: FM }} />
                 </div>
               )}
-
-              <div className="flex justify-end gap-3 pt-2">
-                <button
-                  type="button"
-                  onClick={() => setStatusModalOpen(false)}
-                  className="px-4 py-2 rounded-md border border-[#E5E5E5] text-sm font-medium text-[#1A1A1A] hover:bg-[#F9F9F9]"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  disabled={
-                    statusSubmitting || newStatus === statusTarget.orderStatus
-                  }
-                  className="px-4 py-2 rounded-md bg-[#D4AF37] text-white text-sm font-medium hover:bg-[#b8952e] disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  {statusSubmitting ? "Updating..." : "Update Status"}
+              <div className="flex justify-end gap-2 pt-1 border-t" style={{ borderColor: "rgba(0,0,0,0.06)" }}>
+                <button type="button" onClick={() => setStatusModalOpen(false)}
+                  className="px-4 py-2 rounded border text-sm hover:bg-black/3"
+                  style={{ borderColor: "#E5E5E5", color: "#666", fontFamily: FM }}>Cancel</button>
+                <button type="submit" disabled={statusSubmitting || newStatus === statusTarget.orderStatus}
+                  className="px-5 py-2 rounded text-sm text-white disabled:opacity-50 transition-colors hover:bg-[#b8952e] active:scale-95"
+                  style={{ backgroundColor: "#D4AF37", fontFamily: FM, fontWeight: 600 }}>
+                  {statusSubmitting ? "Updating…" : "Update"}
                 </button>
               </div>
             </form>
@@ -928,58 +538,34 @@ export default function OrdersSection() {
         </div>
       )}
 
-      {/* ─── Payment Update Modal ──────────────────────────────────────────── */}
+      {/* ─── Payment Modal ────────────────────────────────────────────────────── */}
       {paymentModalOpen && paymentTarget && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-lg shadow-xl max-w-md w-full p-6">
-            <h2 className="text-xl font-heading mb-2">Update Payment Status</h2>
-            <p className="text-sm text-[#6B6B6B] mb-4">
-              Order #{paymentTarget.id.slice(0, 8)} &nbsp;|&nbsp; Current:{" "}
-              <span
-                className={`inline-block px-2 py-0.5 text-xs rounded-full ${PAYMENT_COLORS[paymentTarget.paymentStatus]}`}
-              >
-                {paymentTarget.paymentStatus.charAt(0).toUpperCase() +
-                  paymentTarget.paymentStatus.slice(1)}
-              </span>
-            </p>
-
-            <form onSubmit={handlePaymentUpdate} className="space-y-4">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ backgroundColor: "rgba(0,0,0,0.4)", backdropFilter: "blur(4px)" }}>
+          <div className="bg-white rounded-lg w-full max-w-sm" style={{ boxShadow: "0 24px 60px rgba(0,0,0,0.15)" }}>
+            <div className="flex items-center justify-between px-6 py-4 border-b" style={{ borderColor: "rgba(0,0,0,0.07)" }}>
               <div>
-                <label className="block text-sm font-medium text-[#1A1A1A] mb-1">
-                  Payment Status <span className="text-red-500">*</span>
-                </label>
-                <select
-                  value={newPaymentStatus}
-                  onChange={(e) =>
-                    setNewPaymentStatus(e.target.value as PaymentStatus)
-                  }
-                  className="w-full rounded-md border border-[#E5E5E5] px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#D4AF37]"
-                >
-                  {PAYMENT_STATUSES.map((s) => (
-                    <option key={s} value={s}>
-                      {s.charAt(0).toUpperCase() + s.slice(1)}
-                    </option>
-                  ))}
+                <p style={{ fontFamily: FM, fontSize: "10px", color: "#D4AF37", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: "2px" }}>Update</p>
+                <h2 style={{ fontFamily: FH, fontSize: "18px", fontWeight: 700, color: "#111" }}>Payment Status</h2>
+              </div>
+              <button onClick={() => setPaymentModalOpen(false)} className="w-8 h-8 rounded-full flex items-center justify-center hover:bg-black/5 text-xl" style={{ color: "#888" }}>✕</button>
+            </div>
+            <form onSubmit={handlePaymentUpdate} className="px-6 py-5 space-y-4">
+              <div>
+                <label className="block text-xs font-semibold mb-1.5 uppercase tracking-wider" style={{ color: "#666", fontFamily: FM }}>Payment Status</label>
+                <select value={newPaymentStatus} onChange={e => setNewPaymentStatus(e.target.value as PaymentStatus)}
+                  className="w-full rounded border border-[#E5E5E5] px-3 py-2 text-sm outline-none focus:ring-1 focus:ring-[#D4AF37]"
+                  style={{ fontFamily: FM }}>
+                  {PAYMENT_STATUSES.map(s => <option key={s} value={s}>{cap(s)}</option>)}
                 </select>
               </div>
-
-              <div className="flex justify-end gap-3 pt-2">
-                <button
-                  type="button"
-                  onClick={() => setPaymentModalOpen(false)}
-                  className="px-4 py-2 rounded-md border border-[#E5E5E5] text-sm font-medium text-[#1A1A1A] hover:bg-[#F9F9F9]"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  disabled={
-                    paymentSubmitting ||
-                    newPaymentStatus === paymentTarget.paymentStatus
-                  }
-                  className="px-4 py-2 rounded-md bg-[#D4AF37] text-white text-sm font-medium hover:bg-[#b8952e] disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  {paymentSubmitting ? "Updating..." : "Update Payment"}
+              <div className="flex justify-end gap-2 pt-1 border-t" style={{ borderColor: "rgba(0,0,0,0.06)" }}>
+                <button type="button" onClick={() => setPaymentModalOpen(false)}
+                  className="px-4 py-2 rounded border text-sm hover:bg-black/3"
+                  style={{ borderColor: "#E5E5E5", color: "#666", fontFamily: FM }}>Cancel</button>
+                <button type="submit" disabled={paymentSubmitting || newPaymentStatus === paymentTarget.paymentStatus}
+                  className="px-5 py-2 rounded text-sm text-white disabled:opacity-50 transition-colors hover:bg-[#b8952e] active:scale-95"
+                  style={{ backgroundColor: "#D4AF37", fontFamily: FM, fontWeight: 600 }}>
+                  {paymentSubmitting ? "Updating…" : "Update"}
                 </button>
               </div>
             </form>
@@ -990,25 +576,7 @@ export default function OrdersSection() {
   );
 }
 
-// ─── Stat Card Component ─────────────────────────────────────────────────────
 
-function StatCard({
-  label,
-  value,
-  color,
-}: {
-  label: string;
-  value: number;
-  color?: string;
-}) {
-  return (
-    <div
-      className={`bg-white rounded-lg shadow-sm border border-[#E5E5E5] p-3 text-center`}
-    >
-      <p className="text-xs text-[#6B6B6B] uppercase tracking-wider">{label}</p>
-      <p className={`text-xl font-heading ${color || "text-[#1A1A1A]"}`}>
-        {value}
-      </p>
-    </div>
-  );
-}
+
+
+
