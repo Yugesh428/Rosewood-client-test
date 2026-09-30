@@ -7,7 +7,7 @@ import { toast } from "sonner";
 import ProductImage from "@/components/ui/ProductImage";
 import ProductDashboard from "@/components/admin/products/ProductDashboard";
 
-const FONT_HEADING    = "var(--font-heading), 'Libre Baskerville', serif";
+const FONT_HEADING    = "var(--font-montserrat), 'Montserrat', sans-serif";
 const FONT_MONTSERRAT = "var(--font-montserrat), 'Montserrat', sans-serif";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -405,7 +405,7 @@ export default function ProductSection() {
             <p className="text-[10px] uppercase tracking-[0.25em] mb-1.5" style={{ color: "#D4AF37", fontFamily: FONT_MONTSERRAT, fontWeight: 600 }}>
               Catalogue Management
             </p>
-            <h1 style={{ fontFamily: FONT_HEADING, fontSize: "28px", fontWeight: 700, color: "#111", letterSpacing: "-0.01em" }}>
+            <h1 style={{ fontFamily: FONT_MONTSERRAT, fontSize: "28px", fontWeight: 700, color: "#111", letterSpacing: "-0.01em" }}>
               Products
             </h1>
             {pagination && (

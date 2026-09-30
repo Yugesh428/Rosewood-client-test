@@ -2,6 +2,8 @@
 
 import { useState, useEffect } from "react";
 import { Scale, Calendar } from "lucide-react";
+import Navbar from "@/components/Navbar";
+import Footer from "@/components/home/Footer";
 
 type TermsSection = {
   id: string;
@@ -39,7 +41,9 @@ export default function TermsAndConditionsPage() {
     : new Date();
 
   return (
-    <div style={{ minHeight: "100vh", background: "#F9F9F9", paddingTop: "80px", paddingBottom: "80px" }}>
+    <>
+      <Navbar />
+      <div style={{ minHeight: "100vh", background: "#F9F9F9", paddingTop: "140px", paddingBottom: "80px" }}>
       <div style={{ maxWidth: "900px", margin: "0 auto", padding: "0 24px" }}>
         
         {/* Header */}
@@ -170,6 +174,8 @@ export default function TermsAndConditionsPage() {
           to { transform: rotate(360deg); }
         }
       `}</style>
-    </div>
+      </div>
+      <Footer />
+    </>
   );
 }

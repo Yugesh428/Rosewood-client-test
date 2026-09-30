@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { Trash2, Edit, Eye, EyeOff, Plus, X } from "lucide-react";
 
 const FM = "var(--font-montserrat)";
-const FH = "var(--font-heading)";
+const FH = "var(--font-montserrat)";
 
 type Section = {
   id: string;

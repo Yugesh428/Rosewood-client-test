@@ -4,6 +4,8 @@ import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useSession } from "next-auth/react";
 import { MessageCircle, Send, Loader2 } from "lucide-react";
+import Navbar from "@/components/Navbar";
+import Footer from "@/components/home/Footer";
 
 const categories = [
   "General Inquiry",
@@ -79,7 +81,9 @@ export default function SupportPage() {
   };
 
   return (
-    <div style={{ minHeight: "100vh", background: "#F9F9F9", paddingTop: "80px", paddingBottom: "80px" }}>
+    <>
+      <Navbar />
+      <div style={{ minHeight: "100vh", background: "#F9F9F9", paddingTop: "140px", paddingBottom: "80px" }}>
       <div style={{ maxWidth: "900px", margin: "0 auto", padding: "0 24px" }}>
         
         {/* Header */}
@@ -286,6 +290,8 @@ export default function SupportPage() {
           </div>
         )}
       </div>
-    </div>
+      </div>
+      <Footer />
+    </>
   );
 }

@@ -12,7 +12,7 @@ import { Package, TrendingUp, Tag, ShoppingBag, ChevronDown } from "lucide-react
 import ProductImage from "@/components/ui/ProductImage";
 
 const FM = "var(--font-montserrat), 'Montserrat', sans-serif";
-const FH = "var(--font-heading), 'Libre Baskerville', serif";
+const FH = "var(--font-montserrat), 'Montserrat', sans-serif";
 const BAR_COLORS = ["#D4AF37","#6C8EBF","#9B7FC7","#5DAB8E","#E8A87C","#F06292"];
 
 type TopSellingProduct = {

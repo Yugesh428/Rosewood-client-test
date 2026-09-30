@@ -10,6 +10,7 @@ import { logger } from "@/lib/logger";
 import { AppError, errorResponse } from "@/lib/apiError";
 import { sendMail } from "@/lib/email/mailer";
 import { buildOrderConfirmationEmail } from "@/lib/email/templates/orderConfirmation";
+import { notifyNewOrder, notifyOrderStatusChange } from "../notifications/notificationService";
 
 const CTX = "OrderController";
 
@@ -447,6 +448,11 @@ export async function createOrder(req: NextRequest): Promise<NextResponse> {
       logger.warn(CTX, "createOrder — no email address to send confirmation", { id: order.id });
     }
 
+    // ── Notify admins about new order (fire-and-forget) ───────────────────────
+    notifyNewOrder(order.id, recipientName, totalAmount).catch(err =>
+      logger.error(CTX, "createOrder — notification failed", err)
+    );
+
     return NextResponse.json({ success: true, data: result }, { status: 201 });
   } catch (error) {
     logger.error(CTX, "createOrder — failed", error);
@@ -587,6 +593,13 @@ export async function updateOrderStatus(
     }
 
     const result = await Order.findByPk(id, { include: ORDER_INCLUDE });
+
+    // ── Notify customer about status change (if not guest) ────────────────────
+    if (order.customerId && !order.isGuest) {
+      notifyOrderStatusChange(order.customerId, id, status).catch(err =>
+        logger.error(CTX, "updateOrderStatus — notification failed", err)
+      );
+    }
 
     return NextResponse.json({
       success: true,

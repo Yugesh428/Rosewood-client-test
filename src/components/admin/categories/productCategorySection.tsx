@@ -33,7 +33,7 @@ const API_BASE = "/api/product-categories";
 const PAGE_SIZE = 15; // root nodes per page
 
 // ─── Font helpers ─────────────────────────────────────────────────────────────
-const FONT_HEADING    = "var(--font-heading), 'Libre Baskerville', serif";
+const FONT_HEADING    = "var(--font-montserrat), 'Montserrat', sans-serif";
 const FONT_MONTSERRAT = "var(--font-montserrat), 'Montserrat', sans-serif";
 
 // ─── Build tree ───────────────────────────────────────────────────────────────

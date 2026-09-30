@@ -10,7 +10,7 @@ import {
 import { Tag, Layers, TrendingUp, EyeOff, ChevronDown } from "lucide-react";
 
 const FM = "var(--font-montserrat), 'Montserrat', sans-serif";
-const FH = "var(--font-heading), 'Libre Baskerville', serif";
+const FH = "var(--font-montserrat), 'Montserrat', sans-serif";
 const PIE_COLORS = ["#D4AF37","#6C8EBF","#9B7FC7","#5DAB8E","#E8A87C","#F06292","#4DB6AC","#FF8A65"];
 
 type Category = { id: string; categoryName: string; parentId: string | null; isActive: boolean };

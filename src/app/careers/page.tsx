@@ -3,6 +3,8 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Briefcase, MapPin, Clock, DollarSign, ChevronDown, ChevronUp, Mail, ArrowRight } from "lucide-react";
+import Navbar from "@/components/Navbar";
+import Footer from "@/components/home/Footer";
 
 type Job = {
   id: string;
@@ -59,8 +61,10 @@ export default function CareersPage() {
 
   return (
     <div style={{ minHeight: "100vh", background: "#F9F9F9" }}>
+      <Navbar />
+      
       {/* Hero Section */}
-      <div style={{ padding: "80px 24px 60px", textAlign: "center", position: "relative", overflow: "hidden" }}>
+      <div style={{ padding: "80px 24px 60px", textAlign: "center", position: "relative", overflow: "hidden", marginTop: "60px" }}>
         {/* Background Image */}
         <div 
           style={{ 
@@ -282,6 +286,8 @@ export default function CareersPage() {
           to { transform: rotate(360deg); }
         }
       `}</style>
+      
+      <Footer />
     </div>
   );
 }

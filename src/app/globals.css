@@ -9,6 +9,7 @@
   --font-sans: var(--font-sans);
   --font-mono: var(--font-mono);
   --font-heading: var(--font-heading);
+  --font-montserrat: var(--font-montserrat);
 
   /* ── Apothecary palette mapped to shadcn tokens ── */
   --color-background:         var(--background);
@@ -163,6 +164,9 @@
   }
   h1, h2, h3, h4, h5, h6 {
     font-family: var(--font-heading), Georgia, serif;
+  }
+  .font-montserrat {
+    font-family: var(--font-montserrat), system-ui, sans-serif;
   }
 }
 

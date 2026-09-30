@@ -6,7 +6,7 @@ import { toast } from "sonner";
 import { Upload, Plus } from "lucide-react";
 
 const FM = "var(--font-montserrat), 'Montserrat', sans-serif";
-const FH = "var(--font-heading), 'Libre Baskerville', serif";
+const FH = "var(--font-montserrat), 'Montserrat', sans-serif";
 
 // ─── Types ─────────────────────────────────────────────────────────────────────
 

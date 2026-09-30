@@ -961,21 +961,22 @@ export default function Navbar() {
               {/* Logo */}
               <div className="flex items-center gap-2.5 px-6 pt-6 pb-4 border-b border-black/8">
                 <img
-                  src="/logo.jpeg"
-                  alt="Rosewood Pharmacy"
-                  className="h-9 w-9 object-contain rounded-sm flex-shrink-0"
+                  src="/BrandedLogo.png"
+                  alt="R"
+                  className="h-12 w-auto object-contain flex-shrink-0"
                 />
                 <div className="flex flex-col leading-none">
                   <span style={{
-                    color: "#1A1A1A",
+                    color: "#D4AF37",
                     fontFamily: "var(--font-cinzel), 'Cinzel', serif",
                     fontWeight: 700,
                     fontSize: "20px",
-                    letterSpacing: "0.06em",
+                    letterSpacing: "0.08em",
+                    textShadow: "0 2px 8px rgba(212,175,55,0.3)",
                   }}>
                     ROSEWOOD
                   </span>
-                  <span className="font-sans text-[9px] tracking-[0.28em] uppercase mt-0.5 font-bold" style={{ color: "#2A2A2A", fontFamily: "var(--font-cinzel), 'Cinzel', serif" }}>
+                  <span className="font-bold text-[9px] tracking-[0.35em] uppercase mt-0.5" style={{ color: "#D4AF37", fontFamily: "var(--font-cinzel), 'Cinzel', serif" }}>
                     PHARMACY
                   </span>
                 </div>

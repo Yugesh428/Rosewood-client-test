@@ -29,6 +29,9 @@ import OurValues from "../../features/Ui/AboutUsPage/ourValues/ourValuesModel";
 import ContactInfo from "../../features/Ui/contact/contactInfo/contactInfoModel";
 import ContactForm from "../../features/Ui/contact/contactForm/contactFormModel";
 import SiteTheme from "../../features/siteTheme/siteThemeModel";
+import FeaturedDuoVideo from "../../features/Ui/featuredDuo/featuredDuoVideoModel";
+
+import Notification from "../../features/notifications/notificationModel";
 
 async function migrate() {
   const q = sequelize.getQueryInterface();
@@ -463,6 +466,10 @@ async function migrate() {
     await OurValues.sync({ force: false, alter: false });
     await ContactInfo.sync({ force: false, alter: false });
     await ContactForm.sync({ force: false, alter: false });
+    await FeaturedDuoVideo.sync({ force: false, alter: false });
+    
+    // Notification system table
+    await Notification.sync({ force: false, alter: false });
 
     // ── custom_themes table ────────────────────────────────────────────────────
     const { CustomTheme } = await import("../../features/siteTheme/siteThemeModel");

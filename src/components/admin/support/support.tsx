@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { Trash2, Eye, AlertCircle, CheckCircle, Clock, XCircle, Send } from "lucide-react";
 
 const FM = "var(--font-montserrat)";
-const FH = "var(--font-heading)";
+const FH = "var(--font-montserrat)";
 
 type Ticket = {
   id: string;
