@@ -31,10 +31,10 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           });
 
           const email = (credentials.email as string).toLowerCase().trim();
-          const expectedRole = (credentials.expectedRole as string) ?? "CUSTOMER";
+          const expectedRole = (credentials.expectedRole as string) ?? "";
 
           const { rows } = await pool.query(
-            "SELECT id, name, email, password, role FROM users WHERE email = $1 LIMIT 1",
+            "SELECT id, name, email, password, role, \"isActive\" FROM users WHERE email = $1 LIMIT 1",
             [email],
           );
           await pool.end();
@@ -42,8 +42,11 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           if (rows.length === 0) return null;
           const user = rows[0];
 
-          // Only allow the role that the login form expects
-          if (user.role !== expectedRole) return null;
+          // If expectedRole is provided, enforce it (used internally); otherwise allow any
+          if (expectedRole && user.role !== expectedRole) return null;
+
+          // Check if account is active (email verified)
+          if (!user.isActive) return null;
 
           const valid = await bcrypt.compare(
             credentials.password as string,

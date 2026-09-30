@@ -670,6 +670,13 @@ function AccountDropdown() {
                       className="flex items-center gap-3 px-4 py-2.5 text-xs transition-colors font-sans text-[#1a1a1a] hover:bg-[#f5f5f5]">
                       <WishlistIcon /> My Wishlist
                     </Link>
+                    <Link href="/my-support" onClick={() => setOpen(false)}
+                      className="flex items-center gap-3 px-4 py-2.5 text-xs transition-colors font-sans text-[#1a1a1a] hover:bg-[#f5f5f5]">
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M21.21 15.89A10 10 0 1 1 8 2.83"/><path d="M22 12A10 10 0 0 0 12 2v10z"/>
+                      </svg>
+                      My Support
+                    </Link>
                     <div className="mx-4 my-1 border-t border-black/8" />
                   </>
                 )}

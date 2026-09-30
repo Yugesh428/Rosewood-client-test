@@ -10,12 +10,15 @@ export interface UserAttributes {
   password: string;
   role: UserRole;
   isActive: boolean;
+  otpCode:    string | null;
+  otpExpiry:  Date   | null;
+  otpPurpose: string | null;
   createdAt?: Date;
   updatedAt?: Date;
 }
 
 export interface UserCreationAttributes
-  extends Optional<UserAttributes, "id" | "isActive" | "createdAt" | "updatedAt"> {}
+  extends Optional<UserAttributes, "id" | "isActive" | "otpCode" | "otpExpiry" | "otpPurpose" | "createdAt" | "updatedAt"> {}
 
 class User
   extends Model<UserAttributes, UserCreationAttributes>
@@ -27,6 +30,9 @@ class User
   declare password: string;
   declare role: UserRole;
   declare isActive: boolean;
+  declare otpCode:   CreationOptional<string | null>;
+  declare otpExpiry: CreationOptional<Date | null>;
+  declare otpPurpose:CreationOptional<string | null>;
   declare readonly createdAt: Date;
   declare readonly updatedAt: Date;
 }
@@ -63,6 +69,21 @@ User.init(
       type: DataTypes.BOOLEAN,
       allowNull: false,
       defaultValue: true,
+    },
+    otpCode: {
+      type: DataTypes.STRING(10),
+      allowNull: true,
+      defaultValue: null,
+    },
+    otpExpiry: {
+      type: DataTypes.DATE,
+      allowNull: true,
+      defaultValue: null,
+    },
+    otpPurpose: {
+      type: DataTypes.STRING(50),
+      allowNull: true,
+      defaultValue: null,
     },
   },
   {

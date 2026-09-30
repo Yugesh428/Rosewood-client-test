@@ -794,6 +794,199 @@ async function migrate() {
       console.log("ℹ️  ui_announcement_messages already exists.");
     }
 
+    // ── 17. users — add OTP columns for auth flows ───────────────────────────
+    const userColsNow = await q.describeTable("users");
+    if (!userColsNow["otpCode"]) {
+      console.log("➕ Adding otpCode to users...");
+      await sequelize.query(`ALTER TABLE "users" ADD COLUMN "otpCode" VARCHAR(10) DEFAULT NULL;`);
+      console.log("✅ users.otpCode added.");
+    } else {
+      console.log("ℹ️  users.otpCode already exists.");
+    }
+    if (!userColsNow["otpExpiry"]) {
+      console.log("➕ Adding otpExpiry to users...");
+      await sequelize.query(`ALTER TABLE "users" ADD COLUMN "otpExpiry" TIMESTAMPTZ DEFAULT NULL;`);
+      console.log("✅ users.otpExpiry added.");
+    } else {
+      console.log("ℹ️  users.otpExpiry already exists.");
+    }
+    if (!userColsNow["otpPurpose"]) {
+      console.log("➕ Adding otpPurpose to users...");
+      await sequelize.query(`ALTER TABLE "users" ADD COLUMN "otpPurpose" VARCHAR(50) DEFAULT NULL;`);
+      console.log("✅ users.otpPurpose added.");
+    } else {
+      console.log("ℹ️  users.otpPurpose already exists.");
+    }
+
+    // ── 18. faqs — create table if missing ───────────────────────────────────
+    const faqExists = await q.describeTable("faqs").catch(() => null);
+    if (!faqExists) {
+      console.log("➕ Creating faqs table...");
+      await sequelize.query(`
+        CREATE TABLE IF NOT EXISTS "faqs" (
+          "id"           UUID          NOT NULL DEFAULT gen_random_uuid(),
+          "question"     VARCHAR(500)  NOT NULL,
+          "answer"       TEXT          NOT NULL,
+          "category"     VARCHAR(100)  DEFAULT NULL,
+          "displayOrder" INTEGER       NOT NULL DEFAULT 0,
+          "isActive"     BOOLEAN       NOT NULL DEFAULT TRUE,
+          "createdAt"    TIMESTAMPTZ   NOT NULL DEFAULT NOW(),
+          "updatedAt"    TIMESTAMPTZ   NOT NULL DEFAULT NOW(),
+          PRIMARY KEY ("id")
+        );
+      `);
+      // Seed a few default FAQs
+      await sequelize.query(`
+        INSERT INTO "faqs" ("id","question","answer","category","displayOrder","isActive","createdAt","updatedAt") VALUES
+          (gen_random_uuid(), 'What are your pharmacy opening hours?', 'We are open Monday to Saturday from 9:00 AM to 8:00 PM, and Sunday from 10:00 AM to 6:00 PM.', 'General', 1, true, NOW(), NOW()),
+          (gen_random_uuid(), 'Do you offer free delivery?', 'Yes, we offer free delivery on all orders over £30. Standard delivery typically arrives within 2-3 working days.', 'Delivery', 2, true, NOW(), NOW()),
+          (gen_random_uuid(), 'Can I order prescription medicines online?', 'Yes, we accept valid prescriptions. Simply upload your prescription during checkout and our pharmacist will verify it before dispatch.', 'Prescriptions', 3, true, NOW(), NOW()),
+          (gen_random_uuid(), 'How do I track my order?', 'Once your order is dispatched, you will receive a tracking email. You can also track your order anytime from the Track Order page on our website.', 'Ordering', 4, true, NOW(), NOW()),
+          (gen_random_uuid(), 'What payment methods do you accept?', 'We accept all major credit and debit cards, PayPal, and cash on delivery for local orders.', 'Ordering', 5, true, NOW(), NOW()),
+          (gen_random_uuid(), 'Can I return a product?', 'We accept returns within 14 days for unopened and undamaged products. Please note that prescription medicines cannot be returned for safety reasons.', 'Returns', 6, true, NOW(), NOW());
+      `);
+      console.log("✅ faqs table created and seeded.");
+    } else {
+      console.log("ℹ️  faqs table already exists.");
+    }
+
+    // ── 19. support_tickets — create table if missing ────────────────────────
+    const supportExists = await q.describeTable("support_tickets").catch(() => null);
+    if (!supportExists) {
+      console.log("➕ Creating support_tickets table...");
+      await sequelize.query(`
+        DO $$ BEGIN
+          CREATE TYPE "enum_support_tickets_status" AS ENUM('open','in_progress','resolved','closed');
+        EXCEPTION WHEN duplicate_object THEN null; END $$;
+      `);
+      await sequelize.query(`
+        CREATE TABLE IF NOT EXISTS "support_tickets" (
+          "id"             UUID          NOT NULL DEFAULT gen_random_uuid(),
+          "ticketNumber"   VARCHAR(20)   NOT NULL UNIQUE,
+          "customerId"     UUID          DEFAULT NULL,
+          "customerName"   VARCHAR(255)  NOT NULL,
+          "customerEmail"  VARCHAR(255)  NOT NULL,
+          "customerPhone"  VARCHAR(50)   DEFAULT NULL,
+          "subject"        VARCHAR(500)  NOT NULL,
+          "category"       VARCHAR(100)  NOT NULL DEFAULT 'General',
+          "status"         "enum_support_tickets_status" NOT NULL DEFAULT 'open',
+          "message"        TEXT          NOT NULL,
+          "assignedTo"     UUID          DEFAULT NULL,
+          "adminReply"     TEXT          DEFAULT NULL,
+          "resolvedAt"     TIMESTAMPTZ   DEFAULT NULL,
+          "closedAt"       TIMESTAMPTZ   DEFAULT NULL,
+          "createdAt"      TIMESTAMPTZ   NOT NULL DEFAULT NOW(),
+          "updatedAt"      TIMESTAMPTZ   NOT NULL DEFAULT NOW(),
+          PRIMARY KEY ("id")
+        );
+        CREATE INDEX idx_support_ticket_number ON "support_tickets" ("ticketNumber");
+        CREATE INDEX idx_support_customer_email ON "support_tickets" ("customerEmail");
+        CREATE INDEX idx_support_status ON "support_tickets" ("status");
+        CREATE INDEX idx_support_category ON "support_tickets" ("category");
+        CREATE INDEX idx_support_created ON "support_tickets" ("createdAt");
+      `);
+      console.log("✅ support_tickets table created.");
+    } else {
+      console.log("ℹ️  support_tickets table already exists.");
+      
+      // Update existing table - remove priority, change notes to adminReply
+      const supportCols = await q.describeTable("support_tickets");
+      if (supportCols["priority"]) {
+        console.log("🔄 Updating support_tickets table schema...");
+        await sequelize.query(`ALTER TABLE "support_tickets" DROP COLUMN IF EXISTS "priority";`);
+        console.log("✅ Removed priority column.");
+      }
+      if (supportCols["notes"] && !supportCols["adminReply"]) {
+        console.log("🔄 Renaming notes to adminReply...");
+        await sequelize.query(`ALTER TABLE "support_tickets" RENAME COLUMN "notes" TO "adminReply";`);
+        console.log("✅ Renamed notes to adminReply.");
+      } else if (!supportCols["adminReply"]) {
+        console.log("➕ Adding adminReply column...");
+        await sequelize.query(`ALTER TABLE "support_tickets" ADD COLUMN "adminReply" TEXT DEFAULT NULL;`);
+        console.log("✅ Added adminReply column.");
+      }
+    }
+
+    // ── 20. job_postings — create table if missing ───────────────────────────
+    const jobsExists = await q.describeTable("job_postings").catch(() => null);
+    if (!jobsExists) {
+      console.log("➕ Creating job_postings table...");
+      await sequelize.query(`
+        DO $$ BEGIN
+          CREATE TYPE "enum_job_postings_employmentType" AS ENUM('full-time','part-time','contract','internship');
+        EXCEPTION WHEN duplicate_object THEN null; END $$;
+      `);
+      await sequelize.query(`
+        CREATE TABLE IF NOT EXISTS "job_postings" (
+          "id"               UUID          NOT NULL DEFAULT gen_random_uuid(),
+          "title"            VARCHAR(200)  NOT NULL,
+          "department"       VARCHAR(100)  NOT NULL,
+          "location"         VARCHAR(200)  NOT NULL,
+          "employmentType"   "enum_job_postings_employmentType" NOT NULL DEFAULT 'full-time',
+          "salaryRange"      VARCHAR(100)  DEFAULT NULL,
+          "description"      TEXT          NOT NULL,
+          "requirements"     TEXT          NOT NULL,
+          "responsibilities" TEXT          NOT NULL,
+          "benefits"         TEXT          DEFAULT NULL,
+          "applicationEmail" VARCHAR(255)  NOT NULL,
+          "isActive"         BOOLEAN       NOT NULL DEFAULT TRUE,
+          "displayOrder"     INTEGER       NOT NULL DEFAULT 0,
+          "createdAt"        TIMESTAMPTZ   NOT NULL DEFAULT NOW(),
+          "updatedAt"        TIMESTAMPTZ   NOT NULL DEFAULT NOW(),
+          PRIMARY KEY ("id")
+        );
+        CREATE INDEX idx_job_active ON "job_postings" ("isActive");
+        CREATE INDEX idx_job_department ON "job_postings" ("department");
+        CREATE INDEX idx_job_employment ON "job_postings" ("employmentType");
+        CREATE INDEX idx_job_order ON "job_postings" ("displayOrder");
+      `);
+      console.log("✅ job_postings table created.");
+    } else {
+      console.log("ℹ️  job_postings table already exists.");
+    }
+
+    // ── 21. terms_sections — create table if missing ──────────────────────────
+    const termsExists = await q.describeTable("terms_sections").catch(() => null);
+    if (!termsExists) {
+      console.log("➕ Creating terms_sections table...");
+      await sequelize.query(`
+        CREATE TABLE IF NOT EXISTS "terms_sections" (
+          "id"           UUID          NOT NULL DEFAULT gen_random_uuid(),
+          "title"        VARCHAR(200)  NOT NULL,
+          "content"      TEXT          NOT NULL,
+          "displayOrder" INTEGER       NOT NULL DEFAULT 0,
+          "isActive"     BOOLEAN       NOT NULL DEFAULT TRUE,
+          "createdAt"    TIMESTAMPTZ   NOT NULL DEFAULT NOW(),
+          "updatedAt"    TIMESTAMPTZ   NOT NULL DEFAULT NOW(),
+          PRIMARY KEY ("id")
+        );
+        CREATE INDEX idx_terms_order ON "terms_sections" ("displayOrder");
+        CREATE INDEX idx_terms_active ON "terms_sections" ("isActive");
+      `);
+      
+      // Seed default terms sections
+      await sequelize.query(`
+        INSERT INTO "terms_sections" ("id","title","content","displayOrder","isActive","createdAt","updatedAt") VALUES
+          (gen_random_uuid(), 'Introduction', 'Welcome to Rosewood Pharmacy. These terms and conditions outline the rules and regulations for the use of our website and services. By accessing this website and placing an order, you accept these terms and conditions in full. Do not continue to use Rosewood Pharmacy if you do not accept all of the terms and conditions stated on this page.', 1, true, NOW(), NOW()),
+          (gen_random_uuid(), 'License to Use', 'Unless otherwise stated, Rosewood Pharmacy and/or its licensors own the intellectual property rights for all material on this website. All intellectual property rights are reserved. You may view and/or print pages from our website for your own personal use subject to restrictions set in these terms and conditions.', 2, true, NOW(), NOW()),
+          (gen_random_uuid(), 'Product Information', 'We strive to ensure that all product information, including descriptions, images, and pricing, is accurate. However, we do not warrant that product descriptions or other content is accurate, complete, reliable, current, or error-free. If a product offered by us is not as described, your sole remedy is to return it in unused condition.', 3, true, NOW(), NOW()),
+          (gen_random_uuid(), 'Prescription Medicines', 'Prescription medicines can only be supplied against a valid UK prescription issued by a qualified healthcare professional. We reserve the right to refuse to dispense any prescription if our pharmacist has concerns about its validity or appropriateness. All prescriptions are subject to verification and approval by our registered pharmacist before dispensing.', 4, true, NOW(), NOW()),
+          (gen_random_uuid(), 'Ordering and Payment', 'When you place an order with us, you are making an offer to purchase the products. We reserve the right to accept or decline your order for any reason. Payment must be made in full at the time of ordering. We accept all major credit and debit cards, PayPal, and other payment methods as displayed on our website. All prices are in GBP and include VAT where applicable.', 5, true, NOW(), NOW()),
+          (gen_random_uuid(), 'Delivery', 'We aim to dispatch orders within 1-2 working days. Delivery times vary depending on your location and the delivery method selected. Standard delivery typically takes 2-3 working days. We are not responsible for delays caused by courier services or circumstances beyond our control. A signature may be required upon delivery for certain items.', 6, true, NOW(), NOW()),
+          (gen_random_uuid(), 'Returns and Refunds', 'You have the right to cancel your order and return products within 14 days of receipt, except for prescription medicines and items with broken hygiene seals. Products must be returned in their original, unopened packaging. Refunds will be processed within 14 days of receiving your returned items. Return shipping costs are the responsibility of the customer unless the product is faulty.', 7, true, NOW(), NOW()),
+          (gen_random_uuid(), 'Refund Exclusions', 'Unfortunately, you cannot return medicines, including prescription medicines, or anything that has a hygiene seal or tamper-proof seal that has been broken. Also, no returns can be processed for contraceptive items. You have the right to reasonably inspect your items as you would in a shop, but you cannot return items that you have used, unless you are returning them because they are damaged or faulty.', 8, true, NOW(), NOW()),
+          (gen_random_uuid(), 'PayPal Refunds', 'If you have paid for your order by PayPal, you can only return your order by post. PayPal orders cannot be returned to store at this time.', 9, true, NOW(), NOW()),
+          (gen_random_uuid(), 'Liability', 'Our maximum liability for our failure to fulfil an order that we are legally bound to fulfil will be limited to the price paid by you for that order. We are not liable for any indirect, consequential, or special damages arising from your use of our products or services.', 10, true, NOW(), NOW()),
+          (gen_random_uuid(), 'Privacy and Data Protection', 'We are committed to protecting your privacy and personal data in accordance with the UK Data Protection Act 2018 and GDPR. Please refer to our Privacy Policy for detailed information on how we collect, use, and protect your personal information.', 11, true, NOW(), NOW()),
+          (gen_random_uuid(), 'Changes to Terms', 'We reserve the right to modify these terms and conditions at any time. Changes will be effective immediately upon posting on our website. Your continued use of our website and services following any changes constitutes acceptance of those changes.', 12, true, NOW(), NOW()),
+          (gen_random_uuid(), 'Governing Law', 'These terms and conditions are governed by and construed in accordance with the laws of England and Wales. Any disputes arising from these terms shall be subject to the exclusive jurisdiction of the courts of England and Wales.', 13, true, NOW(), NOW()),
+          (gen_random_uuid(), 'Contact Information', 'If you have any questions about these Terms and Conditions, please contact us at: Email: legal@rosewoodpharmacy.co.uk, Phone: +44 (0)20 7935 5555, Address: 26 Wigmore Street, London W1U 2RH', 14, true, NOW(), NOW());
+      `);
+      console.log("✅ terms_sections table created and seeded.");
+    } else {
+      console.log("ℹ️  terms_sections table already exists.");
+    }
+
     console.log("\n🎉 Migration complete.");
   } catch (error) {
     console.error("❌ Migration failed:", error);

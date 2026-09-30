@@ -81,7 +81,12 @@ export default function RegisterPage() {
         return;
       }
 
-      router.push("/login?registered=1");
+      // If email verification is required, redirect to verify page
+      if (data.requiresVerification) {
+        router.push(`/verify-email?email=${encodeURIComponent(data.email)}`);
+      } else {
+        router.push("/login?registered=1");
+      }
     } catch {
       setError("Something went wrong. Please try again.");
     } finally {

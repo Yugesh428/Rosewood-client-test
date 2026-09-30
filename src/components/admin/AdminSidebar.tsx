@@ -24,6 +24,9 @@ import {
   FileBarChart,
   LineChart,
   FileText,
+  Headphones,
+  UserCheck,
+  Scale,
 } from "lucide-react";
 
 interface NavItem {
@@ -43,6 +46,10 @@ const navItems: NavItem[] = [
   { icon: Briefcase,       label: "STAFF",        href: "/admin/staff"        },
   { icon: Star,            label: "REVIEWS",      href: "/admin/reviews"      },
   { icon: MessageSquare,   label: "FEEDBACK",     href: "/admin/feedback"       },
+  { icon: Headphones,      label: "SUPPORT",      href: "/admin/support"        },
+  { icon: UserCheck,       label: "CAREERS",      href: "/admin/careers"        },
+  { icon: HelpCircle,      label: "FAQ",           href: "/admin/faq"            },
+  { icon: Scale,           label: "TERMS",         href: "/admin/terms"          },
   { icon: FileText,        label: "BLOGS",        href: "/admin/blogs"          },
   { icon: FileBarChart,    label: "REPORTS",      href: "/admin/reports"        },
   { icon: LineChart,       label: "ANALYTICS",    href: "/admin/analytics"      },

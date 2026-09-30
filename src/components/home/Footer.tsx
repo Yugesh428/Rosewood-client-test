@@ -4,9 +4,9 @@ import Link from "next/link";
 import { useTheme } from "@/context/ThemeContext";
 import { navLinks } from "@/components/Navbar";
 
-const legal   = ["Privacy Policy", "Terms of Service", "Cookie Policy", "Accessibility"];
-const support = ["FAQ", "Shipping & Delivery", "Returns & Refunds", "Contact Us", "Track Your Order"];
-const services = ["Prescription Services", "Health Consultations", "Loyalty Programme", "Gift Cards", "Wholesale Enquiries"];
+const legal   = ["Terms & Conditions", "Privacy Policy", "Terms of Service", "Cookie Policy", "Accessibility"];
+const support = ["FAQ", "Support", "Shipping & Delivery", "Returns & Refunds", "Contact Us", "Track Your Order"];
+const services = ["Prescription Services", "Health Consultations", "Loyalty Programme", "Gift Cards", "Wholesale Enquiries", "Careers"];
 
 export default function Footer() {
   const { theme } = useTheme();
@@ -137,7 +137,7 @@ export default function Footer() {
                 {services.map((item) => (
                   <li key={item}>
                     <Link
-                      href="#"
+                      href={item === "Careers" ? "/careers" : "#"}
                       className="footer-link text-sm font-sans font-medium transition-colors duration-200 flex items-center gap-1.5 group"
                       style={{ color: "#ffffff" }}
                     >
@@ -158,7 +158,11 @@ export default function Footer() {
                 {support.map((item) => (
                   <li key={item}>
                     <Link
-                      href="#"
+                      href={
+                        item === "FAQ" ? "/faq" :
+                        item === "Support" ? "/support" :
+                        "#"
+                      }
                       className="footer-link text-sm font-sans font-medium transition-colors duration-200 flex items-center gap-1.5 group"
                       style={{ color: "#ffffff" }}
                     >
@@ -172,7 +176,7 @@ export default function Footer() {
                 {legal.map((item) => (
                   <Link
                     key={item}
-                    href="#"
+                    href={item === "Terms & Conditions" ? "/terms-and-conditions" : "#"}
                     className="footer-link block text-xs font-sans transition-colors duration-200 mb-2"
                     style={{ color: "rgba(255,255,255,0.6)" }}
                   >
