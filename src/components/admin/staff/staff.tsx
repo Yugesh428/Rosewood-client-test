@@ -6,7 +6,7 @@ import { toast } from "sonner";
 import { Upload, Plus } from "lucide-react";
 
 const FM = "var(--font-montserrat), 'Montserrat', sans-serif";
-const FH = "var(--font-montserrat), 'Montserrat', sans-serif";
+const FH = "var(--font-cinzel), 'Cinzel', serif";
 
 // ─── Types ─────────────────────────────────────────────────────────────────────
 
@@ -227,20 +227,68 @@ export default function StaffSection() {
             )}
           </div>
           <div className="flex items-center gap-2">
-            <button onClick={() => { setBulkFile(null); setBulkJson(""); setBulkResult(null); setBulkModalOpen(true); }}
-              className="flex items-center gap-1.5 px-3.5 py-2 rounded border text-sm font-medium transition-all duration-200 active:scale-95"
-              style={{ borderColor: "#D4AF37", color: "#D4AF37", fontFamily: FM, backgroundColor: "transparent" }}
-              onMouseEnter={e => { const el = e.currentTarget as HTMLElement; el.style.backgroundColor="#D4AF37"; el.style.color="#fff"; el.style.transform="translateY(-1px)"; el.style.boxShadow="0 4px 16px rgba(212,175,55,0.3)"; }}
-              onMouseLeave={e => { const el = e.currentTarget as HTMLElement; el.style.backgroundColor="transparent"; el.style.color="#D4AF37"; el.style.transform="translateY(0)"; el.style.boxShadow="none"; }}>
-              <Upload className="w-3.5 h-3.5" /> Bulk Import
-            </button>
-            <button onClick={openCreateModal}
-              className="flex items-center gap-1.5 px-4 py-2 rounded text-sm text-white font-semibold transition-all duration-200 active:scale-95"
-              style={{ backgroundColor: "#D4AF37", fontFamily: FM, fontWeight: 600, boxShadow: "0 2px 8px rgba(212,175,55,0.35)" }}
-              onMouseEnter={e => { const el = e.currentTarget as HTMLElement; el.style.backgroundColor="#b8952e"; el.style.transform="translateY(-1px)"; el.style.boxShadow="0 4px 16px rgba(212,175,55,0.45)"; }}
-              onMouseLeave={e => { const el = e.currentTarget as HTMLElement; el.style.backgroundColor="#D4AF37"; el.style.transform="translateY(0)"; el.style.boxShadow="0 2px 8px rgba(212,175,55,0.35)"; }}>
-              <Plus className="w-3.5 h-3.5" /> Add Staff
-            </button>
+            <button 
+              onClick={() => { setBulkFile(null); setBulkJson(""); setBulkResult(null); setBulkModalOpen(true); }}
+              className="btn-flip-staff btn-flip-staff-bulk active:scale-95"
+              data-front="📤 Bulk Import"
+              data-back="📤 Bulk Import"
+            />
+            <button 
+              onClick={openCreateModal}
+              className="btn-flip-staff btn-flip-staff-add active:scale-95"
+              data-front="➕ Add Staff"
+              data-back="➕ Add Staff"
+            />
+            
+            <style>{`
+              .btn-flip-staff {
+                opacity: 1; outline: 0; line-height: 38px;
+                position: relative; text-align: center;
+                letter-spacing: 0.04em; display: inline-block;
+                text-decoration: none;
+                font-family: var(--font-montserrat),'Montserrat',sans-serif;
+                font-size: 13px; font-weight: 700;
+                cursor: pointer; border: none; background: transparent; padding: 0;
+              }
+              .btn-flip-staff:hover:after  { opacity: 1; transform: translateY(0) rotateX(0); }
+              .btn-flip-staff:hover:before { opacity: 0; transform: translateY(50%) rotateX(90deg); }
+              .btn-flip-staff:after {
+                top: 0; left: 0; opacity: 0; width: 100%; display: block;
+                transition: 0.42s cubic-bezier(0.23,1,0.32,1);
+                position: absolute; content: attr(data-back);
+                transform: translateY(-50%) rotateX(90deg);
+                padding: 0 16px; border-radius: 6px;
+              }
+              .btn-flip-staff:before {
+                top: 0; left: 0; opacity: 1; display: block;
+                padding: 0 16px; line-height: 38px;
+                transition: 0.42s cubic-bezier(0.23,1,0.32,1);
+                position: relative; content: attr(data-front);
+                transform: translateY(0) rotateX(0); border-radius: 6px;
+              }
+              
+              .btn-flip-staff-bulk:before {
+                background: linear-gradient(135deg, rgba(212,175,55,0.12) 0%, rgba(212,175,55,0.05) 100%);
+                color: #D4AF37; border: 1px solid #D4AF37;
+                box-shadow: 0 1px 3px rgba(212,175,55,0.2), inset 0 1px 0 rgba(255,255,255,0.6);
+              }
+              .btn-flip-staff-bulk:after {
+                background: linear-gradient(135deg, #D4AF37 0%, #C9A52E 100%);
+                color: #fff; border: 1px solid rgba(212,175,55,0.6);
+                box-shadow: 0 4px 16px rgba(212,175,55,0.3), inset 0 1px 0 rgba(255,255,255,0.2);
+              }
+              
+              .btn-flip-staff-add:before {
+                background: linear-gradient(135deg, #D4AF37 0%, #C9A52E 100%);
+                color: #fff; border: 1px solid rgba(212,175,55,0.6);
+                box-shadow: 0 2px 8px rgba(212,175,55,0.35), inset 0 1px 0 rgba(255,255,255,0.2);
+              }
+              .btn-flip-staff-add:after {
+                background: linear-gradient(135deg, #1A1A1A 0%, #2a2a2a 100%);
+                color: #D4AF37; border: 1px solid rgba(255,255,255,0.08);
+                box-shadow: 0 4px 16px rgba(0,0,0,0.28), inset 0 1px 0 rgba(255,255,255,0.06);
+              }
+            `}</style>
           </div>
         </div>
 

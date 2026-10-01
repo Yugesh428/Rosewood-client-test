@@ -7,7 +7,7 @@ import { toast } from "sonner";
 import ProductImage from "@/components/ui/ProductImage";
 import ProductDashboard from "@/components/admin/products/ProductDashboard";
 
-const FONT_HEADING    = "var(--font-montserrat), 'Montserrat', sans-serif";
+const FONT_HEADING    = "var(--font-cinzel), 'Cinzel', serif";
 const FONT_MONTSERRAT = "var(--font-montserrat), 'Montserrat', sans-serif";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -405,7 +405,7 @@ export default function ProductSection() {
             <p className="text-[10px] uppercase tracking-[0.25em] mb-1.5" style={{ color: "#D4AF37", fontFamily: FONT_MONTSERRAT, fontWeight: 600 }}>
               Catalogue Management
             </p>
-            <h1 style={{ fontFamily: FONT_MONTSERRAT, fontSize: "28px", fontWeight: 700, color: "#111", letterSpacing: "-0.01em" }}>
+            <h1 style={{ fontFamily: FONT_HEADING, fontSize: "28px", fontWeight: 700, color: "#111", letterSpacing: "-0.01em" }}>
               Products
             </h1>
             {pagination && (
@@ -415,20 +415,98 @@ export default function ProductSection() {
             )}
           </div>
           <div className="flex flex-wrap gap-2">
-            <button onClick={openCreate}
-              className="flex items-center gap-1.5 px-4 py-2 rounded text-sm text-white font-semibold transition-all duration-200 active:scale-95"
-              style={{ backgroundColor: "#D4AF37", fontFamily: FONT_MONTSERRAT, fontWeight: 600, boxShadow: "0 2px 8px rgba(212,175,55,0.35)" }}
-              onMouseEnter={e => { (e.currentTarget as HTMLElement).style.backgroundColor = "#b8952e"; (e.currentTarget as HTMLElement).style.boxShadow = "0 4px 16px rgba(212,175,55,0.45)"; (e.currentTarget as HTMLElement).style.transform = "translateY(-1px)"; }}
-              onMouseLeave={e => { (e.currentTarget as HTMLElement).style.backgroundColor = "#D4AF37"; (e.currentTarget as HTMLElement).style.boxShadow = "0 2px 8px rgba(212,175,55,0.35)"; (e.currentTarget as HTMLElement).style.transform = "translateY(0)"; }}>
-              + Add Product
-            </button>
-            <button onClick={() => { setBulkFile(null); setBulkJson(""); setBulkResult(null); setBulkOpen(true); }}
-              className="flex items-center gap-1.5 px-4 py-2 rounded border text-sm font-medium transition-all duration-200 active:scale-95"
-              style={{ borderColor: "#D4AF37", color: "#D4AF37", fontFamily: FONT_MONTSERRAT, fontWeight: 500, backgroundColor: "transparent" }}
-              onMouseEnter={e => { (e.currentTarget as HTMLElement).style.backgroundColor = "#D4AF37"; (e.currentTarget as HTMLElement).style.color = "#fff"; (e.currentTarget as HTMLElement).style.transform = "translateY(-1px)"; (e.currentTarget as HTMLElement).style.boxShadow = "0 4px 16px rgba(212,175,55,0.3)"; }}
-              onMouseLeave={e => { (e.currentTarget as HTMLElement).style.backgroundColor = "transparent"; (e.currentTarget as HTMLElement).style.color = "#D4AF37"; (e.currentTarget as HTMLElement).style.transform = "translateY(0)"; (e.currentTarget as HTMLElement).style.boxShadow = "none"; }}>
-              Bulk Import
-            </button>
+            {/* ── Add Product — 3D flip button ── */}
+            <style>{`
+              .btn-flip-admin {
+                opacity: 1;
+                outline: 0;
+                line-height: 38px;
+                position: relative;
+                text-align: center;
+                letter-spacing: 0.08em;
+                display: inline-block;
+                text-decoration: none;
+                font-family: var(--font-montserrat), 'Montserrat', sans-serif;
+                font-size: 13px;
+                font-weight: 700;
+                text-transform: uppercase;
+                cursor: pointer;
+                border: none;
+                background: transparent;
+                padding: 0;
+              }
+              .btn-flip-admin:hover:after {
+                opacity: 1;
+                transform: translateY(0) rotateX(0);
+              }
+              .btn-flip-admin:hover:before {
+                opacity: 0;
+                transform: translateY(50%) rotateX(90deg);
+              }
+              .btn-flip-admin:after {
+                top: 0; left: 0;
+                opacity: 0;
+                width: 100%;
+                display: block;
+                transition: 0.45s cubic-bezier(0.23, 1, 0.32, 1);
+                position: absolute;
+                content: attr(data-back);
+                transform: translateY(-50%) rotateX(90deg);
+                padding: 0 20px;
+                border-radius: 6px;
+              }
+              .btn-flip-admin:before {
+                top: 0; left: 0;
+                opacity: 1;
+                display: block;
+                padding: 0 20px;
+                line-height: 38px;
+                transition: 0.45s cubic-bezier(0.23, 1, 0.32, 1);
+                position: relative;
+                content: attr(data-front);
+                transform: translateY(0) rotateX(0);
+                border-radius: 6px;
+              }
+              /* Gold solid — Add Product */
+              .btn-flip-gold:before {
+                background: linear-gradient(135deg, #D4AF37 0%, #C9A52E 100%);
+                color: #1A1A1A;
+                box-shadow: 0 2px 8px rgba(212,175,55,0.45), 0 1px 2px rgba(0,0,0,0.10), inset 0 1px 0 rgba(255,255,255,0.2);
+                border: 1px solid rgba(212,175,55,0.6);
+              }
+              .btn-flip-gold:after {
+                background: linear-gradient(135deg, #1A1A1A 0%, #2a2a2a 100%);
+                color: #D4AF37;
+                box-shadow: 0 4px 16px rgba(0,0,0,0.25), inset 0 1px 0 rgba(255,255,255,0.08);
+                border: 1px solid rgba(255,255,255,0.08);
+              }
+              /* Outline amber — Bulk Import */
+              .btn-flip-outline:before {
+                background: linear-gradient(135deg, rgba(212,175,55,0.12) 0%, rgba(212,175,55,0.05) 100%);
+                color: #b8952e;
+                box-shadow: 0 1px 4px rgba(212,175,55,0.18), inset 0 1px 0 rgba(255,255,255,0.6);
+                border: 1px solid rgba(212,175,55,0.5);
+              }
+              .btn-flip-outline:after {
+                background: linear-gradient(135deg, #D4AF37 0%, #C9A52E 100%);
+                color: #1A1A1A;
+                box-shadow: 0 4px 14px rgba(212,175,55,0.4), inset 0 1px 0 rgba(255,255,255,0.18);
+                border: 1px solid rgba(212,175,55,0.6);
+              }
+            `}</style>
+
+            <button
+              onClick={openCreate}
+              className="btn-flip-admin btn-flip-gold active:scale-95"
+              data-front="+ Add Product"
+              data-back="+ Add Product"
+            />
+            <button
+              onClick={() => { setBulkFile(null); setBulkJson(""); setBulkResult(null); setBulkOpen(true); }}
+              className="btn-flip-admin btn-flip-outline active:scale-95"
+              data-front="Bulk Import"
+              data-back="Bulk Import"
+            />
           </div>
         </div>
 
@@ -1123,11 +1201,31 @@ export default function ProductSection() {
               {/* Modal footer */}
               <div className="flex justify-end gap-3 px-6 py-4 border-t border-[#E5E5E5]">
                 <button type="button" onClick={() => setModalOpen(false)}
-                  className="px-4 py-2 rounded border border-[#E5E5E5] text-sm font-medium hover:bg-[#FAFAFA]">
+                  style={{
+                    padding: "8px 20px", borderRadius: "6px", fontSize: "14px", fontWeight: 600,
+                    background: "linear-gradient(135deg, #F5F5F5 0%, #EBEBEB 100%)",
+                    color: "#444", border: "1px solid #D5D5D5", cursor: "pointer",
+                    boxShadow: "0 1px 3px rgba(0,0,0,0.08), inset 0 1px 0 rgba(255,255,255,0.8)",
+                    transition: "all 0.15s ease",
+                  }}
+                  onMouseEnter={e => { const el = e.currentTarget as HTMLElement; el.style.transform = "translateY(-1px)"; el.style.boxShadow = "0 4px 10px rgba(0,0,0,0.10), inset 0 1px 0 rgba(255,255,255,0.8)"; }}
+                  onMouseLeave={e => { const el = e.currentTarget as HTMLElement; el.style.transform = "translateY(0)"; el.style.boxShadow = "0 1px 3px rgba(0,0,0,0.08), inset 0 1px 0 rgba(255,255,255,0.8)"; }}
+                >
                   Cancel
                 </button>
                 <button type="submit" disabled={submitting}
-                  className="px-4 py-2 rounded bg-[#D4AF37] text-white text-sm font-medium hover:bg-[#b8952e] disabled:opacity-50 disabled:cursor-not-allowed">
+                  style={{
+                    padding: "8px 20px", borderRadius: "6px", fontSize: "14px", fontWeight: 700,
+                    background: submitting ? "#9CA3AF" : "linear-gradient(135deg, #D4AF37 0%, #C9A52E 100%)",
+                    color: "#1A1A1A", cursor: submitting ? "not-allowed" : "pointer",
+                    border: submitting ? "1px solid #9CA3AF" : "1px solid rgba(212,175,55,0.6)",
+                    boxShadow: submitting ? "none" : "0 2px 8px rgba(212,175,55,0.35), inset 0 1px 0 rgba(255,255,255,0.18)",
+                    opacity: submitting ? 0.65 : 1,
+                    transition: "all 0.15s ease",
+                  }}
+                  onMouseEnter={e => { if (!submitting) { const el = e.currentTarget as HTMLElement; el.style.transform = "translateY(-1px)"; el.style.boxShadow = "0 6px 16px rgba(212,175,55,0.40), inset 0 1px 0 rgba(255,255,255,0.18)"; }}}
+                  onMouseLeave={e => { if (!submitting) { const el = e.currentTarget as HTMLElement; el.style.transform = "translateY(0)"; el.style.boxShadow = "0 2px 8px rgba(212,175,55,0.35), inset 0 1px 0 rgba(255,255,255,0.18)"; }}}
+                >
                   {submitting ? "Saving..." : editingProduct ? "Update Product" : "Create Product"}
                 </button>
               </div>
@@ -1311,11 +1409,31 @@ export default function ProductSection() {
               )}
               <div className="flex justify-end gap-3">
                 <button type="button" onClick={() => setBulkOpen(false)}
-                  className="px-4 py-2 rounded border border-[#E5E5E5] text-sm font-medium hover:bg-[#FAFAFA]">
+                  style={{
+                    padding: "8px 20px", borderRadius: "6px", fontSize: "14px", fontWeight: 600,
+                    background: "linear-gradient(135deg, #F5F5F5 0%, #EBEBEB 100%)",
+                    color: "#444", border: "1px solid #D5D5D5", cursor: "pointer",
+                    boxShadow: "0 1px 3px rgba(0,0,0,0.08), inset 0 1px 0 rgba(255,255,255,0.8)",
+                    transition: "all 0.15s ease",
+                  }}
+                  onMouseEnter={e => { const el = e.currentTarget as HTMLElement; el.style.transform = "translateY(-1px)"; el.style.boxShadow = "0 4px 10px rgba(0,0,0,0.10), inset 0 1px 0 rgba(255,255,255,0.8)"; }}
+                  onMouseLeave={e => { const el = e.currentTarget as HTMLElement; el.style.transform = "translateY(0)"; el.style.boxShadow = "0 1px 3px rgba(0,0,0,0.08), inset 0 1px 0 rgba(255,255,255,0.8)"; }}
+                >
                   Close
                 </button>
                 <button type="submit" disabled={bulkSubmitting}
-                  className="px-4 py-2 rounded bg-[#D4AF37] text-white text-sm font-medium hover:bg-[#b8952e] disabled:opacity-50 disabled:cursor-not-allowed">
+                  style={{
+                    padding: "8px 20px", borderRadius: "6px", fontSize: "14px", fontWeight: 700,
+                    background: bulkSubmitting ? "#9CA3AF" : "linear-gradient(135deg, #D4AF37 0%, #C9A52E 100%)",
+                    color: "#1A1A1A", cursor: bulkSubmitting ? "not-allowed" : "pointer",
+                    border: bulkSubmitting ? "1px solid #9CA3AF" : "1px solid rgba(212,175,55,0.6)",
+                    boxShadow: bulkSubmitting ? "none" : "0 2px 8px rgba(212,175,55,0.35), inset 0 1px 0 rgba(255,255,255,0.18)",
+                    opacity: bulkSubmitting ? 0.65 : 1,
+                    transition: "all 0.15s ease",
+                  }}
+                  onMouseEnter={e => { if (!bulkSubmitting) { const el = e.currentTarget as HTMLElement; el.style.transform = "translateY(-1px)"; el.style.boxShadow = "0 6px 16px rgba(212,175,55,0.40), inset 0 1px 0 rgba(255,255,255,0.18)"; }}}
+                  onMouseLeave={e => { if (!bulkSubmitting) { const el = e.currentTarget as HTMLElement; el.style.transform = "translateY(0)"; el.style.boxShadow = "0 2px 8px rgba(212,175,55,0.35), inset 0 1px 0 rgba(255,255,255,0.18)"; }}}
+                >
                   {bulkSubmitting ? "Importing..." : "Import"}
                 </button>
               </div>

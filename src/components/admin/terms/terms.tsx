@@ -3,8 +3,8 @@
 import { useState, useEffect } from "react";
 import { Trash2, Edit, Eye, EyeOff, Plus, X } from "lucide-react";
 
-const FM = "var(--font-montserrat)";
-const FH = "var(--font-montserrat)";
+const FM = "var(--font-montserrat), 'Montserrat', sans-serif";
+const FH = "var(--font-cinzel), 'Cinzel', serif";
 
 type Section = {
   id: string;
@@ -133,7 +133,7 @@ export default function TermsAdmin() {
   return (
     <div style={{ fontFamily: FM }}>
       {/* Header */}
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "start", marginBottom: "32px" }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "32px", paddingTop: "8px", paddingRight: "40px", paddingLeft: "40px" }}>
         <div>
           <h1 style={{ fontFamily: FH, fontSize: "32px", fontWeight: 700, color: "#1A1A1A", marginBottom: "8px" }}>
             Terms & Conditions
@@ -144,11 +144,49 @@ export default function TermsAdmin() {
         </div>
         <button
           onClick={openCreateModal}
-          style={{ padding: "12px 24px", background: "#D4AF37", color: "#1A1A1A", border: "none", borderRadius: "8px", fontSize: "14px", fontWeight: 700, cursor: "pointer", display: "flex", alignItems: "center", gap: "8px" }}
-        >
-          <Plus size={18} />
-          Add Section
-        </button>
+          className="btn-flip-terms btn-flip-terms-add active:scale-95"
+          data-front="📄 Add Section"
+          data-back="📄 Add Section"
+        />
+        
+        <style>{`
+          .btn-flip-terms {
+            opacity: 1; outline: 0; line-height: 40px;
+            position: relative; text-align: center;
+            letter-spacing: 0.04em; display: inline-block;
+            text-decoration: none;
+            font-family: var(--font-montserrat),'Montserrat',sans-serif;
+            font-size: 14px; font-weight: 700;
+            cursor: pointer; border: none; background: transparent; padding: 0;
+          }
+          .btn-flip-terms:hover:after  { opacity: 1; transform: translateY(0) rotateX(0); }
+          .btn-flip-terms:hover:before { opacity: 0; transform: translateY(50%) rotateX(90deg); }
+          .btn-flip-terms:after {
+            top: 0; left: 0; opacity: 0; width: 100%; display: block;
+            transition: 0.42s cubic-bezier(0.23,1,0.32,1);
+            position: absolute; content: attr(data-back);
+            transform: translateY(-50%) rotateX(90deg);
+            padding: 0 22px; border-radius: 8px;
+          }
+          .btn-flip-terms:before {
+            top: 0; left: 0; opacity: 1; display: block;
+            padding: 0 22px; line-height: 40px;
+            transition: 0.42s cubic-bezier(0.23,1,0.32,1);
+            position: relative; content: attr(data-front);
+            transform: translateY(0) rotateX(0); border-radius: 8px;
+          }
+          
+          .btn-flip-terms-add:before {
+            background: linear-gradient(135deg, #D4AF37 0%, #C9A52E 100%);
+            color: #1A1A1A; border: 1px solid rgba(212,175,55,0.6);
+            box-shadow: 0 2px 8px rgba(212,175,55,0.4), 0 1px 2px rgba(0,0,0,0.08), inset 0 1px 0 rgba(255,255,255,0.18);
+          }
+          .btn-flip-terms-add:after {
+            background: linear-gradient(135deg, #1A1A1A 0%, #2a2a2a 100%);
+            color: #D4AF37; border: 1px solid rgba(255,255,255,0.08);
+            box-shadow: 0 6px 18px rgba(0,0,0,0.28), inset 0 1px 0 rgba(255,255,255,0.06);
+          }
+        `}</style>
       </div>
 
       {/* Sections List */}
@@ -194,24 +232,60 @@ export default function TermsAdmin() {
                     <div style={{ display: "flex", gap: "8px", justifyContent: "flex-end" }}>
                       <button
                         onClick={() => handleToggle(section.id)}
-                        style={{ padding: "8px", border: "1px solid #E5E5E5", borderRadius: "6px", background: "#fff", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}
+                        style={{ 
+                          padding: "6px 14px", border: `1px solid ${section.isActive ? "rgba(107,114,128,0.3)" : "rgba(34,197,94,0.35)"}`,
+                          borderRadius: "6px",
+                          background: section.isActive ? "linear-gradient(135deg, rgba(107,114,128,0.10) 0%, rgba(107,114,128,0.05) 100%)" : "linear-gradient(135deg, rgba(34,197,94,0.12) 0%, rgba(34,197,94,0.06) 100%)",
+                          cursor: "pointer", display: "flex", alignItems: "center", gap: "6px",
+                          fontSize: "11px", fontWeight: 600, color: section.isActive ? "#6B7280" : "#16A34A",
+                          fontFamily: FM, whiteSpace: "nowrap",
+                          boxShadow: "0 1px 3px rgba(0,0,0,0.07), inset 0 1px 0 rgba(255,255,255,0.6)",
+                          transition: "all 0.15s ease",
+                        }}
+                        onMouseEnter={e => { const el = e.currentTarget as HTMLElement; el.style.transform = "translateY(-1px)"; el.style.boxShadow = "0 4px 10px rgba(0,0,0,0.10), inset 0 1px 0 rgba(255,255,255,0.6)"; }}
+                        onMouseLeave={e => { const el = e.currentTarget as HTMLElement; el.style.transform = "translateY(0)"; el.style.boxShadow = "0 1px 3px rgba(0,0,0,0.07), inset 0 1px 0 rgba(255,255,255,0.6)"; }}
                         title={section.isActive ? "Deactivate" : "Activate"}
                       >
-                        {section.isActive ? <EyeOff size={16} color="#6B6B6B" /> : <Eye size={16} color="#16A34A" />}
+                        {section.isActive ? <EyeOff size={13} /> : <Eye size={13} />}
+                        {section.isActive ? "Hide" : "Show"}
                       </button>
                       <button
                         onClick={() => openEditModal(section)}
-                        style={{ padding: "8px", border: "1px solid #E5E5E5", borderRadius: "6px", background: "#fff", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}
+                        style={{ 
+                          padding: "6px 14px", border: "1px solid rgba(212,175,55,0.35)",
+                          borderRadius: "6px",
+                          background: "linear-gradient(135deg, rgba(212,175,55,0.12) 0%, rgba(212,175,55,0.06) 100%)",
+                          cursor: "pointer", display: "flex", alignItems: "center", gap: "6px",
+                          fontSize: "11px", fontWeight: 600, color: "#b8952e",
+                          fontFamily: FM, whiteSpace: "nowrap",
+                          boxShadow: "0 1px 3px rgba(212,175,55,0.15), inset 0 1px 0 rgba(255,255,255,0.6)",
+                          transition: "all 0.15s ease",
+                        }}
+                        onMouseEnter={e => { const el = e.currentTarget as HTMLElement; el.style.background = "linear-gradient(135deg, rgba(212,175,55,0.22) 0%, rgba(212,175,55,0.12) 100%)"; el.style.transform = "translateY(-1px)"; el.style.boxShadow = "0 4px 10px rgba(212,175,55,0.2), inset 0 1px 0 rgba(255,255,255,0.6)"; }}
+                        onMouseLeave={e => { const el = e.currentTarget as HTMLElement; el.style.background = "linear-gradient(135deg, rgba(212,175,55,0.12) 0%, rgba(212,175,55,0.06) 100%)"; el.style.transform = "translateY(0)"; el.style.boxShadow = "0 1px 3px rgba(212,175,55,0.15), inset 0 1px 0 rgba(255,255,255,0.6)"; }}
                         title="Edit"
                       >
-                        <Edit size={16} color="#1A1A1A" />
+                        <Edit size={13} />
+                        Edit
                       </button>
                       <button
                         onClick={() => handleDelete(section.id)}
-                        style={{ padding: "8px", border: "1px solid #FEE2E2", borderRadius: "6px", background: "#FEF2F2", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}
+                        style={{ 
+                          padding: "6px 14px", border: "1px solid rgba(239,68,68,0.3)",
+                          borderRadius: "6px",
+                          background: "linear-gradient(135deg, rgba(239,68,68,0.10) 0%, rgba(239,68,68,0.05) 100%)",
+                          cursor: "pointer", display: "flex", alignItems: "center", gap: "6px",
+                          fontSize: "11px", fontWeight: 600, color: "#DC2626",
+                          fontFamily: FM, whiteSpace: "nowrap",
+                          boxShadow: "0 1px 3px rgba(239,68,68,0.12), inset 0 1px 0 rgba(255,255,255,0.6)",
+                          transition: "all 0.15s ease",
+                        }}
+                        onMouseEnter={e => { const el = e.currentTarget as HTMLElement; el.style.background = "linear-gradient(135deg, rgba(239,68,68,0.18) 0%, rgba(239,68,68,0.10) 100%)"; el.style.transform = "translateY(-1px)"; el.style.boxShadow = "0 4px 10px rgba(239,68,68,0.2), inset 0 1px 0 rgba(255,255,255,0.6)"; }}
+                        onMouseLeave={e => { const el = e.currentTarget as HTMLElement; el.style.background = "linear-gradient(135deg, rgba(239,68,68,0.10) 0%, rgba(239,68,68,0.05) 100%)"; el.style.transform = "translateY(0)"; el.style.boxShadow = "0 1px 3px rgba(239,68,68,0.12), inset 0 1px 0 rgba(255,255,255,0.6)"; }}
                         title="Delete"
                       >
-                        <Trash2 size={16} color="#DC2626" />
+                        <Trash2 size={13} />
+                        Delete
                       </button>
                     </div>
                   </td>
@@ -285,14 +359,18 @@ export default function TermsAdmin() {
                 <button
                   type="button"
                   onClick={() => setShowModal(false)}
-                  style={{ padding: "12px 24px", background: "#E5E5E5", color: "#1A1A1A", border: "none", borderRadius: "6px", fontSize: "14px", fontWeight: 600, cursor: "pointer" }}
+                  style={{ padding: "10px 22px", background: "linear-gradient(135deg, #F5F5F5 0%, #EBEBEB 100%)", color: "#444", border: "1px solid #D5D5D5", borderRadius: "6px", fontSize: "14px", fontWeight: 600, cursor: "pointer", boxShadow: "0 1px 3px rgba(0,0,0,0.08), inset 0 1px 0 rgba(255,255,255,0.8)", transition: "all 0.15s ease" }}
+                  onMouseEnter={e => { const el = e.currentTarget as HTMLElement; el.style.transform = "translateY(-1px)"; el.style.boxShadow = "0 4px 10px rgba(0,0,0,0.10), inset 0 1px 0 rgba(255,255,255,0.8)"; }}
+                  onMouseLeave={e => { const el = e.currentTarget as HTMLElement; el.style.transform = "translateY(0)"; el.style.boxShadow = "0 1px 3px rgba(0,0,0,0.08), inset 0 1px 0 rgba(255,255,255,0.8)"; }}
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={saving}
-                  style={{ padding: "12px 24px", background: saving ? "#6B6B6B" : "#D4AF37", color: "#1A1A1A", border: "none", borderRadius: "6px", fontSize: "14px", fontWeight: 700, cursor: saving ? "not-allowed" : "pointer" }}
+                  style={{ padding: "10px 22px", background: saving ? "#9CA3AF" : "linear-gradient(135deg, #D4AF37 0%, #C9A52E 100%)", color: "#1A1A1A", border: saving ? "1px solid #9CA3AF" : "1px solid rgba(212,175,55,0.6)", borderRadius: "6px", fontSize: "14px", fontWeight: 700, cursor: saving ? "not-allowed" : "pointer", boxShadow: saving ? "none" : "0 2px 8px rgba(212,175,55,0.35), inset 0 1px 0 rgba(255,255,255,0.18)", transition: "all 0.15s ease" }}
+                  onMouseEnter={e => { if (!saving) { const el = e.currentTarget as HTMLElement; el.style.transform = "translateY(-1px)"; el.style.boxShadow = "0 6px 16px rgba(212,175,55,0.4), inset 0 1px 0 rgba(255,255,255,0.18)"; }}}
+                  onMouseLeave={e => { if (!saving) { const el = e.currentTarget as HTMLElement; el.style.transform = "translateY(0)"; el.style.boxShadow = "0 2px 8px rgba(212,175,55,0.35), inset 0 1px 0 rgba(255,255,255,0.18)"; }}}
                 >
                   {saving ? "Saving..." : editingSection ? "Update" : "Create"}
                 </button>

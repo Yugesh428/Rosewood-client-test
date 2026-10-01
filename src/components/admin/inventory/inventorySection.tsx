@@ -6,7 +6,7 @@ import { toast } from "sonner";
 import InventoryDashboard from "./InventoryDashboard";
 
 const FM = "var(--font-montserrat), 'Montserrat', sans-serif";
-const FH = "var(--font-montserrat), 'Montserrat', sans-serif";
+const FH = "var(--font-cinzel), 'Cinzel', serif";
 
 // ─── Types ─────────────────────────────────────────────────────────────────────
 
@@ -223,13 +223,47 @@ export default function InventorySection() {
           </div>
           <button
             onClick={openCreateModal}
-            className="flex items-center gap-1.5 px-4 py-2 rounded text-sm text-white font-semibold transition-all duration-200 active:scale-95"
-            style={{ backgroundColor: "#D4AF37", fontFamily: FM, fontWeight: 600, boxShadow: "0 2px 8px rgba(212,175,55,0.35)" }}
-            onMouseEnter={e => { const el = e.currentTarget as HTMLElement; el.style.backgroundColor="#b8952e"; el.style.transform="translateY(-1px)"; el.style.boxShadow="0 4px 16px rgba(212,175,55,0.45)"; }}
-            onMouseLeave={e => { const el = e.currentTarget as HTMLElement; el.style.backgroundColor="#D4AF37"; el.style.transform="translateY(0)"; el.style.boxShadow="0 2px 8px rgba(212,175,55,0.35)"; }}
-          >
-            + Add Batch
-          </button>
+            className="btn-flip-inv btn-flip-inv-gold active:scale-95"
+            data-front="+ Add Batch"
+            data-back="+ Add Batch"
+          />
+          <style>{`
+            .btn-flip-inv {
+              opacity: 1; outline: 0; line-height: 38px;
+              position: relative; text-align: center;
+              letter-spacing: 0.07em; display: inline-block;
+              text-decoration: none;
+              font-family: var(--font-montserrat),'Montserrat',sans-serif;
+              font-size: 13px; font-weight: 700; text-transform: uppercase;
+              cursor: pointer; border: none; background: transparent; padding: 0;
+            }
+            .btn-flip-inv:hover:after  { opacity: 1; transform: translateY(0) rotateX(0); }
+            .btn-flip-inv:hover:before { opacity: 0; transform: translateY(50%) rotateX(90deg); }
+            .btn-flip-inv:after {
+              top: 0; left: 0; opacity: 0; width: 100%; display: block;
+              transition: 0.42s cubic-bezier(0.23,1,0.32,1);
+              position: absolute; content: attr(data-back);
+              transform: translateY(-50%) rotateX(90deg);
+              padding: 0 20px; border-radius: 6px;
+            }
+            .btn-flip-inv:before {
+              top: 0; left: 0; opacity: 1; display: block;
+              padding: 0 20px; line-height: 38px;
+              transition: 0.42s cubic-bezier(0.23,1,0.32,1);
+              position: relative; content: attr(data-front);
+              transform: translateY(0) rotateX(0); border-radius: 6px;
+            }
+            .btn-flip-inv-gold:before {
+              background: linear-gradient(135deg,#D4AF37 0%,#C9A52E 100%);
+              color: #1A1A1A; border: 1px solid rgba(212,175,55,0.6);
+              box-shadow: 0 2px 8px rgba(212,175,55,0.42),0 1px 2px rgba(0,0,0,0.08),inset 0 1px 0 rgba(255,255,255,0.2);
+            }
+            .btn-flip-inv-gold:after {
+              background: linear-gradient(135deg,#1A1A1A 0%,#2a2a2a 100%);
+              color: #D4AF37; border: 1px solid rgba(255,255,255,0.08);
+              box-shadow: 0 4px 16px rgba(0,0,0,0.28),inset 0 1px 0 rgba(255,255,255,0.06);
+            }
+          `}</style>
         </div>
 
         {/* Dashboard */}
@@ -341,8 +375,17 @@ export default function InventorySection() {
                         <td className="px-4 py-2.5">
                           <div className="flex items-center justify-end gap-1">
                             <button onClick={() => openEditModal(item)}
-                              className="flex items-center gap-1 px-2.5 py-1 rounded text-[11px] font-semibold transition-colors whitespace-nowrap"
-                              style={{ fontFamily: FM, backgroundColor: "rgba(212,175,55,0.08)", color: "#b8952e", border: "1px solid rgba(212,175,55,0.25)" }}>
+                              className="flex items-center gap-1 px-2.5 py-1 rounded text-[11px] font-semibold active:scale-95 whitespace-nowrap"
+                              style={{
+                                fontFamily: FM,
+                                background: "linear-gradient(135deg,rgba(212,175,55,0.14) 0%,rgba(212,175,55,0.06) 100%)",
+                                color: "#b8952e",
+                                border: "1px solid rgba(212,175,55,0.35)",
+                                boxShadow: "0 1px 3px rgba(212,175,55,0.15),inset 0 1px 0 rgba(255,255,255,0.6)",
+                                transition: "all 0.15s ease",
+                              }}
+                              onMouseEnter={e => { const el = e.currentTarget as HTMLElement; el.style.background="linear-gradient(135deg,rgba(212,175,55,0.24) 0%,rgba(212,175,55,0.12) 100%)"; el.style.transform="translateY(-1px)"; el.style.boxShadow="0 4px 10px rgba(212,175,55,0.2),inset 0 1px 0 rgba(255,255,255,0.6)"; }}
+                              onMouseLeave={e => { const el = e.currentTarget as HTMLElement; el.style.background="linear-gradient(135deg,rgba(212,175,55,0.14) 0%,rgba(212,175,55,0.06) 100%)"; el.style.transform="translateY(0)"; el.style.boxShadow="0 1px 3px rgba(212,175,55,0.15),inset 0 1px 0 rgba(255,255,255,0.6)"; }}>
                               <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
                                 <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
                                 <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
@@ -350,13 +393,19 @@ export default function InventorySection() {
                               Edit
                             </button>
                             <button onClick={() => handleToggle(item.id)}
-                              className="flex items-center gap-1 px-2.5 py-1 rounded text-[11px] font-semibold transition-colors whitespace-nowrap"
+                              className="flex items-center gap-1 px-2.5 py-1 rounded text-[11px] font-semibold active:scale-95 whitespace-nowrap"
                               style={{
                                 fontFamily: FM,
-                                backgroundColor: item.isActive ? "rgba(239,68,68,0.08)" : "rgba(34,197,94,0.08)",
+                                background: item.isActive
+                                  ? "linear-gradient(135deg,rgba(239,68,68,0.10) 0%,rgba(239,68,68,0.05) 100%)"
+                                  : "linear-gradient(135deg,rgba(34,197,94,0.12) 0%,rgba(34,197,94,0.06) 100%)",
                                 color: item.isActive ? "#dc2626" : "#16a34a",
-                                border: `1px solid ${item.isActive ? "rgba(239,68,68,0.2)" : "rgba(34,197,94,0.2)"}`,
-                              }}>
+                                border: `1px solid ${item.isActive ? "rgba(239,68,68,0.3)" : "rgba(34,197,94,0.35)"}`,
+                                boxShadow: "0 1px 3px rgba(0,0,0,0.07),inset 0 1px 0 rgba(255,255,255,0.6)",
+                                transition: "all 0.15s ease",
+                              }}
+                              onMouseEnter={e => { const el = e.currentTarget as HTMLElement; el.style.transform="translateY(-1px)"; el.style.boxShadow="0 4px 10px rgba(0,0,0,0.10),inset 0 1px 0 rgba(255,255,255,0.6)"; }}
+                              onMouseLeave={e => { const el = e.currentTarget as HTMLElement; el.style.transform="translateY(0)"; el.style.boxShadow="0 1px 3px rgba(0,0,0,0.07),inset 0 1px 0 rgba(255,255,255,0.6)"; }}>
                               {item.isActive ? (
                                 <><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"/><path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/><line x1="1" y1="1" x2="23" y2="23"/></svg> Hide</>
                               ) : (
@@ -467,11 +516,37 @@ export default function InventorySection() {
 
               <div className="flex justify-end gap-2 pt-2 border-t" style={{ borderColor: "rgba(0,0,0,0.06)" }}>
                 <button type="button" onClick={() => setModalOpen(false)}
-                  className="px-4 py-2 rounded border text-sm transition-colors hover:bg-black/3"
-                  style={{ borderColor: "#E5E5E5", color: "#666", fontFamily: FM }}>Cancel</button>
+                  className="px-4 py-2 rounded text-sm active:scale-95"
+                  style={{
+                    fontFamily: FM,
+                    fontWeight: 600,
+                    background: "linear-gradient(135deg,rgba(107,114,128,0.10) 0%,rgba(107,114,128,0.05) 100%)",
+                    color: "#6B7280",
+                    border: "1px solid rgba(107,114,128,0.25)",
+                    boxShadow: "0 2px 6px rgba(0,0,0,0.05),inset 0 1px 0 rgba(255,255,255,0.6)",
+                    transition: "all 0.15s ease",
+                  }}
+                  onMouseEnter={e => { const el = e.currentTarget as HTMLElement; el.style.transform="translateY(-1px)"; el.style.boxShadow="0 4px 10px rgba(0,0,0,0.08),inset 0 1px 0 rgba(255,255,255,0.6)"; }}
+                  onMouseLeave={e => { const el = e.currentTarget as HTMLElement; el.style.transform="translateY(0)"; el.style.boxShadow="0 2px 6px rgba(0,0,0,0.05),inset 0 1px 0 rgba(255,255,255,0.6)"; }}>
+                  Cancel
+                </button>
                 <button type="submit" disabled={submitting}
-                  className="px-5 py-2 rounded text-sm text-white transition-all duration-200 hover:bg-[#b8952e] disabled:opacity-50 active:scale-95"
-                  style={{ backgroundColor: "#D4AF37", fontFamily: FM, fontWeight: 600 }}>
+                  className="px-5 py-2 rounded text-sm active:scale-95"
+                  style={{
+                    fontFamily: FM,
+                    fontWeight: 700,
+                    background: submitting 
+                      ? "linear-gradient(135deg,rgba(212,175,55,0.5) 0%,rgba(201,165,46,0.5) 100%)"
+                      : "linear-gradient(135deg,#D4AF37 0%,#C9A52E 100%)",
+                    color: "#1A1A1A",
+                    border: "1px solid rgba(212,175,55,0.6)",
+                    boxShadow: "0 2px 8px rgba(212,175,55,0.42),0 1px 2px rgba(0,0,0,0.08),inset 0 1px 0 rgba(255,255,255,0.2)",
+                    transition: "all 0.15s ease",
+                    opacity: submitting ? 0.6 : 1,
+                    cursor: submitting ? "not-allowed" : "pointer",
+                  }}
+                  onMouseEnter={e => { if (!submitting) { const el = e.currentTarget as HTMLElement; el.style.transform="translateY(-2px)"; el.style.boxShadow="0 6px 16px rgba(212,175,55,0.5),0 2px 4px rgba(0,0,0,0.1),inset 0 1px 0 rgba(255,255,255,0.2)"; } }}
+                  onMouseLeave={e => { if (!submitting) { const el = e.currentTarget as HTMLElement; el.style.transform="translateY(0)"; el.style.boxShadow="0 2px 8px rgba(212,175,55,0.42),0 1px 2px rgba(0,0,0,0.08),inset 0 1px 0 rgba(255,255,255,0.2)"; } }}>
                   {submitting ? "Saving…" : editingItem ? "Update" : "Create"}
                 </button>
               </div>

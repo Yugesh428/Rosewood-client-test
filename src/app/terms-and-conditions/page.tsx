@@ -51,10 +51,10 @@ export default function TermsAndConditionsPage() {
           <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "12px", marginBottom: "16px" }}>
             <Scale size={32} color="#D4AF37" />
           </div>
-          <h1 style={{ fontFamily: "var(--font-heading)", fontSize: "40px", fontWeight: 700, color: "#1A1A1A", margin: "0 0 16px 0" }}>
+          <h1 style={{ fontFamily: "var(--font-cinzel), 'Cinzel', serif", fontSize: "40px", fontWeight: 700, color: "#1A1A1A", margin: "0 0 16px 0" }}>
             Terms & Conditions
           </h1>
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "8px", fontSize: "14px", color: "#6B6B6B", fontFamily: "var(--font-montserrat)" }}>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "8px", fontSize: "14px", color: "#6B6B6B", fontFamily: "var(--font-sans), 'Inter', sans-serif" }}>
             <Calendar size={16} />
             <span>Last updated: {lastUpdated.toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })}</span>
           </div>
@@ -78,7 +78,7 @@ export default function TermsAndConditionsPage() {
                 }}
               >
                 <h2 style={{ 
-                  fontFamily: "var(--font-heading)", 
+                  fontFamily: "var(--font-cinzel), 'Cinzel', serif", 
                   fontSize: "24px", 
                   fontWeight: 700, 
                   color: "#1A1A1A", 
@@ -98,7 +98,8 @@ export default function TermsAndConditionsPage() {
                     borderRadius: "50%",
                     fontSize: "14px",
                     fontWeight: 700,
-                    color: "#D4AF37"
+                    color: "#D4AF37",
+                    fontFamily: "var(--font-montserrat), 'Montserrat', sans-serif",
                   }}>
                     {section.displayOrder}
                   </span>
@@ -108,7 +109,7 @@ export default function TermsAndConditionsPage() {
                   fontSize: "15px", 
                   color: "#374151", 
                   lineHeight: "1.8", 
-                  fontFamily: "var(--font-montserrat)",
+                  fontFamily: "var(--font-sans), 'Inter', sans-serif",
                   whiteSpace: "pre-wrap"
                 }}>
                   {section.content}
@@ -128,7 +129,7 @@ export default function TermsAndConditionsPage() {
                 fontSize: "13px", 
                 color: "#6B6B6B", 
                 lineHeight: "1.6", 
-                fontFamily: "var(--font-montserrat)",
+                fontFamily: "var(--font-sans), 'Inter', sans-serif",
                 margin: 0
               }}>
                 <strong style={{ color: "#1A1A1A" }}>Note:</strong> These terms and conditions are in addition to our standard terms of sale. By using our website and services, you acknowledge that you have read, understood, and agree to be bound by these terms. If you have any questions or concerns about these terms, please contact our customer service team.
@@ -139,10 +140,10 @@ export default function TermsAndConditionsPage() {
 
         {/* Contact Section */}
         <div style={{ marginTop: "32px", padding: "24px", background: "#fff", border: "1px solid #E5E5E5", borderRadius: "12px", textAlign: "center" }}>
-          <h3 style={{ fontFamily: "var(--font-heading)", fontSize: "18px", fontWeight: 700, color: "#1A1A1A", marginBottom: "12px" }}>
+          <h3 style={{ fontFamily: "var(--font-cinzel), 'Cinzel', serif", fontSize: "18px", fontWeight: 700, color: "#1A1A1A", marginBottom: "12px" }}>
             Questions About Our Terms?
           </h3>
-          <p style={{ fontSize: "14px", color: "#6B6B6B", fontFamily: "var(--font-montserrat)", marginBottom: "16px" }}>
+          <p style={{ fontSize: "14px", color: "#6B6B6B", fontFamily: "var(--font-sans), 'Inter', sans-serif", marginBottom: "16px" }}>
             If you have any questions regarding our Terms & Conditions, please don't hesitate to contact us.
           </p>
           <a

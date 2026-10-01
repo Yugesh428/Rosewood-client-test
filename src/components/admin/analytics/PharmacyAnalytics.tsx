@@ -68,8 +68,8 @@ interface AnalyticsData {
 
 // ---- Constants --------------------------------------------------------------
 
-const FH = "var(--font-heading),'Libre Baskerville',serif";    // KPI numbers, section titles
-const FM = "var(--font-montserrat),'Montserrat',sans-serif";  // labels, body, tables
+const FH = "var(--font-cinzel), 'Cinzel', serif";
+const FM = "var(--font-montserrat), 'Montserrat', sans-serif";
 
 
 const PERIODS = [
@@ -505,32 +505,73 @@ export default function PharmacyAnalytics() {
             </div>
 
             <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-              <button onClick={fetchData} disabled={loading} style={{
-                display: "flex", alignItems: "center", gap: 6, padding: "8px 14px",
-                background: "#FFFFFF", border: "1px solid #E5E5E5",
-                borderRadius: 8, color: "#374151", fontSize: 13,
-                fontFamily: FM, cursor: loading ? "not-allowed" : "pointer", fontWeight: 600,
-                transition: "all 0.15s", opacity: loading ? 0.6 : 1,
-              }}
-                onMouseEnter={(e) => !loading && (e.currentTarget.style.background = "#F9FAFB")}
-                onMouseLeave={(e) => (e.currentTarget.style.background = "#FFFFFF")}>
-                <RefreshCw size={14} style={{
-                  animation: loading ? "spin 0.8s linear infinite" : "none",
-                }} />
-                Refresh
-              </button>
+              <button 
+                onClick={fetchData} 
+                disabled={loading}
+                className="btn-flip-analytics btn-flip-analytics-refresh active:scale-95"
+                data-front="🔄 Refresh"
+                data-back="🔄 Refresh"
+              />
 
-              <button style={{
-                display: "flex", alignItems: "center", gap: 6, padding: "8px 14px",
-                background: "#D4AF37", border: "none", borderRadius: 8, color: "#1A1A1A",
-                fontSize: 13, fontFamily: FM, cursor: "pointer", fontWeight: 600,
-                transition: "all 0.15s",
-              }}
-                onMouseEnter={(e) => (e.currentTarget.style.background = "#C9A532")}
-                onMouseLeave={(e) => (e.currentTarget.style.background = "#D4AF37")}>
-                <Download size={14} />
-                Export
-              </button>
+              <button 
+                className="btn-flip-analytics btn-flip-analytics-export active:scale-95"
+                data-front="📥 Export"
+                data-back="📥 Export"
+              />
+              
+              <style>{`
+                .btn-flip-analytics {
+                  opacity: 1; outline: 0; line-height: 38px;
+                  position: relative; text-align: center;
+                  letter-spacing: 0.05em; display: inline-block;
+                  text-decoration: none;
+                  font-family: var(--font-montserrat),'Montserrat',sans-serif;
+                  font-size: 13px; font-weight: 700;
+                  cursor: pointer; border: none; background: transparent; padding: 0;
+                }
+                .btn-flip-analytics:disabled {
+                  cursor: not-allowed;
+                  opacity: 0.6;
+                }
+                .btn-flip-analytics:not(:disabled):hover:after  { opacity: 1; transform: translateY(0) rotateX(0); }
+                .btn-flip-analytics:not(:disabled):hover:before { opacity: 0; transform: translateY(50%) rotateX(90deg); }
+                .btn-flip-analytics:after {
+                  top: 0; left: 0; opacity: 0; width: 100%; display: block;
+                  transition: 0.42s cubic-bezier(0.23,1,0.32,1);
+                  position: absolute; content: attr(data-back);
+                  transform: translateY(-50%) rotateX(90deg);
+                  padding: 0 16px; border-radius: 8px;
+                }
+                .btn-flip-analytics:before {
+                  top: 0; left: 0; opacity: 1; display: block;
+                  padding: 0 16px; line-height: 38px;
+                  transition: 0.42s cubic-bezier(0.23,1,0.32,1);
+                  position: relative; content: attr(data-front);
+                  transform: translateY(0) rotateX(0); border-radius: 8px;
+                }
+                
+                .btn-flip-analytics-refresh:before {
+                  background: linear-gradient(135deg,rgba(107,114,128,0.10) 0%,rgba(107,114,128,0.05) 100%);
+                  color: #6B7280; border: 1px solid rgba(107,114,128,0.25);
+                  box-shadow: 0 2px 6px rgba(0,0,0,0.05),inset 0 1px 0 rgba(255,255,255,0.6);
+                }
+                .btn-flip-analytics-refresh:after {
+                  background: linear-gradient(135deg,#4B5563 0%,#374151 100%);
+                  color: #E5E7EB; border: 1px solid rgba(255,255,255,0.1);
+                  box-shadow: 0 4px 12px rgba(0,0,0,0.2),inset 0 1px 0 rgba(255,255,255,0.15);
+                }
+                
+                .btn-flip-analytics-export:before {
+                  background: linear-gradient(135deg,#D4AF37 0%,#C9A52E 100%);
+                  color: #1A1A1A; border: 1px solid rgba(212,175,55,0.6);
+                  box-shadow: 0 2px 8px rgba(212,175,55,0.42),0 1px 2px rgba(0,0,0,0.08),inset 0 1px 0 rgba(255,255,255,0.2);
+                }
+                .btn-flip-analytics-export:after {
+                  background: linear-gradient(135deg,#1A1A1A 0%,#2a2a2a 100%);
+                  color: #D4AF37; border: 1px solid rgba(255,255,255,0.08);
+                  box-shadow: 0 4px 16px rgba(0,0,0,0.28),inset 0 1px 0 rgba(255,255,255,0.06);
+                }
+              `}</style>
             </div>
           </div>
 
@@ -626,13 +667,23 @@ export default function PharmacyAnalytics() {
                     </SectionTitle>
                     <div style={{ display: "flex", gap: 6 }}>
                       {(["revenue", "orders", "profit"] as const).map(m => (
-                        <button key={m} onClick={() => setChartMode(m)} style={{
-                          fontFamily: FM, fontSize: 11, fontWeight: 600,
-                          padding: "5px 12px", borderRadius: 6,
-                          border: "1px solid #E5E5E5", cursor: "pointer",
-                          background: chartMode === m ? "#D4AF37" : "#F9F9F9",
+                        <button key={m} onClick={() => setChartMode(m)} className="active:scale-95" style={{
+                          fontFamily: FM, fontSize: 11, fontWeight: 700,
+                          padding: "5px 12px", borderRadius: 6, cursor: "pointer",
+                          background: chartMode === m 
+                            ? "linear-gradient(135deg,#D4AF37 0%,#C9A52E 100%)"
+                            : "linear-gradient(135deg,rgba(107,114,128,0.08) 0%,rgba(107,114,128,0.04) 100%)",
+                          border: chartMode === m 
+                            ? "1px solid rgba(212,175,55,0.6)"
+                            : "1px solid rgba(107,114,128,0.2)",
                           color: chartMode === m ? "#1A1A1A" : "#6B7280",
-                        }}>
+                          boxShadow: chartMode === m 
+                            ? "0 2px 6px rgba(212,175,55,0.3),inset 0 1px 0 rgba(255,255,255,0.2)"
+                            : "0 1px 3px rgba(0,0,0,0.05),inset 0 1px 0 rgba(255,255,255,0.6)",
+                          transition: "all 0.15s",
+                        }}
+                          onMouseEnter={e => { const el = e.currentTarget as HTMLElement; el.style.transform="translateY(-1px)"; el.style.boxShadow=chartMode === m ? "0 4px 10px rgba(212,175,55,0.4),inset 0 1px 0 rgba(255,255,255,0.2)" : "0 3px 8px rgba(0,0,0,0.08),inset 0 1px 0 rgba(255,255,255,0.6)"; }}
+                          onMouseLeave={e => { const el = e.currentTarget as HTMLElement; el.style.transform="translateY(0)"; el.style.boxShadow=chartMode === m ? "0 2px 6px rgba(212,175,55,0.3),inset 0 1px 0 rgba(255,255,255,0.2)" : "0 1px 3px rgba(0,0,0,0.05),inset 0 1px 0 rgba(255,255,255,0.6)"; }}>
                           {m.charAt(0).toUpperCase() + m.slice(1)}
                         </button>
                       ))}

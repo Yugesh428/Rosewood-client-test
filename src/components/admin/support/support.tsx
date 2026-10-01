@@ -3,8 +3,8 @@
 import { useState, useEffect } from "react";
 import { Trash2, Eye, AlertCircle, CheckCircle, Clock, XCircle, Send } from "lucide-react";
 
-const FM = "var(--font-montserrat)";
-const FH = "var(--font-montserrat)";
+const FM = "var(--font-montserrat), 'Montserrat', sans-serif";
+const FH = "var(--font-cinzel), 'Cinzel', serif";
 
 type Ticket = {
   id: string;
@@ -181,7 +181,7 @@ export default function SupportTicketsAdmin() {
   return (
     <div style={{ fontFamily: FM }}>
       {/* Header */}
-      <div style={{ marginBottom: "32px" }}>
+      <div style={{ marginBottom: "32px", paddingTop: "8px", paddingLeft: "40px", paddingRight: "40px" }}>
         <h1 style={{ fontFamily: FH, fontSize: "32px", fontWeight: 700, color: "#1A1A1A", marginBottom: "8px" }}>
           Customer Support
         </h1>
@@ -298,17 +298,39 @@ export default function SupportTicketsAdmin() {
                     <div style={{ display: "flex", gap: "8px", justifyContent: "flex-end" }}>
                       <button
                         onClick={() => openTicketModal(ticket)}
-                        style={{ padding: "8px", border: "1px solid #E5E5E5", borderRadius: "6px", background: "#fff", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}
+                        style={{ 
+                          padding: "6px 14px", border: "1px solid rgba(212,175,55,0.35)", borderRadius: "6px",
+                          background: "linear-gradient(135deg, rgba(212,175,55,0.12) 0%, rgba(212,175,55,0.06) 100%)",
+                          cursor: "pointer", display: "flex", alignItems: "center", gap: "6px",
+                          fontSize: "11px", fontWeight: 600, color: "#b8952e",
+                          fontFamily: FM, whiteSpace: "nowrap",
+                          boxShadow: "0 1px 3px rgba(212,175,55,0.15), inset 0 1px 0 rgba(255,255,255,0.6)",
+                          transition: "all 0.15s ease",
+                        }}
+                        onMouseEnter={e => { const el = e.currentTarget as HTMLElement; el.style.background = "linear-gradient(135deg, rgba(212,175,55,0.22) 0%, rgba(212,175,55,0.12) 100%)"; el.style.transform = "translateY(-1px)"; el.style.boxShadow = "0 4px 10px rgba(212,175,55,0.2), inset 0 1px 0 rgba(255,255,255,0.6)"; }}
+                        onMouseLeave={e => { const el = e.currentTarget as HTMLElement; el.style.background = "linear-gradient(135deg, rgba(212,175,55,0.12) 0%, rgba(212,175,55,0.06) 100%)"; el.style.transform = "translateY(0)"; el.style.boxShadow = "0 1px 3px rgba(212,175,55,0.15), inset 0 1px 0 rgba(255,255,255,0.6)"; }}
                         title="View Details"
                       >
-                        <Eye size={16} color="#1A1A1A" />
+                        <Eye size={13} color="#b8952e" />
+                        View
                       </button>
                       <button
                         onClick={() => handleDelete(ticket.id)}
-                        style={{ padding: "8px", border: "1px solid #FEE2E2", borderRadius: "6px", background: "#FEF2F2", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}
+                        style={{ 
+                          padding: "6px 14px", border: "1px solid rgba(239,68,68,0.3)", borderRadius: "6px",
+                          background: "linear-gradient(135deg, rgba(239,68,68,0.10) 0%, rgba(239,68,68,0.05) 100%)",
+                          cursor: "pointer", display: "flex", alignItems: "center", gap: "6px",
+                          fontSize: "11px", fontWeight: 600, color: "#DC2626",
+                          fontFamily: FM, whiteSpace: "nowrap",
+                          boxShadow: "0 1px 3px rgba(239,68,68,0.12), inset 0 1px 0 rgba(255,255,255,0.6)",
+                          transition: "all 0.15s ease",
+                        }}
+                        onMouseEnter={e => { const el = e.currentTarget as HTMLElement; el.style.background = "linear-gradient(135deg, rgba(239,68,68,0.18) 0%, rgba(239,68,68,0.10) 100%)"; el.style.transform = "translateY(-1px)"; el.style.boxShadow = "0 4px 10px rgba(239,68,68,0.2), inset 0 1px 0 rgba(255,255,255,0.6)"; }}
+                        onMouseLeave={e => { const el = e.currentTarget as HTMLElement; el.style.background = "linear-gradient(135deg, rgba(239,68,68,0.10) 0%, rgba(239,68,68,0.05) 100%)"; el.style.transform = "translateY(0)"; el.style.boxShadow = "0 1px 3px rgba(239,68,68,0.12), inset 0 1px 0 rgba(255,255,255,0.6)"; }}
                         title="Delete"
                       >
-                        <Trash2 size={16} color="#DC2626" />
+                        <Trash2 size={13} />
+                        Delete
                       </button>
                     </div>
                   </td>
@@ -392,7 +414,19 @@ export default function SupportTicketsAdmin() {
                 <button
                   onClick={handleSaveReply}
                   disabled={savingReply || !adminReply.trim()}
-                  style={{ marginTop: "12px", padding: "10px 20px", background: savingReply || !adminReply.trim() ? "#E5E5E5" : "#D4AF37", color: savingReply || !adminReply.trim() ? "#6B6B6B" : "#1A1A1A", border: "none", borderRadius: "6px", fontSize: "13px", fontWeight: 600, cursor: savingReply || !adminReply.trim() ? "not-allowed" : "pointer", display: "flex", alignItems: "center", gap: "8px" }}
+                  style={{
+                    marginTop: "12px", padding: "10px 22px",
+                    background: (savingReply || !adminReply.trim()) ? "linear-gradient(135deg, #E5E5E5 0%, #D5D5D5 100%)" : "linear-gradient(135deg, #D4AF37 0%, #C9A52E 100%)",
+                    color: (savingReply || !adminReply.trim()) ? "#9CA3AF" : "#1A1A1A",
+                    border: (savingReply || !adminReply.trim()) ? "1px solid #D5D5D5" : "1px solid rgba(212,175,55,0.6)",
+                    borderRadius: "6px", fontSize: "13px", fontWeight: 600,
+                    cursor: (savingReply || !adminReply.trim()) ? "not-allowed" : "pointer",
+                    display: "flex", alignItems: "center", gap: "8px",
+                    boxShadow: (savingReply || !adminReply.trim()) ? "none" : "0 2px 8px rgba(212,175,55,0.35), inset 0 1px 0 rgba(255,255,255,0.18)",
+                    transition: "all 0.15s ease",
+                  }}
+                  onMouseEnter={e => { if (!savingReply && adminReply.trim()) { const el = e.currentTarget as HTMLElement; el.style.transform = "translateY(-1px)"; el.style.boxShadow = "0 6px 16px rgba(212,175,55,0.4), inset 0 1px 0 rgba(255,255,255,0.18)"; }}}
+                  onMouseLeave={e => { if (!savingReply && adminReply.trim()) { const el = e.currentTarget as HTMLElement; el.style.transform = "translateY(0)"; el.style.boxShadow = "0 2px 8px rgba(212,175,55,0.35), inset 0 1px 0 rgba(255,255,255,0.18)"; }}}
                 >
                   <Send size={14} />
                   {savingReply ? "Saving..." : "Save Reply"}

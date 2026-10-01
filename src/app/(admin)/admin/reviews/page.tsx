@@ -193,9 +193,29 @@ export default function ReviewsPage() {
                         <button
                           onClick={() => handleDelete(r.id, r.product?.productName ?? "product")}
                           title="Delete review"
-                          className="p-1.5 rounded-md hover:bg-red-50 text-red-500 transition-colors"
+                          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded text-xs font-semibold whitespace-nowrap"
+                          style={{
+                            background: "linear-gradient(135deg, rgba(239,68,68,0.10) 0%, rgba(239,68,68,0.05) 100%)",
+                            color: "#dc2626",
+                            border: "1px solid rgba(239,68,68,0.3)",
+                            boxShadow: "0 1px 3px rgba(239,68,68,0.12), inset 0 1px 0 rgba(255,255,255,0.6)",
+                            transition: "all 0.15s ease",
+                          }}
+                          onMouseEnter={e => {
+                            const el = e.currentTarget as HTMLElement;
+                            el.style.background = "linear-gradient(135deg, rgba(239,68,68,0.18) 0%, rgba(239,68,68,0.10) 100%)";
+                            el.style.transform = "translateY(-1px)";
+                            el.style.boxShadow = "0 4px 10px rgba(239,68,68,0.2), inset 0 1px 0 rgba(255,255,255,0.6)";
+                          }}
+                          onMouseLeave={e => {
+                            const el = e.currentTarget as HTMLElement;
+                            el.style.background = "linear-gradient(135deg, rgba(239,68,68,0.10) 0%, rgba(239,68,68,0.05) 100%)";
+                            el.style.transform = "translateY(0)";
+                            el.style.boxShadow = "0 1px 3px rgba(239,68,68,0.12), inset 0 1px 0 rgba(255,255,255,0.6)";
+                          }}
                         >
-                          <Trash2 className="w-4 h-4" />
+                          <Trash2 className="w-3.5 h-3.5" />
+                          Delete
                         </button>
                       </td>
                     </tr>

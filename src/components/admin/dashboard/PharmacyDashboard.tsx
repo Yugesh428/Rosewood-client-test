@@ -19,7 +19,7 @@ import {
 } from "lucide-react";
 
 const FM = "var(--font-montserrat), 'Montserrat', sans-serif";
-const FH = "var(--font-montserrat), 'Montserrat', sans-serif";
+const FH = "var(--font-cinzel), 'Cinzel', serif";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -224,12 +224,13 @@ export default function PharmacyDashboard({ userName }: { userName?: string | nu
                 fontFamily: FM,
                 fontSize: "13px",
                 padding: "8px 16px",
-                border: "1px solid #E5E5E5",
+                border: "1px solid #D5D5D5",
                 borderRadius: "6px",
                 backgroundColor: "#FFFFFF",
                 color: "#333",
                 cursor: "pointer",
-                outline: "none"
+                outline: "none",
+                boxShadow: "0 1px 3px rgba(0,0,0,0.07), inset 0 1px 0 rgba(255,255,255,0.8)",
               }}
             >
               {timeFilters.map((filter) => (
@@ -240,44 +241,73 @@ export default function PharmacyDashboard({ userName }: { userName?: string | nu
             </select>
 
             <button
-              style={{
-                fontFamily: FM,
-                fontSize: "13px",
-                padding: "8px 16px",
-                border: "1px solid #D4AF37",
-                borderRadius: "6px",
-                backgroundColor: "transparent",
-                color: "#D4AF37",
-                cursor: "pointer",
-                display: "flex",
-                alignItems: "center",
-                gap: "6px",
-                fontWeight: 500
-              }}
-            >
-              <Download className="w-4 h-4" />
-              Export Report
-            </button>
+              className="btn-flip-dashboard btn-flip-dashboard-export active:scale-95"
+              data-front="📥 Export Report"
+              data-back="📥 Export Report"
+            />
 
             <button
               onClick={() => {
                 setLastUpdated(new Date());
                 fetchDashboardData();
               }}
-              style={{
-                padding: "8px",
-                border: "1px solid #E5E5E5",
-                borderRadius: "6px",
-                backgroundColor: "#FFFFFF",
-                color: "#666",
-                cursor: "pointer",
-                display: "flex",
-                alignItems: "center"
-              }}
+              className="btn-flip-dashboard btn-flip-dashboard-refresh active:scale-95"
+              data-front="🔄"
+              data-back="🔄"
               title="Refresh"
-            >
-              <RefreshCw className="w-4 h-4" />
-            </button>
+            />
+            
+            <style>{`
+              .btn-flip-dashboard {
+                opacity: 1; outline: 0; line-height: 36px;
+                position: relative; text-align: center;
+                letter-spacing: 0.04em; display: inline-block;
+                text-decoration: none;
+                font-family: var(--font-montserrat),'Montserrat',sans-serif;
+                font-size: 13px; font-weight: 600;
+                cursor: pointer; border: none; background: transparent; padding: 0;
+              }
+              .btn-flip-dashboard:hover:after  { opacity: 1; transform: translateY(0) rotateX(0); }
+              .btn-flip-dashboard:hover:before { opacity: 0; transform: translateY(50%) rotateX(90deg); }
+              .btn-flip-dashboard:after {
+                top: 0; left: 0; opacity: 0; width: 100%; display: block;
+                transition: 0.42s cubic-bezier(0.23,1,0.32,1);
+                position: absolute; content: attr(data-back);
+                transform: translateY(-50%) rotateX(90deg);
+                padding: 0 18px; border-radius: 6px;
+              }
+              .btn-flip-dashboard:before {
+                top: 0; left: 0; opacity: 1; display: block;
+                padding: 0 18px; line-height: 36px;
+                transition: 0.42s cubic-bezier(0.23,1,0.32,1);
+                position: relative; content: attr(data-front);
+                transform: translateY(0) rotateX(0); border-radius: 6px;
+              }
+              
+              .btn-flip-dashboard-export:before {
+                background: linear-gradient(135deg, rgba(212,175,55,0.14) 0%, rgba(212,175,55,0.06) 100%);
+                color: #b8952e; border: 1px solid rgba(212,175,55,0.55);
+                box-shadow: 0 1px 4px rgba(212,175,55,0.18), inset 0 1px 0 rgba(255,255,255,0.6);
+              }
+              .btn-flip-dashboard-export:after {
+                background: linear-gradient(135deg, #D4AF37 0%, #C9A52E 100%);
+                color: #1A1A1A; border: 1px solid rgba(212,175,55,0.6);
+                box-shadow: 0 5px 14px rgba(212,175,55,0.38), inset 0 1px 0 rgba(255,255,255,0.2);
+              }
+              
+              .btn-flip-dashboard-refresh:before {
+                background: linear-gradient(135deg, #FFFFFF 0%, #F5F5F5 100%);
+                color: #666; border: 1px solid #D5D5D5;
+                box-shadow: 0 1px 3px rgba(0,0,0,0.08), inset 0 1px 0 rgba(255,255,255,0.9);
+                padding: 0 10px;
+              }
+              .btn-flip-dashboard-refresh:after {
+                background: linear-gradient(135deg, #4B5563 0%, #374151 100%);
+                color: #E5E7EB; border: 1px solid rgba(255,255,255,0.1);
+                box-shadow: 0 4px 10px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.15);
+                padding: 0 10px;
+              }
+            `}</style>
           </div>
         </div>
 

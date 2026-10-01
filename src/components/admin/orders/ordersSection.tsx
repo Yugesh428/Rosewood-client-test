@@ -6,7 +6,7 @@ import { toast } from "sonner";
 import OrdersDashboard from "./OrdersDashboard";
 
 const FM = "var(--font-montserrat), 'Montserrat', sans-serif";
-const FH = "var(--font-montserrat), 'Montserrat', sans-serif";
+const FH = "var(--font-cinzel), 'Cinzel', serif";
 
 // ─── Types ─────────────────────────────────────────────────────────────────────
 

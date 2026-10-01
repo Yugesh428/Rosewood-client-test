@@ -5,7 +5,7 @@ import { toast } from "sonner";
 import { Plus } from "lucide-react";
 
 const FM = "var(--font-montserrat), 'Montserrat', sans-serif";
-const FH = "var(--font-montserrat), 'Montserrat', sans-serif";
+const FH = "var(--font-cinzel), 'Cinzel', serif";
 
 type Faq = {
   id: string;
@@ -193,15 +193,51 @@ export default function FaqSection() {
               <strong style={{ color: "#22c55e" }}>{faqs.filter((f) => f.isActive).length}</strong> active
             </p>
           </div>
-          <button
-            onClick={openCreate}
-            className="flex items-center gap-1.5 px-4 py-2 rounded text-sm text-white font-semibold transition-all duration-200 active:scale-95"
-            style={{ backgroundColor: "#D4AF37", fontFamily: FM, fontWeight: 600, boxShadow: "0 2px 8px rgba(212,175,55,0.35)" }}
-            onMouseEnter={(e) => { const el = e.currentTarget as HTMLElement; el.style.backgroundColor = "#b8952e"; el.style.transform = "translateY(-1px)"; }}
-            onMouseLeave={(e) => { const el = e.currentTarget as HTMLElement; el.style.backgroundColor = "#D4AF37"; el.style.transform = "translateY(0)"; }}
-          >
-            <Plus className="w-3.5 h-3.5" /> Add FAQ
-          </button>
+        <button
+          onClick={openCreate}
+          className="btn-flip-faq btn-flip-faq-add active:scale-95"
+          data-front="❓ Add FAQ"
+          data-back="❓ Add FAQ"
+        />
+        
+        <style>{`
+          .btn-flip-faq {
+            opacity: 1; outline: 0; line-height: 38px;
+            position: relative; text-align: center;
+            letter-spacing: 0.04em; display: inline-block;
+            text-decoration: none;
+            font-family: var(--font-montserrat),'Montserrat',sans-serif;
+            font-size: 13px; font-weight: 700;
+            cursor: pointer; border: none; background: transparent; padding: 0;
+          }
+          .btn-flip-faq:hover:after  { opacity: 1; transform: translateY(0) rotateX(0); }
+          .btn-flip-faq:hover:before { opacity: 0; transform: translateY(50%) rotateX(90deg); }
+          .btn-flip-faq:after {
+            top: 0; left: 0; opacity: 0; width: 100%; display: block;
+            transition: 0.42s cubic-bezier(0.23,1,0.32,1);
+            position: absolute; content: attr(data-back);
+            transform: translateY(-50%) rotateX(90deg);
+            padding: 0 16px; border-radius: 6px;
+          }
+          .btn-flip-faq:before {
+            top: 0; left: 0; opacity: 1; display: block;
+            padding: 0 16px; line-height: 38px;
+            transition: 0.42s cubic-bezier(0.23,1,0.32,1);
+            position: relative; content: attr(data-front);
+            transform: translateY(0) rotateX(0); border-radius: 6px;
+          }
+          
+          .btn-flip-faq-add:before {
+            background: linear-gradient(135deg, #D4AF37 0%, #C9A52E 100%);
+            color: #1A1A1A; border: 1px solid rgba(212,175,55,0.6);
+            box-shadow: 0 2px 8px rgba(212,175,55,0.4), 0 1px 2px rgba(0,0,0,0.1), inset 0 1px 0 rgba(255,255,255,0.15);
+          }
+          .btn-flip-faq-add:after {
+            background: linear-gradient(135deg, #1A1A1A 0%, #2a2a2a 100%);
+            color: #D4AF37; border: 1px solid rgba(255,255,255,0.08);
+            box-shadow: 0 6px 16px rgba(0,0,0,0.28), inset 0 1px 0 rgba(255,255,255,0.06);
+          }
+        `}</style>
         </div>
 
         {/* Filters */}
@@ -305,8 +341,26 @@ export default function FaqSection() {
                   <div className="flex items-center gap-1.5 flex-shrink-0">
                     <button
                       onClick={() => openEdit(faq)}
-                      className="flex items-center gap-1 px-2.5 py-1 rounded text-[11px] font-semibold transition-colors"
-                      style={{ fontFamily: FM, backgroundColor: "rgba(212,175,55,0.08)", color: "#b8952e", border: "1px solid rgba(212,175,55,0.25)" }}
+                      className="flex items-center gap-1 px-2.5 py-1 rounded text-[11px] font-semibold transition-all duration-150 active:scale-95"
+                      style={{
+                        fontFamily: FM,
+                        background: "linear-gradient(135deg, rgba(212,175,55,0.12) 0%, rgba(212,175,55,0.06) 100%)",
+                        color: "#b8952e",
+                        border: "1px solid rgba(212,175,55,0.35)",
+                        boxShadow: "0 1px 3px rgba(212,175,55,0.15), inset 0 1px 0 rgba(255,255,255,0.5)",
+                      }}
+                      onMouseEnter={e => {
+                        const el = e.currentTarget as HTMLElement;
+                        el.style.background = "linear-gradient(135deg, rgba(212,175,55,0.22) 0%, rgba(212,175,55,0.12) 100%)";
+                        el.style.transform = "translateY(-1px)";
+                        el.style.boxShadow = "0 3px 8px rgba(212,175,55,0.25), inset 0 1px 0 rgba(255,255,255,0.5)";
+                      }}
+                      onMouseLeave={e => {
+                        const el = e.currentTarget as HTMLElement;
+                        el.style.background = "linear-gradient(135deg, rgba(212,175,55,0.12) 0%, rgba(212,175,55,0.06) 100%)";
+                        el.style.transform = "translateY(0)";
+                        el.style.boxShadow = "0 1px 3px rgba(212,175,55,0.15), inset 0 1px 0 rgba(255,255,255,0.5)";
+                      }}
                     >
                       <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
                         <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
@@ -316,20 +370,51 @@ export default function FaqSection() {
                     </button>
                     <button
                       onClick={() => handleToggle(faq.id)}
-                      className="flex items-center gap-1 px-2.5 py-1 rounded text-[11px] font-semibold transition-colors"
+                      className="flex items-center gap-1 px-2.5 py-1 rounded text-[11px] font-semibold transition-all duration-150 active:scale-95"
                       style={{
                         fontFamily: FM,
-                        backgroundColor: faq.isActive ? "rgba(239,68,68,0.08)" : "rgba(34,197,94,0.08)",
-                        color: faq.isActive ? "#dc2626" : "#16a34a",
-                        border: `1px solid ${faq.isActive ? "rgba(239,68,68,0.2)" : "rgba(34,197,94,0.2)"}`,
+                        background: faq.isActive
+                          ? "linear-gradient(135deg, rgba(107,114,128,0.10) 0%, rgba(107,114,128,0.05) 100%)"
+                          : "linear-gradient(135deg, rgba(34,197,94,0.12) 0%, rgba(34,197,94,0.06) 100%)",
+                        color: faq.isActive ? "#6B7280" : "#16a34a",
+                        border: `1px solid ${faq.isActive ? "rgba(107,114,128,0.25)" : "rgba(34,197,94,0.3)"}`,
+                        boxShadow: "0 1px 3px rgba(0,0,0,0.06), inset 0 1px 0 rgba(255,255,255,0.5)",
+                      }}
+                      onMouseEnter={e => {
+                        const el = e.currentTarget as HTMLElement;
+                        el.style.transform = "translateY(-1px)";
+                        el.style.boxShadow = "0 3px 8px rgba(0,0,0,0.10), inset 0 1px 0 rgba(255,255,255,0.5)";
+                      }}
+                      onMouseLeave={e => {
+                        const el = e.currentTarget as HTMLElement;
+                        el.style.transform = "translateY(0)";
+                        el.style.boxShadow = "0 1px 3px rgba(0,0,0,0.06), inset 0 1px 0 rgba(255,255,255,0.5)";
                       }}
                     >
                       {faq.isActive ? "Hide" : "Show"}
                     </button>
                     <button
                       onClick={() => handleDelete(faq.id, faq.question)}
-                      className="flex items-center gap-1 px-2.5 py-1 rounded text-[11px] font-semibold transition-colors"
-                      style={{ fontFamily: FM, backgroundColor: "rgba(239,68,68,0.06)", color: "#dc2626", border: "1px solid rgba(239,68,68,0.15)" }}
+                      className="flex items-center gap-1 px-2.5 py-1 rounded text-[11px] font-semibold transition-all duration-150 active:scale-95"
+                      style={{
+                        fontFamily: FM,
+                        background: "linear-gradient(135deg, rgba(239,68,68,0.10) 0%, rgba(239,68,68,0.05) 100%)",
+                        color: "#dc2626",
+                        border: "1px solid rgba(239,68,68,0.25)",
+                        boxShadow: "0 1px 3px rgba(239,68,68,0.12), inset 0 1px 0 rgba(255,255,255,0.5)",
+                      }}
+                      onMouseEnter={e => {
+                        const el = e.currentTarget as HTMLElement;
+                        el.style.background = "linear-gradient(135deg, rgba(239,68,68,0.18) 0%, rgba(239,68,68,0.10) 100%)";
+                        el.style.transform = "translateY(-1px)";
+                        el.style.boxShadow = "0 3px 8px rgba(239,68,68,0.2), inset 0 1px 0 rgba(255,255,255,0.5)";
+                      }}
+                      onMouseLeave={e => {
+                        const el = e.currentTarget as HTMLElement;
+                        el.style.background = "linear-gradient(135deg, rgba(239,68,68,0.10) 0%, rgba(239,68,68,0.05) 100%)";
+                        el.style.transform = "translateY(0)";
+                        el.style.boxShadow = "0 1px 3px rgba(239,68,68,0.12), inset 0 1px 0 rgba(255,255,255,0.5)";
+                      }}
                     >
                       <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
                         <polyline points="3 6 5 6 21 6" /><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" /><path d="M10 11v6" /><path d="M14 11v6" /><path d="M9 6V4h6v2" />

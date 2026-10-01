@@ -7,7 +7,7 @@ import Link from "next/link";
 import { toast } from "sonner";
 import { ArrowLeft, Edit, Eye, EyeOff, Package, Tag, Layers, FlaskConical, ShieldAlert, BookOpen, Star, ChevronDown, ChevronUp } from "lucide-react";
 
-const FONT_HEADING    = "var(--font-montserrat), 'Montserrat', sans-serif";
+const FONT_HEADING    = "var(--font-cinzel), 'Cinzel', serif";
 const FONT_MONTSERRAT = "var(--font-montserrat), 'Montserrat', sans-serif";
 
 type Ingredient = { id?: string; ingredientName: string; quantity: string; unit: string; sortOrder: number };

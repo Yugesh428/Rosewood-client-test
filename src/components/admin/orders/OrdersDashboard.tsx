@@ -8,7 +8,7 @@ import {
 import { ShoppingBag, TrendingUp, Clock, CheckCircle, ChevronDown, XCircle } from "lucide-react";
 
 const FM = "var(--font-montserrat), 'Montserrat', sans-serif";
-const FH = "var(--font-montserrat), 'Montserrat', sans-serif";
+const FH = "var(--font-cinzel), 'Cinzel', serif";
 
 const STATUS_COLORS_MAP: Record<string, string> = {
   pending:    "#D4AF37",

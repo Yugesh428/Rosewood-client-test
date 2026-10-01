@@ -47,8 +47,8 @@ interface ReportData {
 
 // ── Constants ────────────────────────────────────────────────────────────────
 
-const FH = "var(--font-heading),'Libre Baskerville',serif";
-const FM = "var(--font-montserrat),'Montserrat',sans-serif";
+const FH = "var(--font-cinzel), 'Cinzel', serif";
+const FM = "var(--font-montserrat), 'Montserrat', sans-serif";
 
 const REPORT_CATEGORIES = [
   {
@@ -233,37 +233,82 @@ export default function PharmacyReports() {
               <button
                 onClick={() => exportReport("pdf")}
                 disabled={!reportData}
-                style={{
-                  display: "flex", alignItems: "center", gap: 6, padding: "8px 14px",
-                  background: reportData ? "#FFFFFF" : "#F9FAFB",
-                  border: "1px solid #E5E5E5", borderRadius: 8,
-                  color: reportData ? "#374151" : "#9CA3AF",
-                  fontSize: 13, fontFamily: FM, cursor: reportData ? "pointer" : "not-allowed",
-                  fontWeight: 600, transition: "all 0.15s",
-                }}
-                onMouseEnter={(e) => reportData && (e.currentTarget.style.background = "#F9FAFB")}
-                onMouseLeave={(e) => reportData && (e.currentTarget.style.background = "#FFFFFF")}>
-                <Download size={14} />
-                Export PDF
-              </button>
-
+                className="btn-flip-reports btn-flip-reports-pdf active:scale-95"
+                data-front="📥 Export PDF"
+                data-back="📥 Export PDF"
+              />
+              
               <button
                 onClick={() => exportReport("csv")}
                 disabled={!reportData}
-                style={{
-                  display: "flex", alignItems: "center", gap: 6, padding: "8px 14px",
-                  background: reportData ? "#D4AF37" : "#E5E5E5",
-                  border: "none", borderRadius: 8,
-                  color: reportData ? "#1A1A1A" : "#9CA3AF",
-                  fontSize: 13, fontFamily: FM,
-                  cursor: reportData ? "pointer" : "not-allowed",
-                  fontWeight: 600, transition: "all 0.15s",
-                }}
-                onMouseEnter={(e) => reportData && (e.currentTarget.style.background = "#C9A532")}
-                onMouseLeave={(e) => reportData && (e.currentTarget.style.background = "#D4AF37")}>
-                <FileSpreadsheet size={14} />
-                Export Excel
-              </button>
+                className="btn-flip-reports btn-flip-reports-excel active:scale-95"
+                data-front="📊 Export Excel"
+                data-back="📊 Export Excel"
+              />
+              
+              <style>{`
+                .btn-flip-reports {
+                  opacity: 1; outline: 0; line-height: 38px;
+                  position: relative; text-align: center;
+                  letter-spacing: 0.05em; display: inline-block;
+                  text-decoration: none;
+                  font-family: var(--font-montserrat),'Montserrat',sans-serif;
+                  font-size: 13px; font-weight: 700;
+                  cursor: pointer; border: none; background: transparent; padding: 0;
+                }
+                .btn-flip-reports:disabled {
+                  cursor: not-allowed;
+                  opacity: 0.5;
+                }
+                .btn-flip-reports:not(:disabled):hover:after  { opacity: 1; transform: translateY(0) rotateX(0); }
+                .btn-flip-reports:not(:disabled):hover:before { opacity: 0; transform: translateY(50%) rotateX(90deg); }
+                .btn-flip-reports:after {
+                  top: 0; left: 0; opacity: 0; width: 100%; display: block;
+                  transition: 0.42s cubic-bezier(0.23,1,0.32,1);
+                  position: absolute; content: attr(data-back);
+                  transform: translateY(-50%) rotateX(90deg);
+                  padding: 0 16px; border-radius: 8px;
+                }
+                .btn-flip-reports:before {
+                  top: 0; left: 0; opacity: 1; display: block;
+                  padding: 0 16px; line-height: 38px;
+                  transition: 0.42s cubic-bezier(0.23,1,0.32,1);
+                  position: relative; content: attr(data-front);
+                  transform: translateY(0) rotateX(0); border-radius: 8px;
+                }
+                
+                .btn-flip-reports-pdf:before {
+                  background: linear-gradient(135deg,rgba(107,114,128,0.10) 0%,rgba(107,114,128,0.05) 100%);
+                  color: #6B7280; border: 1px solid rgba(107,114,128,0.25);
+                  box-shadow: 0 2px 6px rgba(0,0,0,0.05),inset 0 1px 0 rgba(255,255,255,0.6);
+                }
+                .btn-flip-reports-pdf:after {
+                  background: linear-gradient(135deg,#4B5563 0%,#374151 100%);
+                  color: #E5E7EB; border: 1px solid rgba(255,255,255,0.1);
+                  box-shadow: 0 4px 12px rgba(0,0,0,0.2),inset 0 1px 0 rgba(255,255,255,0.15);
+                }
+                .btn-flip-reports-pdf:disabled:before {
+                  background: linear-gradient(135deg,rgba(107,114,128,0.05) 0%,rgba(107,114,128,0.02) 100%);
+                  color: #9CA3AF; border: 1px solid rgba(107,114,128,0.15);
+                  box-shadow: 0 1px 3px rgba(0,0,0,0.03);
+                }
+                
+                .btn-flip-reports-excel:before {
+                  background: linear-gradient(135deg,#D4AF37 0%,#C9A52E 100%);
+                  color: #1A1A1A; border: 1px solid rgba(212,175,55,0.6);
+                  box-shadow: 0 2px 8px rgba(212,175,55,0.42),0 1px 2px rgba(0,0,0,0.08),inset 0 1px 0 rgba(255,255,255,0.2);
+                }
+                .btn-flip-reports-excel:after {
+                  background: linear-gradient(135deg,#1A1A1A 0%,#2a2a2a 100%);
+                  color: #D4AF37; border: 1px solid rgba(255,255,255,0.08);
+                  box-shadow: 0 4px 16px rgba(0,0,0,0.28),inset 0 1px 0 rgba(255,255,255,0.06);
+                }
+                .btn-flip-reports-excel:disabled:before {
+                  background: linear-gradient(135deg,rgba(212,175,55,0.3) 0%,rgba(201,165,46,0.3) 100%);
+                  color: #9CA3AF; border: 1px solid rgba(212,175,55,0.3);
+                  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+                }
+              `}</style>
             </div>
           </div>
 

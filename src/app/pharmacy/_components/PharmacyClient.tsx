@@ -165,7 +165,7 @@ function ProductCard({ product, highlight = false }: { product: DBProduct; highl
       {/* Image container — contain so full product is always visible */}
       <div className="relative aspect-square bg-white overflow-hidden">
         {product.discount > 0 && (
-          <span className="absolute top-2 left-2 z-10 text-white text-[9px] font-semibold px-2 py-0.5 uppercase tracking-wide bg-[#c0392b]">
+          <span className="absolute top-1.5 md:top-2 left-1.5 md:left-2 z-10 text-white text-[8px] md:text-[9px] font-semibold px-1.5 md:px-2 py-0.5 uppercase tracking-wide bg-[#c0392b] rounded-sm">
             -{product.discount}%
           </span>
         )}
@@ -173,13 +173,13 @@ function ProductCard({ product, highlight = false }: { product: DBProduct; highl
           src={product.productImage} 
           alt={product.productName} 
           fill
-          className="object-contain p-4 group-hover:scale-105 transition-transform duration-300" 
+          className="object-contain p-2 md:p-4 group-hover:scale-105 transition-transform duration-300" 
           sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
           unoptimized={product.productImage?.startsWith('http')}
         />
 
-        {/* Add to cart button — floats over image on hover */}
-        <div className="absolute inset-0 flex items-end justify-center pb-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none group-hover:pointer-events-auto">
+        {/* Add to cart button — floats over image on hover (desktop only) */}
+        <div className="hidden md:flex absolute inset-0 items-end justify-center pb-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none group-hover:pointer-events-auto">
           <button
             onClick={handleAddToCart}
             className="btn-flip-cart"
@@ -190,24 +190,24 @@ function ProductCard({ product, highlight = false }: { product: DBProduct; highl
       </div>
 
       {/* Product info */}
-      <div className="p-3 text-center">
+      <div className="p-2 md:p-3 text-center">
         {/* Category */}
         {product.category?.categoryName && (
-          <p className="text-[9px] uppercase tracking-widest text-gray-400 mb-1 font-sans">
+          <p className="text-[8px] md:text-[9px] uppercase tracking-widest text-gray-400 mb-0.5 md:mb-1 font-sans">
             {product.category.categoryName}
           </p>
         )}
         
         {/* Product name */}
-        <h3 className="text-sm font-medium text-gray-900 mb-1 line-clamp-2 font-sans leading-snug">
+        <h3 className="text-xs md:text-sm font-medium text-gray-900 mb-1 line-clamp-2 font-sans leading-snug">
           {product.productName}
         </h3>
 
         {/* Price row */}
-        <div className="flex items-center justify-center gap-2">
-          <p className="text-sm font-semibold text-gray-900 font-sans">£{price.toFixed(2)}</p>
+        <div className="flex items-center justify-center gap-1 md:gap-2">
+          <p className="text-xs md:text-sm font-semibold text-gray-900 font-sans">£{price.toFixed(2)}</p>
           {Number(product.originalPrice) > price && (
-            <p className="text-xs text-red-400 line-through font-sans">£{Number(product.originalPrice).toFixed(2)}</p>
+            <p className="text-[10px] md:text-xs text-red-400 line-through font-sans">£{Number(product.originalPrice).toFixed(2)}</p>
           )}
         </div>
       </div>
@@ -556,10 +556,10 @@ export default function PharmacyClient({ categories, products }: PharmacyClientP
   const resetPage  = () => setVisibleCount(PER_PAGE);
 
   return (
-    <div className="min-h-screen bg-white" style={{ paddingTop: '94px' }}>
+    <div className="min-h-screen bg-white" style={{ paddingTop: '64px' }}>
 
-      {/* ── Mega Menu Category Bar - Sticky at top, hideable ── */}
-      <div className="hidden md:block sticky top-[94px] z-20 overflow-visible">
+      {/* ── Mega Menu Category Bar - Sticky at top, desktop only ── */}
+      <div className="hidden md:block sticky top-[64px] z-20 overflow-visible">
         <MegaMenuBar
           categories={categories}
           selectedCategory={selectedCategory}
@@ -570,27 +570,49 @@ export default function PharmacyClient({ categories, products }: PharmacyClientP
       <CartDrawer open={cartOpen} onClose={() => setCartOpen(false)} />
 
       {/* Products Area - Full Width */}
-      <div className="w-full px-5 md:px-10 py-4 md:py-6">
+      <div className="w-full px-4 md:px-10 py-4 md:py-6">
         <div className="w-full">
+          
+          {/* Mobile Category Filter - Show on mobile only */}
+          <div className="md:hidden mb-4">
+            <label htmlFor="mobile-category" className="block text-xs uppercase tracking-wider text-gray-500 font-sans mb-2">
+              Filter by Category
+            </label>
+            <select
+              id="mobile-category"
+              value={selectedCategory || ""}
+              onChange={(e) => { 
+                setSelectedCategory(e.target.value || null); 
+                resetPage(); 
+              }}
+              className="w-full text-sm border border-gray-300 rounded-lg px-4 py-2.5 font-sans text-gray-700 focus:outline-none focus:border-[#D4AF37] transition-colors bg-white"
+            >
+              <option value="">All Products</option>
+              {categories.filter(c => !c.parentId).map(cat => (
+                <option key={cat.id} value={cat.id}>{cat.categoryName}</option>
+              ))}
+            </select>
+          </div>
+
           {/* Toolbar */}
           <div className="flex items-center justify-between mb-4 gap-2 flex-wrap">
-            <p className="text-sm text-gray-500 font-sans">
+            <p className="text-xs md:text-sm text-gray-500 font-sans">
               Showing <span className="font-semibold font-heading" style={{ color: "var(--color-text-heading)" }}>1-{paginated.length} of {filtered.length}</span> products
-              {urlSearch && <span className="ml-1.5"> for <span className="font-medium" style={{ color: "var(--color-text-heading)" }}>&quot;{urlSearch}&quot;</span></span>}
+              {urlSearch && <span className="ml-1.5 hidden sm:inline"> for <span className="font-medium" style={{ color: "var(--color-text-heading)" }}>&quot;{urlSearch}&quot;</span></span>}
               {selectedCategory && (
                 <button onClick={() => { setSelectedCategory(null); resetPage(); }}
-                  className="ml-2 text-[11px] hover:underline" style={{ color: "var(--color-primary)" }}>
+                  className="ml-2 text-[10px] md:text-[11px] hover:underline" style={{ color: "var(--color-primary)" }}>
                   × Clear
                 </button>
               )}
             </p>
             <div className="flex items-center gap-2">
-              <label htmlFor="sort-pharmacy" className="text-sm text-gray-600 font-sans hidden sm:block">Sort:</label>
+              <label htmlFor="sort-pharmacy" className="text-xs md:text-sm text-gray-600 font-sans hidden sm:block">Sort:</label>
               <select
                 id="sort-pharmacy"
                 value={sort}
                 onChange={(e) => { setSort(e.target.value); resetPage(); }}
-                className="text-sm border border-gray-300 rounded-md px-3 py-1.5 font-sans text-gray-700 focus:outline-none focus:border-[#D4AF37] transition-colors"
+                className="text-xs md:text-sm border border-gray-300 rounded-md px-2 md:px-3 py-1.5 font-sans text-gray-700 focus:outline-none focus:border-[#D4AF37] transition-colors"
               >
                 {SORT_OPTIONS.map(opt => (
                   <option key={opt.value} value={opt.value}>{opt.label}</option>
@@ -599,13 +621,13 @@ export default function PharmacyClient({ categories, products }: PharmacyClientP
             </div>
           </div>
 
-          {/* Grid — 4 products per row */}
+          {/* Grid — Responsive: 2 cols on mobile, 3 on tablet, 4 on desktop */}
           {paginated.length === 0 ? (
             <div className="text-center py-24">
               <p className="text-gray-400 font-sans text-sm">No products found.</p>
             </div>
           ) : (
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+            <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-4">
               {paginated.map(product => (
                 <div key={product.id} id={`product-${product.id}`}>
                   <ProductCard product={product} highlight={urlProduct === product.id} />
@@ -616,10 +638,10 @@ export default function PharmacyClient({ categories, products }: PharmacyClientP
 
           {/* Load More */}
           {hasMore && (
-            <div className="mt-10 flex justify-center">
+            <div className="mt-8 md:mt-10 flex justify-center">
               <button
                 onClick={() => setVisibleCount(v => v + PER_PAGE)}
-                className="px-10 py-3 text-xs uppercase tracking-widest font-sans font-medium border transition-all duration-300 rounded-full hover:scale-105"
+                className="px-8 md:px-10 py-2.5 md:py-3 text-xs uppercase tracking-widest font-sans font-medium border transition-all duration-300 rounded-full hover:scale-105 active:scale-95"
                 style={{
                   borderColor: "#D4AF37",
                   color: "#D4AF37",

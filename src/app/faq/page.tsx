@@ -51,7 +51,7 @@ function FaqItem({ faq, index, isOpen, onToggle }: {
           <span
             className="text-sm font-semibold leading-snug"
             style={{
-              fontFamily: "var(--font-montserrat), sans-serif",
+              fontFamily: "var(--font-montserrat), 'Montserrat', sans-serif",
               color: isOpen ? "#1A1A1A" : "#333",
             }}
           >
@@ -92,9 +92,9 @@ function FaqItem({ faq, index, isOpen, onToggle }: {
               <p
                 className="text-sm leading-relaxed"
                 style={{
-                  fontFamily: "var(--font-sans), sans-serif",
+                  fontFamily: "var(--font-sans), 'Inter', sans-serif",
                   color: "#4B4B4B",
-                  marginLeft: "calc(28px + 16px)", // align with question text
+                  marginLeft: "calc(28px + 16px)",
                 }}
               >
                 {faq.answer}
@@ -150,7 +150,7 @@ export default function FaqPage() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.4 }}
               className="text-xs tracking-[0.35em] uppercase font-semibold mb-3"
-              style={{ color: "#D4AF37", fontFamily: "var(--font-montserrat), sans-serif" }}
+              style={{ color: "#D4AF37", fontFamily: "var(--font-montserrat), 'Montserrat', sans-serif" }}
             >
               Support
             </motion.p>
@@ -159,7 +159,7 @@ export default function FaqPage() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5, delay: 0.05 }}
               className="text-5xl font-heading mb-4"
-              style={{ color: "#1A1A1A" }}
+              style={{ color: "#1A1A1A", fontFamily: "var(--font-cinzel), 'Cinzel', serif" }}
             >
               Frequently Asked Questions
             </motion.h1>
@@ -168,7 +168,7 @@ export default function FaqPage() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.4, delay: 0.1 }}
               className="text-sm leading-relaxed"
-              style={{ color: "#6B6B6B", fontFamily: "var(--font-sans), sans-serif" }}
+              style={{ color: "#6B6B6B", fontFamily: "var(--font-sans), 'Inter', sans-serif" }}
             >
               Everything you need to know about our pharmacy services. Can&apos;t find what you&apos;re looking for?{" "}
               <a href="/contact" className="text-[#D4AF37] hover:text-[#1A1A1A] transition-colors">Contact us</a>.
@@ -253,13 +253,13 @@ export default function FaqPage() {
                   <div className="w-8 h-[2px] bg-[#D4AF37] mb-4" />
                   <h3
                     className="text-xl mb-2"
-                    style={{ fontFamily: "var(--font-heading), serif", color: "#1A1A1A" }}
+                    style={{ fontFamily: "var(--font-cinzel), 'Cinzel', serif", color: "#1A1A1A" }}
                   >
                     Still have questions?
                   </h3>
                   <p
                     className="text-sm leading-relaxed mb-5"
-                    style={{ fontFamily: "var(--font-sans), sans-serif", color: "#6B6B6B" }}
+                    style={{ fontFamily: "var(--font-sans), 'Inter', sans-serif", color: "#6B6B6B" }}
                   >
                     Our team is here to help. Reach out and we&apos;ll get back to you within 24 hours.
                   </p>
