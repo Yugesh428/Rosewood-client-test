@@ -133,17 +133,27 @@ export default function AdminSidebar() {
     localStorage.setItem(EXPANDED_SECTIONS_KEY, JSON.stringify([...expandedSections]));
   }, [expandedSections, mounted]);
 
-  // Auto-expand section if current page is in it
+  // Auto-expand section if current page is in it, and collapse others
   useEffect(() => {
+    const sectionsToExpand = new Set<string>();
+    
     navSections.forEach((section) => {
       if (isNavSection(section)) {
         const hasActivePage = section.items.some((item) => pathname.startsWith(item.href));
-        if (hasActivePage && !expandedSections.has(section.label)) {
-          setExpandedSections((prev) => new Set(prev).add(section.label));
+        if (hasActivePage) {
+          sectionsToExpand.add(section.label);
         }
       }
     });
-  }, [pathname, expandedSections]);
+    
+    // Only update if the set has actually changed
+    const currentExpanded = Array.from(expandedSections).sort().join(',');
+    const newExpanded = Array.from(sectionsToExpand).sort().join(',');
+    
+    if (currentExpanded !== newExpanded) {
+      setExpandedSections(sectionsToExpand);
+    }
+  }, [pathname]);
 
   const toggleSection = (label: string) => {
     setExpandedSections((prev) => {
